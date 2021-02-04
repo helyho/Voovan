@@ -1,10 +1,11 @@
 {
-  "ServerName"             : "VoovanWebServer",                               //当前服务节点名称
-  "Host"                   : "127.0.0.1",                                       // 服务 IP 地址,默认0.0.0.0
+  "ServerName"             : "VoovanWebServer",                               // 当前服务节点名称
+  "Host"                   : "127.0.0.1",                                     // 服务 IP 地址,默认0.0.0.0
   "Port"                   : 28080,                                           // 服务端口,默认28080
   "ReadTimeout"            : 10,                                              // 连接超时时间(s),默认30秒
   "SendTimeout"            : 30,                                              // 连接超时时间(s),默认30秒
-  "IndexFiles"             : "index.htm,index.html,default.htm,default.htm",  //定义首页索引文件的名称
+  "IndexFiles"             : "index.htm,index.html,
+  default.htm,default.htm",
   "ContextPath"            : "WEBAPP",                                        // 上下文路径,绝对路径 "/"起始,相对路径 非"/" 起始,默认是WEBAPP
   "MatchRouteIgnoreCase"   : false,                                           // 匹配路由不区分大小写,默认是 false
   "CharacterSet"           : "GB2312",                                        // 默认字符集,默认 UTF-8
@@ -22,8 +23,8 @@
                                 "application/javascript",
                                 "application/json"],                          // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
   "AccessLog"              : false,                                           // 是否记录access.log,默认 true
-  "HotSwapInterval"        : 3,                                              //热加载检测时间间隔. 默认:0秒. 0:关闭
-  "LifeCycleClass"         : "org.voovan.test.http.WebLifeCycleClass", //配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
+  "HotSwapInterval"        : 3,                                               // 热加载检测时间间隔. 默认:0秒. 0:关闭
+  "LifeCycleClass"         : "org.voovan.test.http.WebLifeCycleClass",        // 配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   "PauseURL"               : "/img/logo.jpg",                                 // 服务器暂停状态下所有请求都会转向这个路由
   "Cache"                  : false,
   "maxRequestSize"         : 22 ,                                             //请求大小的限制(单位:kb), 大于这个值的连接将会被放弃, -1 不限制上传文件的大小. 默认值: 2mb
