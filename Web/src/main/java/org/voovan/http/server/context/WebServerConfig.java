@@ -49,7 +49,7 @@ public class WebServerConfig {
     private String lifeCycleClass           = null;
     private String pauseURL                 = null;
     private WeaveConfig weaveConfig         = null;
-    private int maxRequestSize              = 2048;         //2m
+    private int maxRequestSize              = 1024*10;         //单位:kb, 默认: 10m
     private boolean cache                   = false;
     private boolean enablePathVariables     = true;
     private boolean enableWebSocket         = true;
