@@ -19,6 +19,12 @@ import java.util.*;
 
 /**
  * JSON字符串分析成 Map
+ * 1.多行文本
+ * 2.行尾不精确效验逗号
+ * 3.键值对冒号可用等号代替
+ * 4.非精确效验双引号包裹
+ * 5.可使用单双引号进行包裹
+ * 6.支持 JAVA/C 语言的两种形式的注释以及井号 形式的注释
  *
  * @author helyho
  *
@@ -143,13 +149,20 @@ public class JSONDecode {
 
 				//====================  处理注释  ====================
 				if (!isString) {
+					//单行注释, # ......
+					if (currentChar == Global.CHAR_SHAPE){
+						isComment = 1;
+					}
+
 					if(currentChar == Global.CHAR_BACKSLASH && isComment == 0) {
+						//单行注释 like: // ......
 						if (nextChar != 0 && nextChar == Global.CHAR_BACKSLASH){
-							isComment = 1; //单行注释
+							isComment = 1;
 						}
 
+						//多行注释, like: /* ...... */
 						if (nextChar != 0 && nextChar == Global.CHAR_STAR) {
-							isComment = 2; //多行注释
+							isComment = 2;
 							if (currentChar == 65535) {
 								return root;
 							}
@@ -158,12 +171,14 @@ public class JSONDecode {
 					}
 
 					if(isComment > 0) {
-						if (isComment == 1 && currentChar == Global.CHAR_LF ) {
-							isComment = 0; //单行注释结束
+						//单行注释结束
+						if (isComment == 1 && currentChar == Global.CHAR_LF) {
+							isComment = 0;
 						}
 
+						//多行注释结束
 						if (isComment == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
-							isComment = 0; //多行注释结束
+							isComment = 0;
 							if (currentChar == 65535) {
 								return root;
 							}
