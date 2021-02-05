@@ -22,7 +22,7 @@ public class JSONDecodeUnit extends TestCase {
 									"\"bint\":56,"+
 									"\"string\":\"bi\\\"ngo\","+
 									"\"list\":["+
-										"\"tb2 list item\""+
+										"\"tb2 list\n item\""+
 									"],"+
 									"\"map\":{"+
 										"\"tb2 map item\":\"tb2 map item\""+
