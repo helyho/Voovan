@@ -127,6 +127,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
 		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
+		readByteBufferChannel.setThreadSafe(SocketContext.ASYNC_RECIVE);
 		sendByteBufferChannel.setThreadSafe(SocketContext.ASYNC_SEND);
 		messageLoader = new MessageLoader(this);
 		checkIdle();

@@ -20,14 +20,14 @@ import java.util.concurrent.TimeUnit;
  * Licence: Apache v2 License
  */
 public class ThreadPool {
-	private static int cpuCoreCount = Runtime.getRuntime().availableProcessors();
+	private static int CPU_CORE_COUNT = Runtime.getRuntime().availableProcessors();
 
-	protected static int MIN_POOL_SIZE = cpuCoreCount;
-	protected static int MAX_POOL_SIZE = cpuCoreCount;
+	protected static int MIN_POOL_SIZE = CPU_CORE_COUNT;
+	protected static int MAX_POOL_SIZE = CPU_CORE_COUNT;
 	protected static int STATUS_INTERVAL = 5000;
 
-	protected static int minPoolSize = TProperties.getInt("framework", "ThreadPoolMinSize");
-	protected static int maxPoolSize = TProperties.getInt("framework", "ThreadPoolMaxSize");
+	protected static int minPoolSize = TProperties.getInt("framework", "ThreadPoolMinSize", -1);
+	protected static int maxPoolSize = TProperties.getInt("framework", "ThreadPoolMaxSize", -1);
 
 	protected static ConcurrentHashMap<String, ThreadPoolExecutor> THREAD_POOL_HANDLER = new ConcurrentHashMap<String, ThreadPoolExecutor>();
 
@@ -36,7 +36,7 @@ public class ThreadPool {
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
-		MIN_POOL_SIZE = minPoolSize == -1 ? cpuCoreCount : minPoolSize;
+		MIN_POOL_SIZE = minPoolSize == -1 ? CPU_CORE_COUNT : minPoolSize;
 		return MIN_POOL_SIZE;
 	}
 
@@ -48,7 +48,7 @@ public class ThreadPool {
 		if(maxPoolSize > maxPoolSize){
 			maxPoolSize = maxPoolSize;
 		}
-		MAX_POOL_SIZE = maxPoolSize == -1 ? cpuCoreCount : maxPoolSize;
+		MAX_POOL_SIZE = maxPoolSize == -1 ? CPU_CORE_COUNT : maxPoolSize;
 		return MAX_POOL_SIZE;
 	}
 
@@ -115,7 +115,7 @@ public class ThreadPool {
 		 * @return 线程池对象
 		 */
 		public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime, boolean daemon, int priority) {
-			return createThreadPool(poolName, mimPoolSize, maxPoolSize, keepAliveTime, daemon, priority, cpuCoreCount * 100);
+			return createThreadPool(poolName, mimPoolSize, maxPoolSize, keepAliveTime, daemon, priority, CPU_CORE_COUNT * 100);
 		}
 
 		/**
