@@ -453,6 +453,7 @@ public class TProperties {
 	 * 清空 Properites 缓存
 	 */
 	public void clear(){
+		propertiesFile.clear();
 		propertiesName.clear();
 	}
 }
