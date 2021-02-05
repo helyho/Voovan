@@ -627,14 +627,12 @@ public class SocketSelector implements Closeable {
 	 */
 	public int dealException(SocketContext socketContext, Exception e) {
 		if(BROKEN_PIPE.equals(e.getMessage()) || CONNECTION_RESET.equals(e.getMessage())){
-			Logger.debug(e);
 			socketContext.close();
 			return -1;
 		}
 
 		//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
 		if(e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
-			Logger.debug(e);
 			return -1;
 		}
 
