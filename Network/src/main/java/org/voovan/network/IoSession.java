@@ -502,7 +502,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		try {
-			state.setFlush(true);
 			if(sslParser!=null) {
 				TEnv.waitThrow(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
 			}
@@ -519,8 +518,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		} catch (TimeoutException e) {
 			throw new SendMessageException("Method syncSend error! Error by "+
 					e.getClass().getSimpleName() + ".",e);
-		} finally {
-			state.setFlush(false);
 		}
 	}
 
@@ -563,6 +560,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
+			state.setFlush(true);
 			ByteBuffer byteBuffer = sendByteBufferChannel.getByteBuffer();
 			try {
 				int size = send0(byteBuffer);
@@ -577,6 +575,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				}
 			} finally {
 				sendByteBufferChannel.compact();
+				state.setFlush(false);
 			}
 		}
 	}

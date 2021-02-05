@@ -112,7 +112,8 @@ public class EventProcess {
                     if(splitLength>=0) {
                         doRecive(session, splitLength);
                     } else {
-                        return;
+                        //不可分割跳出循环
+                        break;
                     }
                 }
             } finally {
