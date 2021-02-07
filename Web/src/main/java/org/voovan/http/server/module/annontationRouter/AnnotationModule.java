@@ -74,8 +74,6 @@ public class AnnotationModule extends HttpModule {
 
     /**
      * 扫描包含Router注解的类
-     *
-     * @param annotationModule   AnnotationModule对象用于注册路由
      */
     public void scanRouterClassAndRegister() {
         int routeMethodNum = 0;
