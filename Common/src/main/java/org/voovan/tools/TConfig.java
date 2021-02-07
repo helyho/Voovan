@@ -1,6 +1,5 @@
 package org.voovan.tools;
 
-import com.sun.beans.decoder.ValueObject;
 import org.voovan.Global;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSONDecode;
@@ -54,7 +53,7 @@ public class TConfig {
 	 * 从 http 服务拉取并解析 conf 文件
 	 *
 	 * @param url 文件对象
-	 * @return Map<String, Object> 对象
+	 * @return Map[String, Object] 对象
 	 */
 	public static Map<String, Object> getConfigs(URL url) {
 		try {
@@ -78,7 +77,7 @@ public class TConfig {
 	 * 解析 conf 文件
 	 *
 	 * @param file 文件对象
-	 * @return Map<String, Object> 对象
+	 * @return Map[String, Object] 对象
 	 */
 	public static Map<String, Object> getConfigs(File file) {
 		Map<String, Object> configs = configFile.get(file);
@@ -111,7 +110,7 @@ public class TConfig {
 	 *                 传入 database 参数会拼装出 database-环境名.conf 作为文件名
 	 *                 并且在 classes 或者 target/classes 目录下寻找指定文件.
 	 *                 如果没有指定环境名的配置文件则使用默认的配置文件
-	 * @return Map<String, Object> 对象
+	 * @return Map[String, Object] 对象
 	 */
 	public static Map<String, Object> getConfigs(String fileName) {
 		Map<String, Object> configs;
