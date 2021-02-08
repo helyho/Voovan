@@ -149,7 +149,7 @@ public class MessageLoader {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
-							//拦截心跳
+							//拦截心跳, 可能有多个连续的心跳
 							while(HeartBeat.intercept(session)){
 
 							}
