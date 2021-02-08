@@ -80,7 +80,7 @@ public class HeartBeat {
      * @param session 会话对象
      * @return true: 成功, false: 失败
      */
-    public static boolean interceptHeartBeat(IoSession session){
+    public static boolean intercept(IoSession session){
         if(session==null || session.getHeartBeat()==null){
             return false;
         }
