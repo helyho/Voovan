@@ -88,7 +88,7 @@ public class HeartBeat {
         HeartBeat heartBeat = session.getHeartBeat();
         ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 
-        if (heartBeat != null && byteBufferChannel.size() > 0) {
+        if (byteBufferChannel.size() > 0) {
             //心跳处理
             if (heartBeat != null) {
                 if (byteBufferChannel.startWith(heartBeat.getPing())) {
