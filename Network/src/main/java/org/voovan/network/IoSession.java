@@ -398,12 +398,12 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		return readSize;
 	}
 
-	/**
-	 * 同步读取消息
-	 * 			消息会经过 filter 的 decoder 函数处理后再返回
-	 * @return 读取出的对象
-	 * @throws ReadMessageException  读取消息异常
-	 */
+		/**
+         * 同步读取消息
+         * 			消息会经过 filter 的 decoder 函数处理后再返回
+         * @return 读取出的对象
+         * @throws ReadMessageException  读取消息异常
+         */
 	public Object syncRead() throws ReadMessageException {
 
 		Object readObject = null;
@@ -481,6 +481,11 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	protected int sendToBuffer(ByteBuffer buffer) {
 		try {
+			//如果大于缓冲区,则现发送一次
+			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
+				flush();
+			}
+
 			socketContext.updateLastTime();
 			return sendByteBufferChannel.writeEnd(buffer);
 		} catch (Exception e) {
@@ -530,11 +535,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	public int send(ByteBuffer buffer){
 		try {
-			//如果大于缓冲区,则现发送一次
-			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
-				flush();
-			}
-
 			if(sslParser!=null && sslParser.isHandShakeDone()) {
 				//warpData 内置调用 session.sendByBuffer 将数据送至发送缓冲区
 				sslParser.warpData(buffer);
