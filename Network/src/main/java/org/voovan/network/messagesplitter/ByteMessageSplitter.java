@@ -19,19 +19,18 @@ public class ByteMessageSplitter implements MessageSplitter {
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 		int originPosition = byteBuffer.position();
 
-		try {
+		int ret = -1;
 
+		try {
 			if (byteBuffer.remaining() > ByteFilter.HEAD_LEGNTH) {
 				if(byteBuffer.get() == ByteFilter.SPLITER) {
-
+					//TODO: 自动校正到正确的消息便宜位置
 					int length = byteBuffer.getInt();
 
 					if (byteBuffer.get() == ByteFilter.SPLITER) {
 						if (length > 0 && byteBuffer.remaining() >= length) {
-							return ByteFilter.HEAD_LEGNTH + length;
+							ret = ByteFilter.HEAD_LEGNTH + length;
 						}
-					} else {
-						session.close();
 					}
 				}
 			}
@@ -39,6 +38,10 @@ public class ByteMessageSplitter implements MessageSplitter {
 			byteBuffer.position(originPosition);
 		}
 
-		return -1;
+		if(ret < 0) {
+			session.close();
+		}
+
+		return ret;
 	}
 }

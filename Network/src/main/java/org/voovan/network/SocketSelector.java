@@ -632,7 +632,7 @@ public class SocketSelector implements Closeable {
 		}
 
 		//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-		if(e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
+		if(TEnv.OS_NAME.startsWith("WINDOWS") && e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
 			return -1;
 		}
 
