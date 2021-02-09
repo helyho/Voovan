@@ -1,6 +1,7 @@
 package org.voovan.http.server;
 
 import org.voovan.Global;
+import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.HttpStatic;
 import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
@@ -24,8 +25,10 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.channels.ShutdownChannelGroupException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * WebServer 对象
@@ -554,7 +557,7 @@ public class WebServer {
 
 		WebServer webServer = this;
 		socket("/Admin", new WebSocketRouter() {
-			String tips ="";// TString.tokenReplace("{}:# ", WebContext.getWebServerConfig().getServerName());
+			String tips = TString.tokenReplace("{}:# ", WebContext.getWebServerConfig().getServerName());
 
 			@Override
 			public Object onOpen(WebSocketSession session) {
@@ -628,23 +631,22 @@ public class WebServer {
 
 
 								case "unpause": {
-									WebContext.PAUSE = true;
+									WebContext.PAUSE = false;
 									response = "Web server is running";
 									break;
 								}
 
 								case "reload": {
-									String config = (cmds.length < 1 || TString.isNullOrEmpty(cmds[1])) ? null : cmds[1];
+									String config = (cmds.length == 1 || TString.isNullOrEmpty(cmds[1])) ? null : cmds[1];
 									reload(config);
 									response = "Web server reload success";
 									break;
 								}
 
 								case "config": {
-									response = JSON.formatJson(JSON.toJSON(webServer.config));
+									response = "\r\n" + JSON.formatJson(JSON.toJSON(webServer.config));
 									break;
 								}
-
 
 								case "changeToken": {
 									//重置 AUTH_TOKEN
@@ -662,8 +664,8 @@ public class WebServer {
 					}
 				}
 
-
-				return TString.tokenReplace("[{}] {}\r\n{}", TDateTime.now(), response, tips);
+				response = response.length()==0 ? "" : TString.tokenReplace("{}", response);
+				return TString.tokenReplace("{}{}",response, tips);
 			}
 
 			@Override
@@ -804,6 +806,67 @@ public class WebServer {
 				}
 
 
+				//服务监听地址
+				if(args[i].equals("--cli")){
+					Logger.setEnable(false);
+					AtomicReference<WebSocketSession> sessionRef = new AtomicReference<WebSocketSession>();
+
+					try {
+						String url = args[i + 1].trim();
+						String path = url.substring(url.indexOf("/", 8));
+						HttpClient client = HttpClient.newInstance(url, 60);
+						client.webSocket(path, new WebSocketRouter() {
+							@Override
+							public Object onOpen(WebSocketSession session) {
+								System.out.println("[" + TDateTime.now() + "] connect to " + url.toString() + "\r\n\r\n");
+								sessionRef.set(session);
+								return null;
+							}
+
+							@Override
+							public Object onRecived(WebSocketSession session, Object obj) {
+								System.out.print(obj);
+								return null;
+							}
+
+							@Override
+							public void onSent(WebSocketSession session, Object obj) {
+
+							}
+
+							@Override
+							public void onClose(WebSocketSession session) {
+
+							}
+						}.addFilterChain(new StringFilter()));
+
+
+						TEnv.wait(()->client.isConnect() && sessionRef.get()==null);
+
+						WebSocketSession webSocketSession = sessionRef.get();
+
+						while(client.isConnect()) {
+							int size = System.in.available();
+							if(size>0) {
+								byte[] commandBytes = new byte[size];
+								System.in.read(commandBytes);
+								String command = new String(commandBytes).trim();
+
+								webSocketSession.send(command);
+							}
+							TEnv.sleep(500);
+						}
+
+						System.out.println("1111");
+
+
+					} catch (Exception e) {
+						System.out.println(args);
+						e.printStackTrace();
+					}
+
+					System.exit(1);
+				}
 
 				//服务监听地址
 				if(args[i].equals("-h")){
