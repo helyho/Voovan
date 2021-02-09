@@ -45,7 +45,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080/","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send();
@@ -73,10 +73,11 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testPost() throws Exception {
-		HttpClient postClient = new HttpClient("http://47.104.237.122:9001",60);
+		HttpClient postClient = new HttpClient("http://127.0.0.1:28080/test",60);
 		Response response = postClient.setMethod("POST")
-				.setData("{\"marketId\":\"100\",\"userId\":\"1066\",\"pageNum\":1,\"pageSize\":50}")
-				.send("/Order/getUserOrders");
+				.putParameters("name", "测试Get")
+				.putParameters("age", "32")
+				.send();
 		new Response().copyFrom(response);
 		System.out.println(response.body().getBodyString());
 		assertTrue(response.protocol().getStatus() != 500);

@@ -185,6 +185,8 @@ public class WebServerCli {
         try {
             String url = args[argsIdx + 1].trim();
             String path = url.substring(url.indexOf("/", 8));
+
+            //连接到 websocket
             HttpClient client = HttpClient.newInstance(url, 60);
             client.webSocket(path, new WebSocketRouter() {
                 @Override
