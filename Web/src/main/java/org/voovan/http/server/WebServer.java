@@ -556,7 +556,27 @@ public class WebServer {
 	public void InitManagerRouter(){
 
 		WebServer webServer = this;
-		socket("/Admin", new WebSocketRouter() {
+
+		//Http Status 命令
+		otherMethod("ADMIN", "/voovan/admin/status", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				String status = "RUNNING";
+
+				String authToken = request.header().get("AUTH-TOKEN");
+				if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+					if(WebContext.PAUSE){
+						status = "PAUSE";
+					}
+					response.write(status);
+				} else {
+					request.getSession().close();
+				}
+			}
+		});
+
+		//WebSocket 管理命令
+		socket("/voovan/admin", new WebSocketRouter() {
 			String tips = TString.tokenReplace("{}:# ", WebContext.getWebServerConfig().getServerName());
 
 			@Override
@@ -575,6 +595,7 @@ public class WebServer {
 
 				String response = "";
 				switch (cmds[0]) {
+					//鉴权
 					case "auth" : {
 						//重置 AUTH_TOKEN
 						if(cmds.length<1 || TString.isNullOrEmpty(cmds[1])) {
@@ -592,6 +613,7 @@ public class WebServer {
 						break;
 					}
 
+					//退出
 					case "exit" : {
 						response =  "Bye, see you later";
 
@@ -599,15 +621,17 @@ public class WebServer {
 							session.close();
 						}, 1);
 
-						break;
+						return null;
 					}
 
+					//鉴权成功可以执行的命令
 					default: {
 						if (!((Boolean) session.getAttribute("authed"))) {
 							response = "(error) Authentication required";
 						} else {
 
 							switch (cmds[0]) {
+								//查看服务状态
 								case "status": {
 									String status = "RUNNING";
 									if (WebContext.PAUSE) {
@@ -617,25 +641,28 @@ public class WebServer {
 									break;
 								}
 
+								//停止服务
 								case "shutdown": {
 									webServer.stop();
 									response = "Web server is stoped";
 									break;
 								}
 
+								//暂停服务
 								case "pause": {
 									WebContext.PAUSE = true;
 									response = "Web server is paused";
 									break;
 								}
 
-
+								//服务恢复
 								case "unpause": {
 									WebContext.PAUSE = false;
 									response = "Web server is running";
 									break;
 								}
 
+								//重读配置
 								case "reload": {
 									String config = (cmds.length == 1 || TString.isNullOrEmpty(cmds[1])) ? null : cmds[1];
 									reload(config);
@@ -643,11 +670,13 @@ public class WebServer {
 									break;
 								}
 
+								//列出当前配置
 								case "config": {
 									response = "\r\n" + JSON.formatJson(JSON.toJSON(webServer.config));
 									break;
 								}
 
+								//修改鉴权 Token
 								case "changeToken": {
 									//重置 AUTH_TOKEN
 									if (cmds.length < 1 || TString.isNullOrEmpty(cmds[1])) {
@@ -664,7 +693,7 @@ public class WebServer {
 					}
 				}
 
-				response = response.length()==0 ? "" : TString.tokenReplace("{}", response);
+				response = response.length()==0 ? "" : TString.tokenReplace("{}\r\n", response);
 				return TString.tokenReplace("{}{}",response, tips);
 			}
 
@@ -856,10 +885,6 @@ public class WebServer {
 							}
 							TEnv.sleep(500);
 						}
-
-						System.out.println("1111");
-
-
 					} catch (Exception e) {
 						System.out.println(args);
 						e.printStackTrace();
@@ -967,24 +992,24 @@ public class WebServer {
 					Logger.simple("Start voovan webserver");
 					Logger.simple("");
 					Logger.simple("Options:");
-					Logger.simple(TString.rightPad("  -h ",35,' ')+"Webserver bind host ip address");
-					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
-					Logger.simple(TString.rightPad("  --env ",35,' ') + "Webserver environment name");
-					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket readFromChannel timeout");
-					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket writeToChannel timeout");
-					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
-					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
-					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
-					Logger.simple(TString.rightPad("  --config ",35,' ')+" Webserver config file");
-					Logger.simple(TString.rightPad("  --remoteConfig ",35,' ')+" Remote Webserver config with a HTTP URL address");
-					Logger.simple(TString.rightPad("  --charset ",35,' ')+"set default charset");
-					Logger.simple(TString.rightPad("  --noGzip ",35,' ')+"Do not use gzip for client");
-					Logger.simple(TString.rightPad("  --noAccessLog ",35,' ')+"Do not write access log to access.log");
-					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+" Certificate file for https");
-					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+" Certificate passwork for https");
-					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate key for https");
-					Logger.simple(TString.rightPad("  --help, -?",35,' ')+"how to use this command");
-					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
+					Logger.simple(TString.rightPad("  -h", 35, ' ')							+ "Webserver bind host ip address");
+					Logger.simple(TString.rightPad("  -p", 35, ' ')							+ "Webserver bind port number");
+					Logger.simple(TString.rightPad("  --env", 35, ' ') 						+ "Webserver environment name");
+					Logger.simple(TString.rightPad("  -rto", 35, ' ')						+ "Socket readFromChannel timeout");
+					Logger.simple(TString.rightPad("  -sto", 35, ' ')						+ "Socket writeToChannel timeout");
+					Logger.simple(TString.rightPad("  -r", 35, ' ')							+ "Context root path, contain webserver static file");
+					Logger.simple(TString.rightPad("  -i", 35, ' ')							+ "index file for client access to webserver");
+					Logger.simple(TString.rightPad("  -mri", 35, ' ')						+ "Match route ignore case");
+					Logger.simple(TString.rightPad("  --config", 35, ' ')					+ "Webserver config file");
+					Logger.simple(TString.rightPad("  --remoteConfig", 35, ' ')				+ "Remote Webserver config with a HTTP URL address");
+					Logger.simple(TString.rightPad("  --charset", 35, ' ')					+ "set default charset");
+					Logger.simple(TString.rightPad("  --noGzip", 35, ' ')					+ "Do not use gzip for client");
+					Logger.simple(TString.rightPad("  --noAccessLog", 35, ' ')				+ "Do not write access log to access.log");
+					Logger.simple(TString.rightPad("  --https.CertificateFile", 35, ' ')	+ "Certificate file for https");
+					Logger.simple(TString.rightPad("  --https.CertificatePassword", 35, ' ')+ "Certificate passwork for https");
+					Logger.simple(TString.rightPad("  --https.KeyPassword", 35, ' ')		+ "Certificate key for https");
+					Logger.simple(TString.rightPad("  --help, -?", 35, ' ')					+ "how to use this command");
+					Logger.simple(TString.rightPad("  -v", 35, ' ')							+ "Show the version information");
 					Logger.simple("");
 
 					Logger.simple("This WebServer based on VoovanFramework.");
