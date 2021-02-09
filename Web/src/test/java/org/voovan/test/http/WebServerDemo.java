@@ -29,7 +29,7 @@ public class WebServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");
 
 	public static void main(String[] args) {
-		WebServer webServer = WebServer.newInstance();
+		WebServer webServer = WebServer.newInstance(args);
 		webServer.getWebServerConfig().setCache(true);
 		//性能测试请求
 		webServer.get("/test", new HttpRouter() {
