@@ -8,6 +8,8 @@ import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
 import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.http.websocket.WebSocketSession;
+import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
@@ -448,27 +450,32 @@ public class WebServer {
 	 */
 	public void reload(String reloadInfoJson){
 
+		if(reloadInfoJson!=null) {
+			WebServerConfig config = this.config;
+
+			Map<String, Object> reloadInfo = (Map<String, Object>) JSON.parse(reloadInfoJson);
+			if ("FILE".equals(reloadInfo.get("Type"))) {
+				config = WebContext.buildConfigFromFile(reloadInfo.get("Content").toString());
+			}
+
+			if ("HTTP".equals(reloadInfo.get("Type"))) {
+				config = WebContext.buildConfigFromRemote(reloadInfo.get("Content").toString());
+			}
+
+			if ("JSON".equals(reloadInfo.get("Type"))) {
+				config = WebContext.buildConfigFromJSON(reloadInfo.get("Content").toString());
+			}
+
+			this.config = config;
+		}
+
 		WebContext.PAUSE = true;
+
+
+		TEnv.sleep(1000);
 
 		//卸载模块
 		unInitModule();
-
-		WebServerConfig config = null;
-
-		Map<String, Object> reloadInfo = (Map<String, Object>)JSON.parse(reloadInfoJson);
-		if("FILE".equals(reloadInfo.get("Type"))) {
-			config = WebContext.buildConfigFromFile(reloadInfo.get("Content").toString());
-		}
-
-		if("HTTP".equals(reloadInfo.get("Type"))) {
-			config = WebContext.buildConfigFromRemote(reloadInfo.get("Content").toString());
-		}
-
-		if("JSON".equals(reloadInfo.get("Type"))) {
-			config = WebContext.buildConfigFromJSON(reloadInfo.get("Content").toString());
-		}
-
-		this.config = config;
 
 		//构造新的请求派发器创建
 		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
@@ -540,132 +547,135 @@ public class WebServer {
 		}
 	}
 
-
-	/**
-	 * 是否具备管理权限
-	 *      这里控制必须是 127.0.0.1的 ip 地址, 并且需要提供 authToken
-	 * @param request http请求对象
-	 * @return true: 具备管理权限, false: 不具备管理权限
-	 */
-	public static boolean hasAdminRight(HttpRequest request){
-		if(!TPerformance.getLocalIpAddrs().contains(request.getSession().getSocketSession().remoteAddress())){
-			request.getSession().close();
-		}
-
-		String authToken = request.header().get("AUTH-TOKEN");
-		if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 	/**
 	 * 初始化服务管理相关的路由
 	 */
 	public void InitManagerRouter(){
-		final WebServer innerWebServer = this;
 
-		otherMethod("ADMIN", "/voovan/admin/status", new HttpRouter() {
+		WebServer webServer = this;
+		socket("/Admin", new WebSocketRouter() {
+			String tips ="";// TString.tokenReplace("{}:# ", WebContext.getWebServerConfig().getServerName());
+
 			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				String status = "RUNNING";
-				if(hasAdminRight(request)) {
-					if(WebContext.PAUSE){
-						status = "PAUSE";
-					}
-					response.write(status);
-				}else{
-					request.getSession().close();
+			public Object onOpen(WebSocketSession session) {
+				if(!TPerformance.getLocalIpAddrs().contains(session.getRemoteAddress())){
+					session.close();
 				}
+
+				session.setAttribute("authed", false);
+				return tips;
 			}
-		});
 
-		otherMethod("ADMIN", "/voovan/admin/shutdown", new HttpRouter() {
 			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
+			public Object onRecived(WebSocketSession session, Object obj) {
+				String[] cmds = ((String)obj).split(" ");
 
-				if(hasAdminRight(request)) {
-					request.getSocketSession().close();
-					innerWebServer.stop();
-					Logger.info("WebServer is stoped");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/pause", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					WebContext.PAUSE = true;
-					response.write("OK");
-					Logger.info("WebServer is paused");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/unpause", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					WebContext.PAUSE = false;
-					response.write("OK");
-					Logger.info("WebServer is running");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/pid", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/reload", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					reload(request.body().getBodyString());
-					response.write("OK");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/authtoken", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(hasAdminRight(request)) {
-					if(!request.body().getBodyString().isEmpty()){
+				String response = "";
+				switch (cmds[0]) {
+					case "auth" : {
 						//重置 AUTH_TOKEN
-						WebContext.AUTH_TOKEN = request.body().getBodyString();
-						response.write("OK");
-					} else {
-						response.write("NOTHING");
-					}
-				} else {
-					request.getSession().close();
-				}
-			}
-		});
+						if(cmds.length<1 || TString.isNullOrEmpty(cmds[1])) {
+							response =  "(error) Need token for Authentication";
+						}
 
-		this.options("/voovan/admin/*", new OptionsRouter("ADMIN", "*", "auth-token"));
+						//重置 AUTH_TOKEN
+						if(!WebContext.AUTH_TOKEN.equals(cmds[1])) {
+							response =  "(error) Token is invalide";
+						}
+
+						session.setAttribute("authed", true);
+
+						response =  "Authentication success";
+						break;
+					}
+
+					case "exit" : {
+						response =  "Bye, see you later";
+
+						Global.getHashWheelTimer().addTask(()->{
+							session.close();
+						}, 1);
+
+						break;
+					}
+
+					default: {
+						if (!((Boolean) session.getAttribute("authed"))) {
+							response = "(error) Authentication required";
+						} else {
+
+							switch (cmds[0]) {
+								case "status": {
+									String status = "RUNNING";
+									if (WebContext.PAUSE) {
+										status = "PAUSE";
+									}
+									response = "Web server is " + status;
+									break;
+								}
+
+								case "shutdown": {
+									webServer.stop();
+									response = "Web server is stoped";
+									break;
+								}
+
+								case "pause": {
+									WebContext.PAUSE = true;
+									response = "Web server is paused";
+									break;
+								}
+
+
+								case "unpause": {
+									WebContext.PAUSE = true;
+									response = "Web server is running";
+									break;
+								}
+
+								case "reload": {
+									String config = (cmds.length < 1 || TString.isNullOrEmpty(cmds[1])) ? null : cmds[1];
+									reload(config);
+									response = "Web server reload success";
+									break;
+								}
+
+								case "config": {
+									response = JSON.formatJson(JSON.toJSON(webServer.config));
+									break;
+								}
+
+
+								case "changeToken": {
+									//重置 AUTH_TOKEN
+									if (cmds.length < 1 || TString.isNullOrEmpty(cmds[1])) {
+										response = "(error) Token is invalide";
+									}
+									WebContext.AUTH_TOKEN = cmds[1];
+									File tokenFile = new File("logs" + File.separator + ".token");
+									TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
+									response = "Token is changed";
+									break;
+								}
+							}
+						}
+					}
+				}
+
+
+				return TString.tokenReplace("[{}] {}\r\n{}", TDateTime.now(), response, tips);
+			}
+
+			@Override
+			public void onSent(WebSocketSession session, Object obj) {
+
+			}
+
+			@Override
+			public void onClose(WebSocketSession session) {
+
+			}
+		}.addFilterChain(new StringFilter()));
 	}
 
 	/**
@@ -919,6 +929,8 @@ public class WebServer {
 					Logger.simple("Author: helyho");
 					Logger.simple("E-mail: helyho@gmail.com");
 					Logger.simple("");
+
+					System.exit(1);
 
 					return null;
 				}

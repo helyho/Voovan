@@ -33,7 +33,7 @@ public class WebServerConfig {
     private int readTimeout                 = 30;
     private int sendTimeout                 = 30;
     private String contextPath              = "WEBAPP";
-    private boolean MatchRouteIgnoreCase    = false;
+    private boolean MatchRouteIgnoreCase    = true;
     private String characterSet             = "UTF-8";
     private String responseCharacterSet     = "";
     private String sessionContainer         = TReflect.getClassName(CacheMap.class);

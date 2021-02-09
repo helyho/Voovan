@@ -6,6 +6,7 @@ import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class HttpModuleConfig {
     private String className;
     private Map<String, Object> paramters = new HashMap<String, Object>();
     private String lifeCycleClass = null;
+    @NotSerialization
     private HttpModule httpModule;
 
     public HttpModuleConfig(Map<String, Object> configMap) {
