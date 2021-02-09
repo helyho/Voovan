@@ -175,7 +175,7 @@ public class Hotswaper {
 
             ClassDefinition classDefinition = new ClassDefinition(clazz, classBytes);
             try {
-                Logger.info("[HOTSWAP] " + TDateTime.now() + " class->" + clazz.getCanonicalName() + " will reload.");
+                Logger.info("[HOTSWAP] " + TDateTime.now() + clazz.getName() + " will reload.");
                 TEnv.instrumentation.redefineClasses(classDefinition);
 
                 for(Consumer<Class> wather : WATCHERS){
