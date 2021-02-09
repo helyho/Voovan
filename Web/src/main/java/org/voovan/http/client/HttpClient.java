@@ -60,6 +60,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
 	private String urlString;
+	private String path;
 	private boolean isSSL = false;
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
@@ -127,7 +128,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param urlString     主机地址
 	 * @param timeout  超时时间
 	 */
-	private void init(String urlString,int timeout){
+	private void init(String urlString, int timeout){
 		try {
 
 			isSSL = trySSL(urlString);
@@ -143,6 +144,11 @@ public class HttpClient extends PooledObject implements Closeable{
 				URL url = new URL(hostString);
 				hostString = url.getHost();
 				port = url.getPort();
+			}
+
+			int parhStart = urlString.indexOf("/", 8);
+			if(parhStart > 8) {
+				this.path = urlString.substring(parhStart);
 			}
 
 			if(port==-1 && !isSSL){
@@ -567,7 +573,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		}
 
 		//构造 Request 对象
-		buildRequest(TString.isNullOrEmpty(location) ? "/" : location);
+		buildRequest(TString.isNullOrEmpty(location) ? path : location);
 
 		session.getReadByteBufferChannel().clear();
 		session.getSendByteBufferChannel().clear();
