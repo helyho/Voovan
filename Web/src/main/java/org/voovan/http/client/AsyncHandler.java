@@ -60,7 +60,7 @@ public class AsyncHandler implements IoHandler {
 
         httpClient.finished(response);
         running = false;
-        if (synchronousHandler != null) {
+        if (session.socketContext().handler() == this && synchronousHandler != null) {
             session.socketContext().handler(synchronousHandler);
         }
         return null;
