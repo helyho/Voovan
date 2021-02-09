@@ -33,12 +33,14 @@ public class ByteMessageSplitter implements MessageSplitter {
 						session.close();
 					}
 
-					if (byteBuffer.get() == ByteFilter.SPLITER) {
-						if (length > 0 && byteBuffer.remaining() >= length) {
-							ret = ByteFilter.HEAD_LEGNTH + lengthByteSize + length;
+					if(byteBuffer.hasRemaining()) {
+						if (byteBuffer.get() == ByteFilter.SPLITER) {
+							if (length > 0 && byteBuffer.remaining() >= length) {
+								ret = ByteFilter.HEAD_LEGNTH + lengthByteSize + length;
+							}
+						} else {
+							session.close();
 						}
-					} else {
-						session.close();
 					}
 				} else {
 					//TODO: 自动校正到正确的消息便宜位置
