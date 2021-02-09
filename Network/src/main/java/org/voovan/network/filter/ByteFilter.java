@@ -2,6 +2,7 @@ package org.voovan.network.filter;
 
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
+import org.voovan.tools.Varint;
 import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
@@ -21,16 +22,17 @@ import java.nio.ByteBuffer;
 public class ByteFilter implements IoFilter {
 	public final static Class BYTE_ARRAY_CLASS = (new byte[0]).getClass();
 	public final static byte SPLITER = (byte) 255;
-	public final static int HEAD_LEGNTH = 6;
+	public final static int HEAD_LEGNTH = 2;
 
 	@Override
 	public Object encode(IoSession session, Object object) {
 		if(object.getClass() == BYTE_ARRAY_CLASS){
 
 			byte[] data = (byte[])object;
-			ByteBuffer byteBuffer = ByteBuffer.allocate(HEAD_LEGNTH + data.length);
+			byte[] intByte = Varint.intToVarintBytes(data.length);
+			ByteBuffer byteBuffer = ByteBuffer.allocate(HEAD_LEGNTH + intByte.length + data.length);
 			byteBuffer.put(SPLITER);
-			byteBuffer.putInt(data.length);
+			byteBuffer.put(intByte);
 			byteBuffer.put(SPLITER);
 			byteBuffer.put(data);
 			byteBuffer.flip();
@@ -53,7 +55,7 @@ public class ByteFilter implements IoFilter {
 				}
 
 				if (byteBuffer.get() == SPLITER) {
-					int length = byteBuffer.getInt();
+					int length = Varint.varintToInt(byteBuffer);
 
 					if (byteBuffer.get() == SPLITER) {
 						if (length > 0) {

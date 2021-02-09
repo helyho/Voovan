@@ -3,6 +3,7 @@ package org.voovan.network.messagesplitter;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.filter.ByteFilter;
+import org.voovan.tools.Varint;
 
 import java.nio.ByteBuffer;
 
@@ -24,22 +25,27 @@ public class ByteMessageSplitter implements MessageSplitter {
 		try {
 			if (byteBuffer.remaining() > ByteFilter.HEAD_LEGNTH) {
 				if(byteBuffer.get() == ByteFilter.SPLITER) {
-					//TODO: 自动校正到正确的消息便宜位置
-					int length = byteBuffer.getInt();
+					int lengthByteOffset = byteBuffer.position();
+					int length = Varint.varintToInt(byteBuffer);
+					int lengthByteSize = byteBuffer.position() - lengthByteOffset;
+
+					if(length < 0){
+						session.close();
+					}
 
 					if (byteBuffer.get() == ByteFilter.SPLITER) {
 						if (length > 0 && byteBuffer.remaining() >= length) {
-							ret = ByteFilter.HEAD_LEGNTH + length;
+							ret = ByteFilter.HEAD_LEGNTH + lengthByteSize + length;
 						}
+					} else {
+						session.close();
 					}
+				} else {
+					//TODO: 自动校正到正确的消息便宜位置
 				}
 			}
 		} finally {
 			byteBuffer.position(originPosition);
-		}
-
-		if(ret < 0) {
-			session.close();
 		}
 
 		return ret;
