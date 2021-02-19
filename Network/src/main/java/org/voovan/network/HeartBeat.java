@@ -20,7 +20,8 @@ public class HeartBeat {
     private ByteBuffer pingBuffer;
     private ByteBuffer pongBuffer;
     private boolean isFirstBeat = true;
-    private LinkedBlockingDeque<Integer> queue;
+    private volatile boolean hasPing;
+    private volatile boolean hasPong;
     private int failedCount = 0;
 
 
@@ -36,18 +37,11 @@ public class HeartBeat {
         this.pingBuffer = ByteBuffer.allocate(this.ping.length);
         this.pongBuffer = ByteBuffer.allocate(this.pong.length);
 
-        queue = new LinkedBlockingDeque<Integer>();
+        this.hasPing = false;
+        this.hasPong = false;
 
         pingBuffer.put(this.ping);
         pongBuffer.put(this.pong);
-    }
-
-    /**
-     * 获取心跳包队列
-     * @return 心跳包队列
-     */
-    private LinkedBlockingDeque<Integer> getQueue() {
-        return queue;
     }
 
     /**
@@ -93,13 +87,13 @@ public class HeartBeat {
             if (heartBeat != null) {
                 if (byteBufferChannel.startWith(heartBeat.getPing())) {
                     byteBufferChannel.shrink(0, heartBeat.getPing().length);
-                    heartBeat.getQueue().addLast(1);
+                    heartBeat.hasPing = true;
                     return true;
                 }
 
                 if (byteBufferChannel.startWith(heartBeat.getPong())) {
                     byteBufferChannel.shrink(0, heartBeat.getPong().length);
-                    heartBeat.getQueue().addLast(2);
+                    heartBeat.hasPong = true;
                     return true;
                 }
             }
@@ -132,29 +126,24 @@ public class HeartBeat {
             return true;
         }
 
-        if (heartBeat.getQueue().size() > 0) {
-            int beatType = heartBeat.getQueue().pollFirst();
-
-            if (beatType == 1) {
-                session.send(heartBeat.pongBuffer);
-                session.flush();
-                heartBeat.pongBuffer.flip();
-                heartBeat.failedCount = 0;
-                return true;
-            } else if (beatType == 2) {
-                session.send(heartBeat.pingBuffer);
-                session.flush();
-                heartBeat.pingBuffer.flip();
-                heartBeat.failedCount = 0;
-                return true;
-            } else {
-                heartBeat.failedCount++;
-                return false;
-            }
+        if (heartBeat.hasPing) {
+            session.send(heartBeat.pongBuffer);
+            session.flush();
+            heartBeat.pongBuffer.flip();
+            heartBeat.failedCount = 0;
+            heartBeat.hasPing = false;
+            return true;
+        } else if (heartBeat.hasPong) {
+            session.send(heartBeat.pingBuffer);
+            session.flush();
+            heartBeat.pingBuffer.flip();
+            heartBeat.failedCount = 0;
+            heartBeat.hasPong = false;
+            return true;
+        } else {
+            heartBeat.failedCount++;
+            return false;
         }
-
-        heartBeat.failedCount++;
-        return false;
     }
     /**
      * 将心跳绑定到 Session
