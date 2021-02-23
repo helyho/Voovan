@@ -128,31 +128,23 @@ public class JdbcOperate implements Closeable {
 	 */
 	public synchronized Connection getConnection() throws SQLException {
 		long threadId = Thread.currentThread().getId();
+
 		//如果连接不存在,或者连接已关闭则重取一个连接
 		if (connection == null || connection.isClosed()) {
-			//事务嵌套模式
-			if (transcationType == TranscationType.NEST) {
-				//判断是否有上层事务
-				if (JDBC_OPERATE_THREAD_LIST.containsKey(threadId)) {
-					connection = JDBC_OPERATE_THREAD_LIST.get(threadId).connection;
-					savepoint = connection.setSavepoint();
-				} else {
-					connection = dataSource.getConnection();
-					connection.setAutoCommit(false);
-					JDBC_OPERATE_THREAD_LIST.put(threadId, this);
-				}
-			}
-			//孤立事务模式
-			else if (transcationType == TranscationType.ALONE){
-				connection = dataSource.getConnection();
-				connection.setAutoCommit(false);
-			}
 			//非事务模式
-			else if (transcationType == TranscationType.NONE){
+			if (transcationType == TranscationType.NONE){
 				connection = dataSource.getConnection();
 				connection.setAutoCommit(true);
 			}
+			//事务模式
+			else {
+				connection = dataSource.getConnection();
+				connection.setAutoCommit(false);
+			}
+
+			JDBC_OPERATE_THREAD_LIST.put(threadId, this);
 		}
+
 		return connection;
 	}
 
@@ -162,19 +154,23 @@ public class JdbcOperate implements Closeable {
 	 * @throws SQLException SQL 异常
 	 */
 	public boolean beginTransaction() throws SQLException {
-		long threadId = Thread.currentThread().getId();
 
-		if(connection == null) {
-			connection = getConnection();
-		}
+		connection = getConnection();
 
-		if (transcationType!=TranscationType.NONE) {
+		//1. 嵌套事务, 创建 save point
+		if (transcationType==TranscationType.NEST) {
 			savepoint = connection.setSavepoint();
 			return false;
-		} else {
+		}
+		//2. 独立事务, 自动提交, 但不关闭连接
+		else if (transcationType==TranscationType.ALONE) {
+			commit(false);
+			return true;
+		}
+		//3. 非事务模式
+		else {
 			transcationType = TranscationType.ALONE;
 			connection.setAutoCommit(false);
-			JDBC_OPERATE_THREAD_LIST.put(threadId, this);
 			return true;
 		}
 	}
