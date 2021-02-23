@@ -11,6 +11,7 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -154,6 +155,20 @@ public class WebServerCli {
                                     File tokenFile = new File("logs" + File.separator + ".token");
                                     TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
                                     response = "Token is changed";
+                                    break;
+                                }
+
+                                //修改鉴权 Token
+                                case "performance": {
+                                    boolean isAll = false;
+                                    if(cmds.length > 1) {
+                                        isAll = Boolean.valueOf(cmds[1]);
+                                    }
+                                    try {
+                                        response = JSON.toJSON(TPerformance.getProcessInfo(isAll));
+                                    } catch (IOException e) {
+                                        response = "Error: " + e.getMessage();
+                                    }
                                     break;
                                 }
                             }
