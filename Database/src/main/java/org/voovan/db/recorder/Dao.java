@@ -392,6 +392,41 @@ public class Dao<T extends Dao> {
         return query(null, null, null, null);
     }
 
+
+    /**
+     * 使用自定义查询数据多条数据
+     * @param dataSql select 和 from 之间的 sql 语句
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param clazz 查询返回的对象类型
+     * @param <R> 范型
+     * @return 查询的结果
+     */
+    public <R> List<R> customQuery(String dataSql, String[] andFields, Class<R> clazz) {
+        check();
+
+        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
+
+        Query query = Query.newInstance().and(andFields);
+        try {
+            List<R> ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            return ret;
+        } catch (Exception e) {
+            Logger.error("Dao.customQuery failed", e);
+            return null;
+        }
+    }
+
+    /**
+     * 使用自定义查询数据多条数据
+     * @param dataSql select 和 from 之间的 sql 语句
+     * @param clazz 查询返回的对象类型
+     * @param <R> 范型
+     * @return 查询的结果
+     */
+    public <R> List<R> customQuery(String dataSql, Class<R> clazz) {
+        return customQuery(dataSql, null, clazz);
+    }
+
     /**
      * 使用对象模型查询一条数据
      * @param dataFields select 和 from 之间作为数据返回的属性
@@ -451,14 +486,14 @@ public class Dao<T extends Dao> {
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> R customQuery(String dataSql, String[] andFields, Class<R> clazz) {
+    public <R> R customQueryOne(String dataSql, String[] andFields, Class<R> clazz) {
         check();
 
         andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
 
         Query query = Query.newInstance().and(andFields);
         try {
-            R ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            R ret = recorder.customQueryOne(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
             return ret;
         } catch (Exception e) {
             Logger.error("Dao.customQuery failed", e);
@@ -473,8 +508,8 @@ public class Dao<T extends Dao> {
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> R customQuery(String dataSql, Class<R> clazz) {
-        return customQuery(dataSql, null, clazz);
+    public <R> R customQueryOne(String dataSql, Class<R> clazz) {
+        return customQueryOne(dataSql, null, clazz);
     }
 
     /**

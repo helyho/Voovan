@@ -132,7 +132,93 @@ public class Recorder {
      * @param <R> 返回值的范型类型
      * @return 累计数据条数
      */
-    public <T, R> R customQuery(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {
+    public <T, R> List<R> customQuery(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {
+        try {
+            whereSql = whereSql == null ? "" : whereSql;
+
+            Table table = obj.getClass().getAnnotation(Table.class);
+
+            if (tableName == null) {
+                tableName = getTableNameWithDataBase(obj);
+            }
+
+            String sqlStr = TString.assembly("select ", dataSql, " from ", tableName, " ", whereSql);
+            return jdbcOperate.queryObjectList(sqlStr, clazz,  obj);
+        }catch (Exception e){
+            if(e instanceof RecorderException){
+                throw (RecorderException)e;
+            } else {
+                throw new RecorderException("Recorder statistics error: " + JSON.toJSON(obj), e);
+            }
+        }
+    }
+
+
+
+    /**
+     * 查询操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
+     * @return 查询结果
+     */
+    public <T> T queryOne(String tableName, T obj, Query query) {
+        try {
+            return (T) jdbcOperate.queryObject(buildQuerySqlTemplate(tableName, obj, query), obj.getClass(), obj);
+        }catch (Exception e){
+            if(e instanceof RecorderException){
+                throw (RecorderException)e;
+            } else {
+                throw new RecorderException("Recorder query error: " + JSON.toJSON(obj), e);
+            }
+        }
+    }
+
+    /**
+     * 查询操作
+     * @param obj 数据 ORM 对象
+     * @param query 查询条件
+     * @param <T> 范型类型
+     * @return 查询结果
+     */
+    public <T> T queryOne(T obj, Query query) {
+        return queryOne(null, obj, query);
+    }
+
+    /**
+     * 查询操作
+     * @param tableName 指定的表名
+     * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
+     * @return 查询结果
+     */
+    public <T> T queryOne(String tableName, T obj) {
+        return queryOne(tableName, obj, null);
+    }
+
+    /**
+     * 查询操作
+     * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
+     * @return 查询结果
+     */
+    public <T> T queryOne(T obj) {
+        return queryOne(null, obj, null);
+    }
+
+    /**
+     * 自定义查询操作
+     * @param tableName 指定的表名
+     * @param dataSql select 和 from 之间的 sql 片段
+     * @param whereSql where 后的 sql 片段
+     * @param obj 数据 ORM 对象
+     * @param clazz 返回类型
+     * @param <T> 范型类型
+     * @param <R> 返回值的范型类型
+     * @return 累计数据条数
+     */
+    public <T, R> R customQueryOne(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {
         try {
             whereSql = whereSql == null ? "" : whereSql;
 
