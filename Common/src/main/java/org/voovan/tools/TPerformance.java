@@ -381,15 +381,30 @@ public class TPerformance {
 		return threadDetailList;
 	}
 
-	/**
-	 * 获取处理器信息
-	 * @return 处理器信息 Map
-	 */
-	public static Map<String,Object>  getProcessorInfo(){
+	public static Map<String,Object> getCpuInfo(){
 		Map<String,Object> processInfo = new Hashtable<String,Object>();
 		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
-		processInfo.put("ProcessorCpuUsage",TPerformance.getProcessCpuUsage());
-		processInfo.put("SystemLoadAverage",TPerformance.getSystemLoadAverage());
+		processInfo.put("CpuUsage",TPerformance.getProcessCpuUsage());
+		processInfo.put("LoadAverage",TPerformance.getSystemLoadAverage());
+		return processInfo;
+	}
+
+	/**
+	 * 获取进程信息
+	 * @return 进程信息 Map
+	 */
+	public static Map<String,Object> getProcessInfo(boolean isAll) throws IOException {
+		Map<String,Object> processInfo = new Hashtable<String,Object>();
+		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
+		processInfo.put("CpuUsage",TPerformance.getProcessCpuUsage());
+		processInfo.put("LoadAverage",TPerformance.getSystemLoadAverage());
+		processInfo.put("Memory",TPerformance.getJVMMemoryInfo());
+
+		if(isAll) {
+			processInfo.put("ThreadCount", TEnv.getThreads().length);
+			processInfo.put("RunningThreads", TPerformance.getThreadDetail("RUNNABLE", false).size());
+			processInfo.put("GC", TPerformance.getJVMGCInfo());
+		}
 		return processInfo;
 	}
 

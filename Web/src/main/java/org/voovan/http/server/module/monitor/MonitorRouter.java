@@ -73,7 +73,7 @@ public class MonitorRouter implements HttpRouter {
             if ("JVM".equals(type)) {
                 responseStr = JSON.toJSON(TPerformance.getJVMInfo());
             } else if ("CPU".equals(type)) {
-                responseStr = JSON.toJSON(TPerformance.getProcessorInfo());
+                responseStr = JSON.toJSON(TPerformance.getCpuInfo());
             } else if ("Memory".equals(type)) {
                 responseStr = JSON.toJSON(TPerformance.getJVMMemoryInfo());
             } else if ("MemoryUsage".equals(type)) {
@@ -108,7 +108,7 @@ public class MonitorRouter implements HttpRouter {
                 responseStr = readLogs(logType, lineNumber);
             } else if("Summary".equals(type)){
                 Map summary = new LinkedHashMap();
-                summary.put("CPU", TPerformance.getProcessorInfo());
+                summary.put("CPU", TPerformance.getCpuInfo());
                 summary.put("Memory", TPerformance.getJVMMemoryInfo());
                 summary.put("MemoryUsage", TPerformance.getJVMMemoryUsage());
                 summary.put("ThreadPool", TPerformance.getThreadPoolInfo());
