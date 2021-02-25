@@ -252,12 +252,12 @@ public class Response {
 	 * @throws IOException IO异常
 	 */
 	public void send(IoSession session) throws IOException {
+		ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
+
 		try {
 			if(isSend) {
 				return;
 			}
-
-			ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
 
 			//发送报文头
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer(); //THREAD_BYTE_BUFFER.get();
@@ -334,7 +334,6 @@ public class Response {
 				//发送报文结束符
 				byteBuffer.put(readEnd());
 				byteBuffer.flip();
-				byteBufferChannel.compact();
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
 					Logger.error("Response writeToChannel error: ", (Exception) e);
@@ -344,6 +343,8 @@ public class Response {
 
 			this.isSend = true;
 		} finally {
+			byteBufferChannel.compact();
+
 			if(async) {
 				session.flush();
 			}

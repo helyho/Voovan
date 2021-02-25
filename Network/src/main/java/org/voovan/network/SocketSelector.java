@@ -412,14 +412,17 @@ public class SocketSelector implements Closeable {
 		if(!byteBufferChannel.isReleased()) {
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-			//如果有历史数据则从历史数据尾部开始写入
-			byteBuffer.position(byteBuffer.limit());
-			byteBuffer.limit(byteBuffer.capacity());
+			try {
+				//如果有历史数据则从历史数据尾部开始写入
+				byteBuffer.position(byteBuffer.limit());
+				byteBuffer.limit(byteBuffer.capacity());
 
-			readSize = socketChannel.read(byteBuffer);
+				readSize = socketChannel.read(byteBuffer);
 
-			byteBuffer.flip();
-			byteBufferChannel.compact();
+				byteBuffer.flip();
+			} finally {
+				byteBufferChannel.compact();
+			}
 		}
 
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
