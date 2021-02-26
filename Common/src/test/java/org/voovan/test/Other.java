@@ -2,6 +2,7 @@ package org.voovan.test;
 
 import org.junit.rules.TestRule;
 import org.voovan.tools.cmd.GnuCommander;
+import org.voovan.tools.cmd.annotation.Command;
 import org.voovan.tools.cmd.annotation.Option;
 import org.voovan.tools.json.JSON;
 
@@ -20,13 +21,26 @@ public class Other {
         System.out.println(JSON.toJSON(args));
         GnuCommander<TestOption> gnuCommander = new GnuCommander(TestOption.class);
 
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
+
         gnuCommander.printUsage(4);
+
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
         TestOption testOption = gnuCommander.parser(args);
         System.out.println(JSON.toJSON(testOption));
     }
 
 
+    @Command(usage = "option -abcded [... file]", description = "option os 123123123123123",
+            version = "1.0.0", copyright = "helyho@copyright", author = "helyho",
+    contact = "helyho@gmail.com", licence = "apache v2")
     static public class TestOption {
         //--active mmm -cd -b '12 -3 -123' -f 123 123 -system
         @Option(name="a", longName = "active", usage = "aaa usage asdfasdffffffff", required = true)

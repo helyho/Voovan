@@ -1,6 +1,7 @@
 package org.voovan.tools.cmd;
 
 import org.voovan.tools.TString;
+import org.voovan.tools.cmd.annotation.Command;
 import org.voovan.tools.cmd.annotation.Option;
 import org.voovan.tools.collection.MultiMap;
 import org.voovan.tools.json.JSON;
@@ -67,6 +68,7 @@ public class GnuCommander<T> {
 
     public List<String> usage() {
         List<String> usages = new ArrayList<>();
+
         for(Field field : fields) {
             Option option = field.getAnnotation(Option.class);
 
@@ -78,9 +80,34 @@ public class GnuCommander<T> {
     }
 
     public void printUsage(int identCount){
+        Command command = optionClass.getAnnotation(Command.class);
+        if(command!=null) {
+            System.out.println(command.description());
+            System.out.println("usage: " + command.usage());
+        }
+
         for(Object str : usage()){
-            str = TString.indent((String) str,identCount);
+            str = TString.indent((String) str, identCount);
             System.out.println(str);
+        }
+
+        if(command!=null) {
+            if(!TString.isNullOrEmpty(command.version())) {
+                System.out.println(TString.rightPad("version: ", 11, ' ') + command.version());
+            }
+            if(!TString.isNullOrEmpty(command.author())) {
+                System.out.println(TString.rightPad("author: ", 11, ' ') + command.author());
+            }
+            if(!TString.isNullOrEmpty(command.contact())) {
+                System.out.println(TString.rightPad("contact: ", 11, ' ') + command.contact());
+            }
+            if(!TString.isNullOrEmpty(command.copyright())) {
+                System.out.println(TString.rightPad("copyright: ", 11, ' ') + command.copyright());
+            }
+
+            if(!TString.isNullOrEmpty(command.licence())) {
+                System.out.println(TString.rightPad("licence: ", 11, ' ') + command.licence());
+            }
         }
     }
 
