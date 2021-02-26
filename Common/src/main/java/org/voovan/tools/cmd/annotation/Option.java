@@ -12,7 +12,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.TYPE})
+@Target({ElementType.FIELD})
 public @interface Option {
     String name() default "";
     String longName() default "";
