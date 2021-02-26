@@ -3,7 +3,9 @@ package org.voovan.network.messagesplitter;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.filter.ByteFilter;
+import org.voovan.tools.TByte;
 import org.voovan.tools.Varint;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.nio.ByteBuffer;
 
@@ -43,7 +45,7 @@ public class ByteMessageSplitter implements MessageSplitter {
 						}
 					}
 				} else {
-					//TODO: 自动校正到正确的消息便宜位置
+					session.close();
 				}
 			}
 		} finally {
