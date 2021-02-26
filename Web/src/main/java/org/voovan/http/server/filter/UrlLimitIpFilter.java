@@ -48,13 +48,16 @@ public class UrlLimitIpFilter implements HttpFilter {
         }
 
 
-        if(!matchUrl || !matchIp) {
-            if (invalidClose) {
-                Logger.warn("Deny access: [url=" + path+ ", ip="+remoteAddress+"]");
-                request.getSession().close();
+        if(matchUrl) {
+            if(matchIp) {
+                return true;
+            } else {
+                if (invalidClose) {
+                    Logger.warn("Deny access: [url=" + path+ ", ip="+remoteAddress+"]");
+                    request.getSession().close();
+                }
+                return null;
             }
-            //返回 null 不执行具体业务逻辑
-            return null;
         } else {
             return true;
         }
