@@ -247,7 +247,8 @@ public class TPerformance {
 	 */
 	public static Map<String, String> getJVMGCInfo(long pid) throws IOException {
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-		InputStream processInputStream = TEnv.createSysProcess("jstat -gcutil "+pid, null, (File)null).getInputStream();
+		Process process = TEnv.createSysProcess("jstat -gcutil "+pid, null, (File)null);
+		InputStream processInputStream = process.getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
 		String[] consoleLines = console.split(System.lineSeparator());
 		String[] titleLine = consoleLines[0].trim().split("\\s+");
@@ -275,9 +276,14 @@ public class TPerformance {
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException {
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException, InterruptedException {
+
+		regex = regex == null ? ".*" : regex;
+
 		LinkedHashMap<String,ObjectInfo> result = new LinkedHashMap<String,ObjectInfo>();
-		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
+		Process process = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null);
+		process.waitFor();
+		InputStream processInputStream = process.getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
 
 
@@ -309,12 +315,11 @@ public class TPerformance {
 
 	/**
 	 * 获取指定进程的对象信息
-	 * @param pid		进程 Id
 	 * @param regex     对象匹配字符串
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
 	 */
-	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
+	public static Map<String,ObjectInfo> getJVMObjectInfo(String regex) throws IOException, InterruptedException {
 		return TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, null);
 	}
 
@@ -324,7 +329,7 @@ public class TPerformance {
 	 * @param headCount 头部记录数
 	 * @return 系统对象信息的Map
 	 */
-	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, int headCount) {
+	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, Integer headCount) {
 		if(regex==null){
 			regex = ".*";
 		}
@@ -332,7 +337,7 @@ public class TPerformance {
 		Map<String,TPerformance.ObjectInfo> result;
 		try {
 			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, headCount);
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			result = new Hashtable<String,TPerformance.ObjectInfo>();
 		}
 
