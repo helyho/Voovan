@@ -101,6 +101,41 @@ public class TEnv {
 	}
 
 	/**
+	 * 命令行参数解析成 String[]
+	 * @param cmd 命令参数
+	 * @return 解析成String[] 的命令行参数
+	 */
+	public static String[] parseCommand(String cmd) {
+		List<String> cmds = new ArrayList<String>();
+		boolean isString = false;
+		String tmp = "";
+		for(int i=0;i<cmd.length();i++) {
+			char pre = i>0 ? cmd.charAt(i) : 0;
+			char curr = cmd.charAt(i);
+			if((curr == '\"' || curr == '\'') && pre !='\\') {
+				isString = !isString;
+				continue;
+			}
+
+			if(!isString && curr==' ') {
+				if(!TString.isNullOrEmpty(tmp.trim())) {
+					cmds.add(tmp.trim());
+				}
+
+				tmp = "";
+			}
+
+			tmp = tmp + curr;
+		}
+
+		if(!TString.isNullOrEmpty(tmp.trim())) {
+			cmds.add(tmp.trim());
+		}
+
+		return cmds.toArray(new String[0]);
+	}
+
+	/**
 	 * 构造一个系统进程
 	 * @param command 命令行
 	 * @param env 环境变量参数
@@ -111,7 +146,7 @@ public class TEnv {
 	public static Process createSysProcess(String command, String[] env, File workDir) throws IOException {
 		Runtime runTime  = Runtime.getRuntime();
 		if(workDir==null || workDir.exists()) {
-			return runTime.exec(command, env, workDir);
+			return runTime.exec(parseCommand(command), env, workDir);
 		}
 		return null;
 	}
