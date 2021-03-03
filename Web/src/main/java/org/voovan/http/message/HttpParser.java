@@ -489,18 +489,17 @@ public class HttpParser {
 
 	/**
 	 * 获取可用缓存
-	 * @param byteBufferChannel 字节缓冲通道
+	 * @param byteBuffer bytebuffer 缓冲数据
 	 * @param protocolPosition 协议行结束位置
 	 * @param protocolMark 协议行 hash
 	 * @return null: 无可用缓存, not null: 获取到可用的缓存
 	 */
-	private static Object[] findCache(ByteBufferChannel byteBufferChannel, int protocolPosition, long protocolMark) {
+	private static Object[] findCache(ByteBuffer byteBuffer, int protocolPosition, long protocolMark) {
 		if(!WebContext.isCache()) {
 			return null;
 		}
 
 		Long cachedMark = PROTOCOL_HASH_MAP.get(protocolMark);
-		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
 		try {
 			if (cachedMark != null) {
@@ -508,19 +507,20 @@ public class HttpParser {
 
 				if (cachedPacketMap != null) {
 					//高位清空, 获得整个头的长度
-					long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL;
+					long totalLengthInMark = cachedMark & 0x000000000FFFFFFFL;
 
 					if (totalLengthInMark >= byteBuffer.limit() ||
-							(byteBufferChannel.size() >= totalLengthInMark &&
-									byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
-									byteBufferChannel.get((int) totalLengthInMark - 2) == 13 &&
-									byteBufferChannel.get((int) totalLengthInMark - 3) == 10 &&
-									byteBufferChannel.get((int) totalLengthInMark - 4) == 13
+							(byteBuffer.limit()>= totalLengthInMark &&
+									byteBuffer.get((int) totalLengthInMark - 1) == 10 &&
+									byteBuffer.get((int) totalLengthInMark - 2) == 13 &&
+									byteBuffer.get((int) totalLengthInMark - 3) == 10 &&
+									byteBuffer.get((int) totalLengthInMark - 4) == 13
 							)
 					) {
 
 						int headerMark = THash.HashFNV1(byteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
-						if (protocolMark + headerMark == cachedMark >> 32) {
+						System.out.println("get: " + (protocolMark + headerMark) + " = " + (cachedMark >> 28));
+						if (protocolMark + headerMark == cachedMark >> 28) {
 							byteBuffer.position((int) totalLengthInMark);
 
 							return Arrays.copyOf(cachedPacketMap, cachedPacketMap.length);
@@ -553,8 +553,11 @@ public class HttpParser {
 		if(WebContext.isCache()) {
 			int headerMark = THash.HashFNV1(byteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
 			//高位存头部 hash, 低位存整个头的长度
-			long mark = ((protocolMark + headerMark) << 32) + totalLength;
+			long mark = ((protocolMark + headerMark) << 28) + totalLength;
+			System.out.println("set: " + (protocolMark + headerMark) + " " + ((protocolMark + headerMark) ) );
+			System.out.println(mark>>28);
 			packetMap[HEADER_MARK] = mark;
+
 
 			Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
 			PARSED_PACKET_MAP.put(mark, cachedPacketMap);
@@ -616,7 +619,7 @@ public class HttpParser {
 				}
 
 				//检查缓存是否存在,并获取
-				Object[] cachedPacketMap = findCache(byteBufferChannel, protocolPosition, protocolMark);
+				Object[] cachedPacketMap = findCache(byteBuffer, protocolPosition, protocolMark);
 				if (cachedPacketMap != null) {
 					packetMap = cachedPacketMap;
 					headerMap = (TreeMap<String, Object>) packetMap[HEADER];

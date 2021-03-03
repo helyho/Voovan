@@ -508,20 +508,23 @@ public class SocketSelector implements Closeable {
 
 		if(!byteBufferChannel.isReleased()) {
 
-			//如果有历史数据则从历史数据尾部开始写入
-			byteBuffer.position(byteBuffer.limit());
-			byteBuffer.limit(byteBuffer.capacity());
+			try {
+				//如果有历史数据则从历史数据尾部开始写入
+				byteBuffer.position(byteBuffer.limit());
+				byteBuffer.limit(byteBuffer.capacity());
 
-			if (!datagramChannel.isConnected()) {
-				SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
-				session.setInetSocketAddress((InetSocketAddress) socketAddress);
-				readSize = byteBuffer.position();
-			} else {
-				readSize = datagramChannel.read(byteBuffer);
+				if (!datagramChannel.isConnected()) {
+					SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
+					session.setInetSocketAddress((InetSocketAddress) socketAddress);
+					readSize = byteBuffer.position();
+				} else {
+					readSize = datagramChannel.read(byteBuffer);
+				}
+
+				byteBuffer.flip();
+			} finally {
+				byteBufferChannel.compact();
 			}
-
-			byteBuffer.flip();
-			byteBufferChannel.compact();
 		}
 
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
