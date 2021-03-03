@@ -126,13 +126,17 @@ public class HttpClientUnit extends TestCase {
 		httpClient.close();
 	}
 
+	public static  WebSocketSession session ;
+
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://webserver.voovan.org/websocket","GBK2312",60);
+		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/websocket","GBK2312",60);
+
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
 			public Object onOpen(WebSocketSession webSocketSession) {
 				System.out.println("WebSocket open");
+				HttpClientUnit.session = webSocketSession;
 				return "OPEN_MSG";
 			}
 
@@ -146,9 +150,9 @@ public class HttpClientUnit extends TestCase {
 					return "RECIVE_MSG";
 				}
 
-				if(((String)message).contains("RECIVE_MSG")){
-					webSocketSession.close();
-				}
+//				if(((String)message).contains("RECIVE_MSG")){
+//					webSocketSession.close();
+//				}
 
 				return null;
 			}
@@ -163,6 +167,10 @@ public class HttpClientUnit extends TestCase {
 				System.out.println("WebSocket close");
 			}
 		}.addFilterChain(new StringFilter()));
+
+		TEnv.sleep(50);
+
+		HttpClientUnit.session.close();
 
 		TEnv.sleep(3000);
 	}
@@ -191,5 +199,4 @@ public class HttpClientUnit extends TestCase {
 		}
 		getClient.close();
 	}
-
 }
