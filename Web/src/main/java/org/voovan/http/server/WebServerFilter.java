@@ -12,12 +12,12 @@ import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * WebServer 过滤器对象
@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class WebServerFilter implements IoFilter {
-	public final static LongKeyMap<byte[]> RESPONSE_MAP = new LongKeyMap<byte[]>(4096);
+	public final static ConcurrentHashMap<Long, byte[]> RESPONSE_MAP = new ConcurrentHashMap<Long, byte[]>(4096);
 	public static int MAX_REQUEST_SIZE = WebContext.getWebServerConfig().getMaxRequestSize() * 1024;
 
 	static {

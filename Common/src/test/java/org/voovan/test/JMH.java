@@ -5,6 +5,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import org.voovan.test.tools.json.TestObject;
+import org.voovan.tools.UniqueId;
+import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.JSONEncode;
@@ -15,6 +17,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,49 +35,32 @@ import java.util.concurrent.TimeUnit;
 @Fork(1)
 //@OutputTimeUnit(TimeUnit.)
 public class JMH {
-    public static class Message {
+    public static UniqueId uniqueId = new UniqueId();
+    public static ConcurrentHashMap<Long, Long> x = new ConcurrentHashMap<>();
+    public static LongKeyMap<Long> y = new LongKeyMap<Long>(64);
+    public static long id = uniqueId.nextNumber();
+    static {
+        x.put(id, id);
 
-        private String message;
-
-        public Message(String message) {
-            this.message = message;
-        }
-
-        public String getMessage() {
-            return message;
-        }
-
-        @Override
-        public int hashCode() {
-            return  -9;
-        }
+        y.put(id, id);
     }
 
     @Benchmark
     public static void withHash() throws Exception {
-        JSONEncode.JSON_HASH =true;
-        JSON.toJSON((new Message("hello word")));
+        for(int i=0;i<100000;i++) {
+            x.get(id);
+        }
     }
+
 
     @Benchmark
-    public void withoutHash() throws Exception {
-        JSONEncode.JSON_HASH =false;
-        JSON.toJSON((new Message("hello word")));
-    }
-
-    @Benchmark
-    public void withMethod() {
-        Message message = new Message("hello word");
-        json(message);
-    }
-
-    public String json(Message message) {
-        return "{\""+"message" + "\":\"" + message.getMessage() + "\"}";
+    public void withArray() {
+        for(int i=0;i<100000;i++) {
+            x.get(id);
+        }
     }
 
     public static void main(String[] args) throws Exception {
-        TReflect.register(Message.class);
-
         Options options = new OptionsBuilder()
                 .include(JMH.class.getSimpleName())
                 .build();
