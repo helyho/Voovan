@@ -10,7 +10,6 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Http 报文解析类
@@ -54,8 +54,8 @@ public class HttpParser {
 	private final static FastThreadLocal<Response> THREAD_RESPONSE   = FastThreadLocal.withInitial(()->new Response());
 	private final static FastThreadLocal<byte[]>   THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[4096]);
 
-	private final static LongKeyMap<Long> 	  	   PROTOCOL_HASH_MAP = new LongKeyMap<Long>(64);
-	private final static LongKeyMap<Object[]> 	   PARSED_PACKET_MAP = new LongKeyMap<Object[]>(64);
+	private final static ConcurrentHashMap<Long, Long> 		PROTOCOL_HASH_MAP = new ConcurrentHashMap<Long, Long>(64);
+	private final static ConcurrentHashMap<Long, Object[]>  PARSED_PACKET_MAP = new ConcurrentHashMap<Long, Object[]>(64);
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
