@@ -36,7 +36,6 @@ public class ByteBufferChannel {
     private volatile int capacity;
     private volatile int size;
     private ReentrantLock lock;
-    private AtomicBoolean borrowed = new AtomicBoolean(false);
 
     private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE;
 
@@ -249,12 +248,7 @@ public class ByteBufferChannel {
             return -1;
         }
 
-        lock();
-        try {
-            return byteBuffer.capacity() - size;
-        }finally {
-            unlock();
-        }
+        return byteBuffer.capacity() - size;
     }
 
     /**
@@ -266,12 +260,7 @@ public class ByteBufferChannel {
             return -1;
         }
 
-        lock();
-        try {
-            return byteBuffer.capacity();
-        }finally {
-            unlock();
-        }
+        return byteBuffer.capacity();
     }
 
     /**
@@ -453,9 +442,9 @@ public class ByteBufferChannel {
         try {
             checkRelease();
 
-            borrowed.compareAndSet(false, true);
             return byteBuffer;
         } catch (Exception e) {
+            unlock();
             return null;
         }
     }
@@ -469,23 +458,16 @@ public class ByteBufferChannel {
      * @return 是否compact成功,true:成功, false:失败
      */
     public boolean compact(){
-
         boolean isHoldByCurrentThread = lock.isHeldByCurrentThread();
-        if(isReleased()){
-            if(isHoldByCurrentThread && borrowed.compareAndSet(true, false)) {
-                unlock();
-            }
-            return false;
-        }
-
-        if(size()==0 && !byteBuffer.hasRemaining()){
-            if(isHoldByCurrentThread && borrowed.compareAndSet(true, false)){
-                unlock();
-            }
-            return true;
-        }
 
         try{
+            if(isReleased()){
+                return false;
+            }
+
+            if(size()==0 && !byteBuffer.hasRemaining()){
+                return true;
+            }
 
             if(byteBuffer.position() == 0){
                 this.size = byteBuffer.limit();
@@ -503,7 +485,7 @@ public class ByteBufferChannel {
             return result;
 
         } finally {
-            if(borrowed.compareAndSet(true, false)) {
+            if(isHoldByCurrentThread) {
                 unlock();
             }
         }
