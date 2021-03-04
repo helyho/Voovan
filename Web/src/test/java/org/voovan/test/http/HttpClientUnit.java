@@ -168,7 +168,7 @@ public class HttpClientUnit extends TestCase {
 			}
 		}.addFilterChain(new StringFilter()));
 
-		TEnv.sleep(50);
+		TEnv.sleep(100);
 
 		HttpClientUnit.session.close();
 
