@@ -269,9 +269,9 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	public boolean isTimeOut(){
 		if(CHECK_TIMEOUT == null || CHECK_TIMEOUT) {
-			return false;
-		} else {
 			return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
+		} else {
+			return false;
 		}
 	}
 
