@@ -184,7 +184,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	@Override
 	public boolean isOpen() {
 		if (socketChannel.isOpen()) {
-			updateLastTime();
 			return true;
 		} else {
 			return false;
@@ -194,7 +193,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	@Override
 	public boolean isConnected() {
 		if (socketChannel.isConnected()) {
-			updateLastTime();
 			return true;
 		} else {
 			return false;

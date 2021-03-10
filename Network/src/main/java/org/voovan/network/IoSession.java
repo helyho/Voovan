@@ -486,7 +486,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				flush();
 			}
 
-			socketContext.updateLastTime();
 			return sendByteBufferChannel.writeEnd(buffer);
 		} catch (Exception e) {
 			if (socketContext.isConnected()) {
