@@ -6,6 +6,7 @@ import com.sun.tools.attach.AttachNotSupportedException;
 import org.voovan.Global;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
@@ -19,7 +20,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * 热部署核心类
@@ -36,7 +36,8 @@ public class Hotswaper {
 
     private static Hotswaper HOT_SWAPER;
 
-    private List<ClassFileInfo> classFileInfos;
+    private HashMap<String, ClassFileInfo> classFileInfos;
+    private HashMap<String, Long> currentLastModifyCache;
     private List<String> excludePackages;
     private int reloadIntervals;
     private HashWheelTask reloadTask;
@@ -67,7 +68,8 @@ public class Hotswaper {
 
     private void init(File agentJar) throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
         reloadIntervals = 5;
-        classFileInfos = new ArrayList<ClassFileInfo>();
+        classFileInfos = new HashMap<String, ClassFileInfo>();
+        currentLastModifyCache = new HashMap<String, Long>();
 
         excludePackages = TObject.asList("java.","sun.","javax.","com.sun","com.oracle");
 
@@ -86,13 +88,12 @@ public class Hotswaper {
      */
     private void loadCustomClass(){
         for(Class clazz : TEnv.instrumentation.getAllLoadedClasses()){
-
             if(isExcludeClass(clazz)){
                 continue;
             }
 
             ClassFileInfo classFileInfo = new ClassFileInfo(clazz, true);
-            classFileInfos.add(classFileInfo);
+            classFileInfos.put(clazz.toString(), classFileInfo);
         }
     }
 
@@ -116,6 +117,11 @@ public class Hotswaper {
                 return true;
             }
 
+            //如果是有 java 编译的 (如: lambda)
+            if (clazz.isSynthetic()) {
+                return true;
+            }
+
             //CodeSource 对象为空的不加载
             if (clazz.getProtectionDomain().getCodeSource() == null) {
                 return true;
@@ -134,10 +140,8 @@ public class Hotswaper {
             }
 
             //加载过的 class 不加载
-            for (ClassFileInfo classFileInfo : classFileInfos) {
-                if (classFileInfo.getClazz() == clazz) {
-                    return true;
-                }
+            if(classFileInfos.containsKey(clazz.toString())) {
+                return true;
             }
 
             return false;
@@ -151,9 +155,10 @@ public class Hotswaper {
      * @return 发生变更的 ClassFileInfo 对象
      */
     private List<ClassFileInfo> fileWatcher(){
+        currentLastModifyCache.clear();
         loadCustomClass();
         List<ClassFileInfo> changedFiles = new ArrayList<ClassFileInfo>();
-        for(ClassFileInfo classFileInfo : classFileInfos){
+        for(ClassFileInfo classFileInfo : classFileInfos.values()){
             if(classFileInfo.isChanged()){
                 changedFiles.add(classFileInfo);
             }
@@ -168,7 +173,6 @@ public class Hotswaper {
      * @throws ClassNotFoundException Class未找到异常
      */
     public static void reloadClass(Map<Class, byte[]> clazzDefines) throws UnmodifiableClassException, ClassNotFoundException {
-
         for(Map.Entry<Class, byte[]> clazzDefine : clazzDefines.entrySet()){
             Class clazz = clazzDefine.getKey();
             byte[] classBytes = clazzDefine.getValue();
@@ -248,13 +252,10 @@ public class Hotswaper {
         }
     }
 
-    public List<ClassFileInfo> getClassFileInfos() {
+    public Map<String, ClassFileInfo> getClassFileInfos() {
         return classFileInfos;
     }
 
-    public void setClassFileInfos(List<ClassFileInfo> classFileInfos) {
-        this.classFileInfos = classFileInfos;
-    }
 
     public synchronized static Hotswaper get() throws AgentInitializationException, AgentLoadException, AttachNotSupportedException, IOException {
         if(HOT_SWAPER == null) {
@@ -277,18 +278,34 @@ public class Hotswaper {
      */
     public class ClassFileInfo {
         private Class clazz;
-        private long lastModified;
+        private String location;
+        private long lastModified ;
+        private long packageLastModify = -1L;
 
         public ClassFileInfo(Class clazz, boolean isAutoChek) {
             this.clazz = clazz;
             if(isAutoChek) {
+                this.location = TEnv.getClassLocation(clazz);
+                if(this.location!= null && this.location.endsWith("jar")) {
+                    this.packageLastModify = TFile.getFileLastModify(location);
+                }
                 this.lastModified = TEnv.getClassModifyTime(clazz);
             }
         }
 
         public boolean isChanged(){
+            long currentModified ;
 
-            long currentModified = TEnv.getClassModifyTime(clazz);
+            if(packageLastModify!=-1){
+                currentModified = currentLastModifyCache.computeIfAbsent(clazz.toString(), clazz->TFile.getFileLastModify(location));
+
+                //jar 包更新时间无变化则不继续检查具体的包内文件
+                if(packageLastModify==currentModified) {
+                    return false;
+                }
+            }
+
+            currentModified = TEnv.getClassModifyTime(clazz);
 
             if(currentModified < 0 ){
                 return false;
@@ -324,12 +341,13 @@ public class Hotswaper {
             this.lastModified = lastModified;
         }
 
-        public String toString(){
-            return clazz.getCanonicalName();
-        }
-
         public boolean equals(ClassFileInfo classFileInfo) {
             return classFileInfo.getClazz() == this.clazz;
+        }
+
+        @Override
+        public String toString() {
+            return  clazz + "-> " + lastModified ;
         }
     }
 }
