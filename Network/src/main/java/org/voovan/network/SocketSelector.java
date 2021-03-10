@@ -271,7 +271,7 @@ public class SocketSelector implements Closeable {
 				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER) {
 
 					//缓冲区是否有数据
-					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty() && socketContext.getSession().getSendByteBufferChannel().isEmpty();
+					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty();
 
 					if(socketContext.isTimeOut() && bufferDataEmpty) {
 						socketContext.close();
@@ -309,7 +309,6 @@ public class SocketSelector implements Closeable {
 
 					// 有数据读取
 					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
-						socketContext.updateLastTime();
 						readFromChannel(socketContext, channel);
 					}
 				}
@@ -361,9 +360,6 @@ public class SocketSelector implements Closeable {
 	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		try {
-
-			socketContext.updateLastTime();
-
 			if (socketContext.getConnectType() == ConnectType.TCP) {
 				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
 			} else if (socketContext.getConnectType() == ConnectType.UDP) {
@@ -593,6 +589,8 @@ public class SocketSelector implements Closeable {
 			session.close();
 			return -1;
 		} else {
+			session.socketContext().updateLastTime();
+
 			ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 			if (readSize > 0) {

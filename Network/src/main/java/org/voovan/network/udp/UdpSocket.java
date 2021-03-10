@@ -183,7 +183,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     @Override
     public boolean isOpen() {
         if (datagramChannel.isOpen()) {
-            updateLastTime();
             return true;
         } else {
             return false;
@@ -193,7 +192,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     @Override
     public boolean isConnected() {
         if (datagramChannel.isConnected()) {
-            updateLastTime();
             return true;
         } else {
             return false;
