@@ -721,7 +721,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
             return object;
         } catch (Throwable e) {
-            rollback(false);
+            try {
+                rollback(false);
+            } catch(Exception re) {
+                Logger.error("withTransaction.catch.rollback error", re);
+            }
             throw e;
         }
     }
