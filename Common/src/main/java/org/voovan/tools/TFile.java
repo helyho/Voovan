@@ -645,6 +645,20 @@ public class TFile {
 	}
 
 	/**
+	 * 获取文件最后修改时间
+	 * @param filePath 文件路径
+	 * @return 最后修改时间
+	 */
+	public static long getFileLastModify(String filePath){
+		File classFile = new File(filePath);
+		if(classFile!=null && classFile.exists()) {
+			return classFile.lastModified();
+		}else{
+			return -1L;
+		}
+	}
+
+	/**
 	 * 获取文件名称,包含扩展名
 	 * @param filePath 文件的路径或者文件名
 	 * @return 获取文件所在文件夹路径
