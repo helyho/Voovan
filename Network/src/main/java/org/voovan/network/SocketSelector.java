@@ -11,6 +11,7 @@ import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventTask;
+import org.voovan.tools.exception.LargerThanMaxSizeException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -399,14 +400,22 @@ public class SocketSelector implements Closeable {
 								: session.getReadByteBufferChannel();
 
 		//自动扩容
-		if(byteBufferChannel.available() == 0) {
-			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-		}
+
 
 		int readSize = -1;
 
 		if(!byteBufferChannel.isReleased()) {
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+			if(byteBufferChannel.available() == 0) {
+				try {
+					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+				} catch (Exception e) {
+					Logger.error("SocketSelector.tcpReadFromChannel reallocate buffer failed " + this, e);
+				}
+			}
+
+
 
 			try {
 				//如果有历史数据则从历史数据尾部开始写入
@@ -493,16 +502,20 @@ public class SocketSelector implements Closeable {
 		UdpSession session = socketContext.getSession();
 
 		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
-		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-
-		//自动扩容
-		if(byteBufferChannel.available() == 0) {
-			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-		}
 
 		int readSize = -1;
 
 		if(!byteBufferChannel.isReleased()) {
+			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
+
+			//自动扩容
+			if(byteBufferChannel.available() == 0) {
+				try {
+					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+				} catch (Exception e) {
+					Logger.error("SocketSelector.udpReadFromChannel reallocate buffer failed " + this, e);
+				}
+			}
 
 			try {
 				//如果有历史数据则从历史数据尾部开始写入
