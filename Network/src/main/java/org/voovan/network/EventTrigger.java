@@ -18,10 +18,6 @@ public class EventTrigger {
 	}
 
 	public static void fireConnectAsync(IoSession session){
-		//设置连接状态
-		session.getState().setInit(false);
-		session.getState().setConnect(true);
-
 		fireEvent(session, Event.EventName.ON_CONNECT,null);
 	}
 
@@ -39,8 +35,6 @@ public class EventTrigger {
 	}
 
 	public static void fireDisconnectAsync(IoSession session){
-		//设置断开状态,Close是最终状态
-		session.getState().setClose(true);
 		fireEvent(session, Event.EventName.ON_DISCONNECT, null);
 	}
 
@@ -59,10 +53,6 @@ public class EventTrigger {
 	}
 
 	public static void fireConnect(IoSession session){
-		//设置连接状态
-		session.getState().setInit(false);
-		session.getState().setConnect(true);
-
 		fire(session, Event.EventName.ON_CONNECT,null);
 	}
 
@@ -79,8 +69,6 @@ public class EventTrigger {
 	}
 
 	public static void fireDisconnect(IoSession session){
-		session.getState().setClose(true);
-
 		fire(session, Event.EventName.ON_DISCONNECT,null);
 	}
 
