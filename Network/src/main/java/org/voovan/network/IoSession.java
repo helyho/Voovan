@@ -489,7 +489,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			return sendByteBufferChannel.writeEnd(buffer);
 		} catch (Exception e) {
 			if (socketContext.isConnected()) {
-				Logger.error("IoSession.sendByBuffer buffer failed", e);
+				Logger.error("Socket will be close, IoSession.sendByBuffer buffer failed " + this, e);
 			} else {
 				close();
 			}
