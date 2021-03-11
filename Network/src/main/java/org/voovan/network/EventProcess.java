@@ -54,21 +54,26 @@ public class EventProcess {
      *
      */
     public static void onConnect(Event event) throws IOException {
-
         IoSession session = event.getSession();
 
-        SocketContext socketContext = event.getSession().socketContext();
-        if (socketContext != null && session != null) {
-            Object original = socketContext.handler().onConnect(session);
-            //null 不发送
-            if (original != null) {
-                sendMessage(session, original);
-                session.flush();
-            }
-        }
+        try {
+            //设置连接状态
+            session.getState().setInit(false);
+            session.getState().setConnect(true);
 
-        //设置空闲状态
-        session.getState().setConnect(false);
+            SocketContext socketContext = event.getSession().socketContext();
+            if (socketContext != null && session != null) {
+                Object original = socketContext.handler().onConnect(session);
+                //null 不发送
+                if (original != null) {
+                    sendMessage(session, original);
+                    session.flush();
+                }
+            }
+        } finally {
+            //设置空闲状态
+            session.getState().setConnect(false);
+        }
     }
 
     /**
@@ -79,14 +84,20 @@ public class EventProcess {
      */
     public static void onDisconnect(Event event) {
         IoSession session = event.getSession();
-        session.cancelIdle();
-        SocketContext socketContext = event.getSession().socketContext();
 
-        if (socketContext != null) {
-            socketContext.handler().onDisconnect(session);
+        try {
+            //设置断开状态,Close是最终状态
+            session.getState().setClose(true);
+
+            session.cancelIdle();
+            SocketContext socketContext = event.getSession().socketContext();
+
+            if (socketContext != null) {
+                socketContext.handler().onDisconnect(session);
+            }
+        } finally {
+            session.getState().setClose(false);
         }
-
-        session.getState().setClose(false);
     }
 
     /**
@@ -101,20 +112,30 @@ public class EventProcess {
 
         if (session != null) {
             try {
+
                 // 循环读取完整的消息包.
                 // 由于之前有消息分割器在工作,所以这里读取的消息都是完成的消息包.
                 // 有可能缓冲区没有读完
                 // 按消息包触发 onRecive 事件
+                Object result;
                 while (session.getReadByteBufferChannel().size()>0) {
-                    MessageLoader messageLoader = session.getMessageLoader();
+                    try {
+                        session.getState().setReceive(true);
 
-                    int splitLength = messageLoader.read();
-                    if(splitLength>=0) {
-                        doRecive(session, splitLength);
-                    } else {
-                        //不可分割跳出循环
-                        break;
+                        int splitLength = session.getMessageLoader().read();
+                        if (splitLength >= 0) {
+                            result = doRecive(session, splitLength);
+                        } else {
+                            //不可分割跳出循环
+                            break;
+                        }
+                    } finally {
+                        session.getState().setReceive(false);
                     }
+
+                    //发送消息
+                    sendMessage(session, result);
+                    result = null;
                 }
             } finally {
                 //异步模式自动 flush 并触发事件
@@ -177,40 +198,27 @@ public class EventProcess {
      */
     public static Object doRecive(IoSession session, int splitLength) throws IOException {
         Object result = null;
-        session.getState().setReceive(true);
 
-        try {
-            ByteBuffer byteBuffer = loadSplitData(session, splitLength);
+        ByteBuffer byteBuffer = loadSplitData(session, splitLength);
 
-			//如果读出的数据为 null 则直接返回
-			if (byteBuffer == null) {
-				session.getState().setReceive(false);
-				return null;
-			}
-
-            // -----------------Filter 解密处理-----------------
-            result = filterDecoder(session, byteBuffer);
-            // -------------------------------------------------
-
-            // -----------------Handler 业务处理-----------------
-            if (result != null) {
-                IoHandler handler = session.socketContext().handler();
-                result = handler.onReceive(session, result);
-            }
-            // --------------------------------------------------
-        } finally {
+        //如果读出的数据为 null 则直接返回
+        if (byteBuffer == null) {
             session.getState().setReceive(false);
-        }
-
-        // 返回的结果不为空的时候才发送
-        if (result != null) {
-            //触发发送事件
-            session.getState().setSend(true);
-            sendMessage(session, result);
-            return result;
-        } else {
             return null;
         }
+
+        // -----------------Filter 解密处理-----------------
+        result = filterDecoder(session, byteBuffer);
+        // -------------------------------------------------
+
+        // -----------------Handler 业务处理-----------------
+        if (result != null) {
+            IoHandler handler = session.socketContext().handler();
+            result = handler.onReceive(session, result);
+        }
+        // --------------------------------------------------
+
+        return result;
     }
 
     /**
@@ -275,7 +283,14 @@ public class EventProcess {
 
         final Object sendObj = obj;
 
+        if(sendObj == null) {
+            return;
+        }
+
         try {
+            //触发发送事件
+            session.getState().setSend(true);
+
             // ------------------Filter 加密处理-----------------
             ByteBuffer sendBuffer = EventProcess.filterEncoder(session, sendObj);
             // ---------------------------------------------------
@@ -294,10 +309,10 @@ public class EventProcess {
 
             //触发发送事件
             EventTrigger.fireSent(session, sendObj);
-            session.getState().setSend(false);
-
         } catch (IOException e) {
             EventTrigger.fireException(session, e);
+        } finally {
+            session.getState().setSend(false);
         }
     }
 
