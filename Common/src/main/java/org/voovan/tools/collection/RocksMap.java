@@ -1522,12 +1522,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         try {
-            drop();
-            ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyName.getBytes(), columnFamilyOptions);
-            dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
-            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).put(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
-            //设置列族
-            dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
+            synchronized (rocksDB) {
+                drop();
+                ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyName.getBytes(), columnFamilyOptions);
+                dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
+                COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).put(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
+                //设置列族
+                dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
+            }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap clear failed", e);
         }
