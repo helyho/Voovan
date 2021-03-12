@@ -215,7 +215,9 @@ public class ObjectPool<T extends IPooledObject> {
      * @return 对象的 id 值
      */
     private Long add(T obj, boolean isBorrow){
-        Objects.requireNonNull(obj, "add a null object failed");
+        if(obj == null) {
+            return null;
+        }
 
         if (objects.size() >= maxSize) {
             return null;
@@ -310,11 +312,13 @@ public class ObjectPool<T extends IPooledObject> {
             if (result == null && supplier != null) {
                 if (objects.size() < maxSize) {
                     id = add(supplier.get(), true);
-                    InnerObject innerObject = objects.get(id);
-                    innerObject.setBorrow(true);
-                    result = (T) innerObject.getObject();
+                    if(id != null) {
+                        InnerObject innerObject = objects.get(id);
+                        innerObject.setBorrow(true);
+                        result = (T) innerObject.getObject();
 
-                    useSupplier = true;
+                        useSupplier = true;
+                    }
                 } else {
                     return null;
                 }
