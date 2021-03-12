@@ -1,5 +1,6 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -23,6 +24,8 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class Body {
+	private final static String TMP_RESPONSE = TFile.assemblyPath(TFile.getTemporaryPath(), "voovan", "webserver", "response");
+
 	private ByteBufferChannel byteBufferChannel;
 	private BodyType type;
 	private File bodyFile;
@@ -124,7 +127,7 @@ public class Body {
 	 */
 	public void changeToBytes() {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
-			byteBufferChannel = new ByteBufferChannel();
+			byteBufferChannel = new ByteBufferChannel(20, 20);
 		}
 
 
@@ -250,7 +253,22 @@ public class Body {
 			int hash = THash.HashFNV1(body, offset, length);
 			mark = mark==0 ? hash : mark + hash;
 			if(!byteBufferChannel.isReleased()) {
-				byteBufferChannel.writeEnd(body, offset, length);
+				if(byteBufferChannel.size() + length <= byteBufferChannel.getMaxSize()) {
+					byteBufferChannel.writeEnd(body, offset, length);
+				}
+				//超过缓冲区大小使用文件作为缓冲
+				else {
+					File tmpFile = new File(TMP_RESPONSE  + File.separator + TString.generateId() + ".tmp");
+					try {
+						TFile.writeFile(tmpFile, true, byteBufferChannel.array(), 0, byteBufferChannel.size());
+						TFile.writeFile(tmpFile, true, body, offset, length);
+						byteBufferChannel.clear();
+						changeToFile(tmpFile.getAbsolutePath());
+					} catch (Exception e) {
+						TFile.deleteFile(tmpFile);
+						Logger.error("Body large buffer change to file failed : " + tmpFile.getAbsolutePath(), e);
+					}
+				}
 			}
 		}else{
 			TFile.writeFile(bodyFile,true, body, offset, length);
