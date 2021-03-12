@@ -127,7 +127,7 @@ public class Body {
 	 */
 	public void changeToBytes() {
 		if(byteBufferChannel == null || byteBufferChannel.isReleased()){
-			byteBufferChannel = new ByteBufferChannel(20, 20);
+			byteBufferChannel = new ByteBufferChannel();
 		}
 
 
