@@ -5,6 +5,7 @@ import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.ObjectPool;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -31,7 +32,13 @@ public class HttpClientPool {
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
-                return HttpClient.newInstance(host, timeout);
+                try {
+                    return HttpClient.newInstance(host, timeout);
+                } catch (Exception e) {
+                    Logger.error("Create HttpClient " + host + " error:", e);
+                    TEnv.sleep(timeout * 1000);
+                    return null;
+                }
             }).destory(httpClient -> {
                 httpClient.close();
                 return true;
