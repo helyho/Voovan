@@ -42,6 +42,8 @@ public class HeartBeat {
 
         pingBuffer.put(this.ping);
         pongBuffer.put(this.pong);
+        pingBuffer.flip();
+        pongBuffer.flip();
     }
 
     /**
@@ -114,15 +116,14 @@ public class HeartBeat {
             return false;
         }
 
-        //收个心跳返回成功
+        //首个心跳默认成功
         if (heartBeat.isFirstBeat) {
+            //客户端默认发起第一次的心跳
             if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
-                //等待这个时间的目的是为了等待客户端那边的心跳检测启动
-                TEnv.sleep(session.getIdleInterval());
-                session.send(heartBeat.pingBuffer);
-                session.flush();
-                heartBeat.pingBuffer.flip();
+                heartBeat.hasPong = true;
             }
+
+            heartBeat.isFirstBeat = false;
             return true;
         }
 
