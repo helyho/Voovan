@@ -461,8 +461,16 @@ public class TFile {
 	 * @return 成功返回 true,失败返回 false
 	 */
 	public static boolean writeFile(File file, boolean append, byte[] contents, int offset, int length) {
+		boolean fileExists = file.exists();
 
-		if(!append && file.exists()){
+		//追加模式文件不存在则尝试创建目录
+		if(append && !fileExists){
+			TFile.mkdir(file.getAbsolutePath());
+
+		}
+
+		//非追加模式文件存在则删除文件
+		if(!append && fileExists) {
 			file.delete();
 		}
 

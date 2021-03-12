@@ -926,8 +926,8 @@ public class TString {
 			sign = Global.FRAMEWORK_NAME;
 		}
 
-		if(obj==null){
-			obj = random.nextInt(obj.hashCode());
+		if(obj==null) {
+			obj = random.nextInt();
 		}
 
 		long currentTime = TDateTime.currentTimeNanos();
