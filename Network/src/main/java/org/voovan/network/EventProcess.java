@@ -61,6 +61,8 @@ public class EventProcess {
             session.getState().setInit(false);
             session.getState().setConnect(true);
 
+            session.checkIdle();
+
             SocketContext socketContext = event.getSession().socketContext();
             if (socketContext != null && session != null) {
                 Object original = socketContext.handler().onConnect(session);

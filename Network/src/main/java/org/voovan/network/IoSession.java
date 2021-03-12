@@ -130,7 +130,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		readByteBufferChannel.setThreadSafe(SocketContext.ASYNC_RECIVE);
 		sendByteBufferChannel.setThreadSafe(SocketContext.ASYNC_SEND);
 		messageLoader = new MessageLoader(this);
-		checkIdle();
 	}
 
 	public Object getAttachment() {
@@ -210,55 +209,25 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	public void checkIdle(){
 		if(socketContext.getIdleInterval() > 0) {
-
 			if(checkIdleTask == null){
 				final IoSession session = this;
 
 				checkIdleTask = new HashWheelTask() {
 					public void run() {
-						//触发空闲事件
-						long timeDiff = System.currentTimeMillis() - lastIdleTime;
-						if (timeDiff >= socketContext.getIdleInterval() * 1000) {
-							boolean isConnect = false;
-
-							//初始化状态
-							if(session.state.isInit() ||
-									session.state.isConnect()) {
-								return;
-							}
-
-							//检测会话状态
-							if(session.state.isClose()){
-								session.cancelIdle();
-								return;
-							}
-
-							//获取连接状态
-							isConnect = session.isConnected();
-
-							if(!isConnect){
-								session.cancelIdle();
-								session.close();
-								this.cancel();
-								return;
-							}
-
-
-							//检查空间时间
-							if(socketContext.getIdleInterval() < 1){
-								return;
-							}
-
-							EventTrigger.fireIdle(session);
-							lastIdleTime = System.currentTimeMillis();
+						//检测会话状态
+						if(session.state.isClose()){
+							session.cancelIdle();
+							return;
 						}
 
+						EventTrigger.fireIdle(session);
+						lastIdleTime = System.currentTimeMillis();
 					}
 				};
 
 				checkIdleTask.run();
 
-				getIdleWheelTimer().addTask(checkIdleTask, 1, true);
+				getIdleWheelTimer().addTask(checkIdleTask, socketContext.getIdleInterval(), true);
 			}
 		}
 	}
