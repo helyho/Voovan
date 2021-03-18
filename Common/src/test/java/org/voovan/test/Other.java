@@ -6,6 +6,7 @@ import org.voovan.tools.cmd.annotation.Command;
 import org.voovan.tools.cmd.annotation.Option;
 import org.voovan.tools.json.JSON;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -18,23 +19,9 @@ import java.util.List;
  */
 public class Other {
     public static void main(String[] args) throws Exception {
-        System.out.println(JSON.toJSON(args));
-        GnuCommander<TestOption> gnuCommander = new GnuCommander(TestOption.class);
-
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-
-        gnuCommander.printUsage(4);
-
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-
-        TestOption testOption = gnuCommander.parser(args);
-        System.out.println(JSON.toJSON(testOption));
+       BigDecimal b = new BigDecimal("1.00");
+        BigDecimal c = new BigDecimal("1.00000");
+        System.out.println(b.compareTo(c));
     }
 
 
