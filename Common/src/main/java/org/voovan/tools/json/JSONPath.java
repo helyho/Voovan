@@ -320,12 +320,4 @@ public class JSONPath {
         return new JSONPath(jsonStr);
     }
 
-
-    public static void main(String[] args) {
-        String mm="{\"code\":\"ok\",\"msg\":\"\",\"message\":{\"template\":\"\",\"args\":null,\"code\":null},\"data\":{\"list\":[{\"orderId\":6743102787422462736,\"price\":5.39,\"amount\":0.77,\"value\":4.1503,\"type\":\"sell\",\"action\":\"limit\"},{\"orderId\":6743102787422462737,\"price\":5.78,\"amount\":0.26,\"value\":1.5028,\"type\":\"buy\",\"action\":\"limit\"},{\"orderId\":6743102787422462738,\"price\":5.53,\"amount\":0.66,\"value\":3.6498,\"type\":\"sell\",\"action\":\"limit\"},{\"orderId\":6743102787422462739,\"price\":5.68,\"amount\":0.77,\"value\":4.3736,\"type\":\"buy\",\"action\":\"limit\"},{\"orderId\":6743102787422462740,\"price\":5.54,\"amount\":0.9,\"value\":4.986,\"type\":\"sell\",\"action\":\"limit\"}]}}";
-        JSONPath jsonPath = new JSONPath(mm);
-        Object obj = jsonPath.listObject("/data/list/orderId", Long.class);
-        System.out.println(obj);
-
-    }
 }

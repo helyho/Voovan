@@ -519,7 +519,6 @@ public class HttpParser {
 					) {
 
 						int headerMark = THash.HashFNV1(byteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
-						System.out.println("get: " + (protocolMark + headerMark) + " = " + (cachedMark >> 28));
 						if (protocolMark + headerMark == cachedMark >> 28) {
 							byteBuffer.position((int) totalLengthInMark);
 
@@ -554,8 +553,6 @@ public class HttpParser {
 			int headerMark = THash.HashFNV1(byteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
 			//高位存头部 hash, 低位存整个头的长度
 			long mark = ((protocolMark + headerMark) << 28) + totalLength;
-			System.out.println("set: " + (protocolMark + headerMark) + " " + ((protocolMark + headerMark) ) );
-			System.out.println(mark>>28);
 			packetMap[HEADER_MARK] = mark;
 
 
