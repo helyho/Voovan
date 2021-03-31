@@ -2,22 +2,28 @@ package org.voovan.network;
 
 import org.voovan.Global;
 import org.voovan.network.tcp.TcpServerSocket;
+import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
-import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.*;
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventTask;
-import org.voovan.tools.exception.LargerThanMaxSizeException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.Closeable;
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -43,6 +49,24 @@ public class SocketSelector implements Closeable {
 	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(65536);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
+
+	private static MethodHandle READ_METHOD_HANDLE = null;
+	private static MethodHandle WRITE_METHOD_HANDLE = null;
+
+	static {
+		if(SocketContext.DIRECT_IO) {
+			try {
+				final Class fileDispatcherClazz = Class.forName("sun.nio.ch.FileDispatcherImpl");
+				Method read0 = TReflect.findMethod(fileDispatcherClazz, "read0", FileDescriptor.class, long.class, int.class);
+				READ_METHOD_HANDLE = MethodHandles.lookup().unreflect(read0);
+
+				Method write1 = TReflect.findMethod(fileDispatcherClazz, "write0", FileDescriptor.class, long.class, int.class);
+				WRITE_METHOD_HANDLE = MethodHandles.lookup().unreflect(write1);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
 
 	/**
 	 * 构造方法
@@ -93,6 +117,8 @@ public class SocketSelector implements Closeable {
 		return eventRunner;
 	}
 
+	public static Long fdFieldOffset = null;
+
 	/**
 	 * 注册一个 SocketContext 到选择器
 	 * @param socketContext SocketContext 对象
@@ -117,7 +143,7 @@ public class SocketSelector implements Closeable {
 						if (!session.isSSLMode()) {
 							EventTrigger.fireConnect(session);
 						} else {
-							//客户端模式主动发起 SSL 握手的第一个请求
+							//客户端模式主动发起 SSL 握手
 							if (socketContext.connectModel == ConnectModel.CLIENT) {
 								session.getSSLParser().doHandShake();
 							}
@@ -134,6 +160,21 @@ public class SocketSelector implements Closeable {
 			if (selecting.get()) {
 				selector.wakeup();
 			}
+		}
+
+		// 设置 FileDescriptor
+		try {
+			if (socketContext.connectModel != ConnectModel.LISTENER) {
+				if (fdFieldOffset == null) {
+					Field fdField = TReflect.findField(socketContext.socketChannel().getClass(), "fd");
+					fdFieldOffset = TUnsafe.getFieldOffset(fdField);
+					System.out.println(fdFieldOffset);
+				}
+				FileDescriptor fileDescriptor = (FileDescriptor) TUnsafe.getUnsafe().getObject(socketContext.socketChannel(), fdFieldOffset);
+				socketContext.setFileDescriptor(fileDescriptor);
+			}
+		} catch (Exception e) {
+			Logger.error("Get FileDescriptor failed", e);
 		}
 
 		return true;
@@ -415,17 +456,27 @@ public class SocketSelector implements Closeable {
 				}
 			}
 
-
-
 			try {
 				//如果有历史数据则从历史数据尾部开始写入
 				byteBuffer.position(byteBuffer.limit());
 				byteBuffer.limit(byteBuffer.capacity());
 
-				readSize = socketChannel.read(byteBuffer);
+				if(READ_METHOD_HANDLE!=null) {
+					FileDescriptor fileDescriptor = socketContext.getFileDescriptor();
+					long offset = TByteBuffer.getAddress(byteBuffer) + byteBuffer.position();
+					int length = byteBuffer.remaining();
+					readSize = (int) READ_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
+					if(readSize > 0) {
+						byteBuffer.position(byteBuffer.position() + readSize);
+					}
+				} else {
+					readSize = socketChannel.read(byteBuffer);
+				}
 
 				byteBuffer.flip();
-			} finally {
+			} catch (Throwable e) {
+				throw new IOException("SocketSelector.tcpReadFromChannel error: " + e.getMessage(), e);
+			}finally {
 				byteBufferChannel.compact();
 			}
 		}
@@ -443,12 +494,27 @@ public class SocketSelector implements Closeable {
 	 */
 	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
+		int sendSize = - 1;
+
 		long start = System.currentTimeMillis();
 		if (buffer != null) {
 			//循环发送直到全部内容发送完毕
 			try {
 				while (buffer.remaining() != 0) {
-					int sendSize = socketContext.socketChannel().write(buffer);
+
+
+					if(WRITE_METHOD_HANDLE!=null) {
+						FileDescriptor fileDescriptor = socketContext.getFileDescriptor();
+						long offset = TByteBuffer.getAddress(buffer) + buffer.position();
+						int length = buffer.remaining();
+						sendSize = (int) WRITE_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
+						if(sendSize>0) {
+							buffer.position(buffer.position() + sendSize);
+						}
+					} else {
+						sendSize = socketContext.socketChannel().write(buffer);
+					}
+
 					if (sendSize == 0) {
 						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
 							Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
@@ -466,6 +532,8 @@ public class SocketSelector implements Closeable {
 			} catch (NotYetConnectedException | ClosedChannelException e) {
 				socketContext.close();
 				return -1;
+			} catch (Throwable e) {
+				throw new IOException("SocketSelector.tcpWriteToChannel error: " + e.getMessage(), e);
 			}
 		}
 		return totalSendByte;
@@ -597,7 +665,7 @@ public class SocketSelector implements Closeable {
 	public int loadAndPrepare(IoSession session, int readSize) throws IOException {
 
 		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-		if (MessageLoader.isStreamEnd(readSize) || !session.isConnected()) {
+		if (MessageLoader.isStreamEnd(readSize) || !session.isOpen()) {
 			session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 			session.close();
 			return -1;
@@ -639,7 +707,7 @@ public class SocketSelector implements Closeable {
 	 * @return 永远返回 -1
 	 */
 	public int dealException(SocketContext socketContext, Exception e) {
-		if(BROKEN_PIPE.equals(e.getMessage()) || CONNECTION_RESET.equals(e.getMessage())){
+		if(e.getMessage().contains(BROKEN_PIPE) || e.getMessage().contains(CONNECTION_RESET)){
 			socketContext.close();
 			return -1;
 		}
