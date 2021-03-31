@@ -1210,6 +1210,7 @@ public class TReflect {
             throws ReflectiveOperationException {
         //尝试 native 方法
         T t = invokeMethodNative(obj, methodName, args);
+
         if(t != EMPTY){
             return t;
         }
@@ -1239,10 +1240,8 @@ public class TReflect {
                     return result;
                 } catch (Exception e) {
                     exception = e;
-
-                    Logger.warn("Method: " + getClassName(objClass) + "#" +methodName + "("+args.length+") reflect invoke, can be use strict parameter type to improve performance");
                     if(Global.IS_DEBUG_MODE) {
-                        e.printStackTrace();
+                       Logger.error("method " + methodItem + " invoke error", e);
                     }
                 }
             }

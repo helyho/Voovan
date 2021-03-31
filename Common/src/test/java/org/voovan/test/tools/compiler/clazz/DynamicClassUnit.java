@@ -36,9 +36,9 @@ public class DynamicClassUnit extends TestCase{
     }
 
     public void testRun() throws Exception{
-//        DynamicClass dynamicClass = new DynamicClass("TestCode",code);  //字符串形式的脚本
-        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/clazz/TestSay.vct");
-        DynamicClass dynamicClass = new DynamicClass(codeFile, "UTF-8");   // 文件形式的脚本
+        DynamicClass dynamicClass = new DynamicClass("TestSay",code);  //字符串形式的脚本
+//        File codeFile = new File("./src/test/java/org/voovan/test/tools/compiler/clazz/TestSay.vct");
+//        DynamicClass dynamicClass = new DynamicClass(codeFile, "UTF-8");   // 文件形式的脚本
 
         for(int i=0;i<4;i++) {
             System.out.println("\r\n=============Run "+i+"=============");
