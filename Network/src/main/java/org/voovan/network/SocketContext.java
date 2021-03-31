@@ -13,6 +13,7 @@ import org.voovan.tools.pool.PooledObject;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
@@ -34,6 +35,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", Boolean.class);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
+	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);
+
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
@@ -134,6 +137,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	private EventRunnerGroup acceptEventRunnerGroup;
 	private EventRunnerGroup ioEventRunnerGroup;
 
+	private FileDescriptor fileDescriptor;
+
 	/**
 	 * 构造函数
 	 * 		默认不会出发空闲事件, 默认发超时时间: 1s
@@ -181,6 +186,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.sendFilterChain = (Chain<IoFilter>) filterChain.clone();
 		this.messageSplitter = new TransferSplitter();
 		this.handler = new SynchronousHandler();
+	}
+
+	public FileDescriptor getFileDescriptor() {
+		return fileDescriptor;
+	}
+
+	protected void setFileDescriptor(FileDescriptor fileDescriptor) {
+		this.fileDescriptor = fileDescriptor;
 	}
 
 	public EventRunnerGroup getAcceptEventRunnerGroup() {
