@@ -88,12 +88,12 @@ public class TByteBuffer {
         DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
     }
 
-    public final static Field addressField = ByteBufferField("address");
-    public final static Long addressFieldOffset = TUnsafe.getFieldOffset(addressField);
-    public final static Field capacityField = ByteBufferField("capacity");
-    public final static Long capacityFieldOffset = TUnsafe.getFieldOffset(capacityField);
-    public final static Field attField = ByteBufferField("att");
-    public final static Long attFieldOffset = TUnsafe.getFieldOffset(attField);
+    public final static Field addressField          = ByteBufferField("address");
+    public final static Long addressFieldOffset     = TUnsafe.getFieldOffset(addressField);
+    public final static Field capacityField         = ByteBufferField("capacity");
+    public final static Long capacityFieldOffset    = TUnsafe.getFieldOffset(capacityField);
+    public final static Field attField              = ByteBufferField("att");
+    public final static Long attFieldOffset         = TUnsafe.getFieldOffset(attField);
 
     private static Constructor getConsturctor(){
         int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
@@ -512,7 +512,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Long getAddress(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-//        return (Long) addressField.get(byteBuffer);
         return UNSAFE.getLong(byteBuffer, addressFieldOffset);
     }
 
@@ -523,7 +522,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
-//        addressField.set(byteBuffer, address);
         UNSAFE.putLong(byteBuffer, addressFieldOffset, address);
         Object att = getAtt(byteBuffer);
         if(att!=null && att instanceof Deallocator){
@@ -538,7 +536,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Object getAtt(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-//        return attField.get(byteBuffer);
         return UNSAFE.getObject(byteBuffer, attFieldOffset);
     }
 
@@ -549,7 +546,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
-//        attField.set(byteBuffer, attr);
         UNSAFE.putObject(byteBuffer, attFieldOffset, attr);
     }
 
@@ -560,7 +556,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
-//        capacityField.set(byteBuffer, capacity);
         UNSAFE.putInt(byteBuffer, capacityFieldOffset, capacity);
         Object att = getAtt(byteBuffer);
         if(att!=null && att instanceof Deallocator){
