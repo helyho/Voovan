@@ -176,12 +176,8 @@ public class DynamicClass {
      */
     private String genCode() {
         getCode();
-        String javaCode = TString.fastReplaceAll(code, "class +" + codeClassName, "class {{CLASSNAME}}");
         genClassName();
-
-        this.javaCode = TString.tokenReplace(javaCode, TObject.asMap(
-                "CLASSNAME", className //类名
-        ));
+        javaCode = TString.fastReplaceAll(code, "class +" + codeClassName, "class " + className);
 
         return this.javaCode;
     }
