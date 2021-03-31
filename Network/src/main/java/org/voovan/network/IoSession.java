@@ -225,8 +225,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 					}
 				};
 
-				checkIdleTask.run();
-
 				getIdleWheelTimer().addTask(checkIdleTask, socketContext.getIdleInterval(), true);
 			}
 		}
