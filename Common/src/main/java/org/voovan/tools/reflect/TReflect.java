@@ -1226,22 +1226,32 @@ public class TReflect {
         Method method = findMethod(obj.getClass(), methodName, paramTypes);
 
         if(method!=null) {
-            return (T) method.invoke(obj, args);
-        } else {
+            try {
+                return (T) method.invoke(obj, args);
+            } catch (Exception e) {
+                exception = e;
+            }
+        }
+
+        if(method == null || exception!=null) {
             Method[] methods = null;
             methods = findMethod(objClass, methodName, args.length);
 
             //如果失败循环尝试各种相同类型的方法
-            for(Method methodItem : methods) {
+            for (Method methodItem : methods) {
+                if(methodItem.equals(method)) {
+                    continue;
+                }
+
                 try {
                     T result = (T) methodItem.invoke(obj, args);
                     //匹配到合适则加入缓存
-                    METHODS.putIfAbsent(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
+                    METHODS.put(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
                     return result;
                 } catch (Exception e) {
                     exception = e;
-                    if(Global.IS_DEBUG_MODE) {
-                       Logger.error("method " + methodItem + " invoke error", e);
+                    if (Global.IS_DEBUG_MODE) {
+                        Logger.error("method " + methodItem + " invoke error", e);
                     }
                 }
             }
@@ -1419,8 +1429,15 @@ public class TReflect {
         Constructor constructor = findConstructor(targetClazz, paramTeypes);
 
         if(constructor!=null) {
-            return (T) constructor.newInstance(args);
-        } else {
+            try {
+                return (T) constructor.newInstance(args);
+            } catch (Exception e) {
+                exception = e;
+            }
+        }
+
+
+        if(constructor==null || exception!=null){
             //如果失败循环尝试各种构造函数构造
             Constructor[] constructors = null;
             constructors = findConstructor(targetClazz, args.length);
@@ -1428,7 +1445,7 @@ public class TReflect {
                 try {
                     result = (T) constructorItem.newInstance(args);
                     //匹配到合适的则加入缓存
-                    CONSTRUCTORS.putIfAbsent(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
+                    CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
 
                     return result;
                 } catch (Exception e) {
