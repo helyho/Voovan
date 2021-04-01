@@ -47,6 +47,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		System.out.println("[SOCKET] CheckTimeout:\t\t" + CHECK_TIMEOUT);
 		System.out.println("[SOCKET] AsyncSend:\t\t" + ASYNC_SEND);
 		System.out.println("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
+		System.out.println("[SOCKET] DirectIO:\t\t" + DIRECT_IO);
 	}
 
 	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
