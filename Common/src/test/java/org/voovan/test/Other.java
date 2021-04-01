@@ -7,6 +7,7 @@ import org.voovan.tools.cmd.annotation.Option;
 import org.voovan.tools.json.JSON;
 
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -22,6 +23,8 @@ public class Other {
        BigDecimal b = new BigDecimal("1.00");
         BigDecimal c = new BigDecimal("1.00000");
         System.out.println(b.compareTo(c));
+
+        System.out.println(b);
     }
 
 

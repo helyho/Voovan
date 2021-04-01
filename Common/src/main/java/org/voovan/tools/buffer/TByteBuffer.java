@@ -29,6 +29,48 @@ public class TByteBuffer {
     public final static Unsafe UNSAFE = TUnsafe.getUnsafe();
     public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*8);
     public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 64);
+    public final static LongAdder MALLOC_SIZE       = new LongAdder();
+    public final static LongAdder MALLOC_COUNT      = new LongAdder();
+    public final static LongAdder BYTE_BUFFER_COUNT = new LongAdder();
+
+    public final static int BYTE_BUFFER_ANALYSIS  = TEnv.getSystemProperty("ByteBufferAnalysis", 0);
+
+    public static void malloc(int capacity) {
+        if(BYTE_BUFFER_ANALYSIS >= 0) {
+            MALLOC_SIZE.add(capacity);
+            MALLOC_COUNT.increment();
+            BYTE_BUFFER_COUNT.increment();
+        }
+    }
+
+    public static void realloc(int oldCapacity, int newCapacity) {
+        if(BYTE_BUFFER_ANALYSIS >= 0) {
+            MALLOC_SIZE.add(newCapacity - oldCapacity);
+        }
+    }
+
+
+    public static void free(int capacity) {
+        if(BYTE_BUFFER_ANALYSIS >= 0) {
+            MALLOC_SIZE.add(-1 * capacity);
+            MALLOC_COUNT.decrement();
+            BYTE_BUFFER_COUNT.decrement();
+        }
+    }
+
+    public static Map<String, Long> getByteBufferAnalysis() {
+        return TObject.asMap("Time", TDateTime.now(), "MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
+                "MallocCount", MALLOC_COUNT.longValue(),
+                "ByteBufferCount", BYTE_BUFFER_COUNT.longValue());
+    }
+
+    static {
+        if(BYTE_BUFFER_ANALYSIS > 0) {
+            Global.getHashWheelTimer().addTask(() -> {
+                Logger.simple(getByteBufferAnalysis());
+            }, BYTE_BUFFER_ANALYSIS);
+        }
+    }
 
     public final static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
 
@@ -40,12 +82,26 @@ public class TByteBuffer {
     public final static ByteBuffer EMPTY_BYTE_BUFFER = ByteBuffer.allocateDirect(0);
 
     public final static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
+
+    public final static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
+    static {
+        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
+    }
+
     public final static Field addressField          = ByteBufferField("address");
-    public final static Long  addressFieldOffset    = TUnsafe.getFieldOffset(addressField);
+    public final static Long addressFieldOffset     = TUnsafe.getFieldOffset(addressField);
     public final static Field capacityField         = ByteBufferField("capacity");
-    public final static Long  capacityFieldOffset   = TUnsafe.getFieldOffset(capacityField);
+    public final static Long capacityFieldOffset    = TUnsafe.getFieldOffset(capacityField);
     public final static Field attField              = ByteBufferField("att");
-    public final static Long  attFieldOffset        = TUnsafe.getFieldOffset(attField);
+    public final static Long attFieldOffset         = TUnsafe.getFieldOffset(attField);
+
+    private static Constructor getConsturctor(){
+        int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
+        Constructor[] constructor = TReflect.findConstructor(DIRECT_BYTE_BUFFER_CLASS, paramCount);
+
+        constructor[0].setAccessible(true);
+        return constructor[0];
+    }
 
     private static Field ByteBufferField(String fieldName){
         Field field = TReflect.findField(DIRECT_BYTE_BUFFER_CLASS, fieldName);
@@ -64,14 +120,18 @@ public class TByteBuffer {
 
             Deallocator deallocator = new Deallocator(address, capacity);
 
-            ByteBuffer byteBuffer = (ByteBuffer) TUnsafe.getUnsafe().allocateInstance(DIRECT_BYTE_BUFFER_CLASS);
-            setAddress(byteBuffer, address);
-            setCapacity(byteBuffer, capacity);
-            setAttr(byteBuffer, deallocator);
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(0);
+            if(DIRECT_BYTE_BUFFER_CONSTURCTOR.getParameterCount() == 3) {
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+            } else {
+                //jdk 14 兼容
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator, null);
+            }
 
             Cleaner.create(byteBuffer, deallocator);
 
-            ByteBufferAnalysis.malloc(capacity);
+
+            malloc(capacity);
 
             return byteBuffer;
 
@@ -158,7 +218,7 @@ public class TByteBuffer {
             //重置容量
             capacityField.set(byteBuffer, newSize);
 
-            ByteBufferAnalysis.realloc(oldCapacity, newSize);
+            realloc(oldCapacity, newSize);
             return true;
 
         }catch (ReflectiveOperationException e){
@@ -307,7 +367,7 @@ public class TByteBuffer {
                                 setAddress(byteBuffer, 0);
 
                                 UNSAFE.freeMemory(address);
-                                ByteBufferAnalysis.free(byteBuffer.capacity());
+                                free(byteBuffer.capacity());
                             }
                         }
                     }
