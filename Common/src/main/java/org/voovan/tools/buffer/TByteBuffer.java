@@ -64,8 +64,7 @@ public class TByteBuffer {
 
             Deallocator deallocator = new Deallocator(address, capacity);
 
-            ByteBuffer byteBuffer = null;
-            byteBuffer = (ByteBuffer) TUnsafe.getUnsafe().allocateInstance(DIRECT_BYTE_BUFFER_CLASS);
+            ByteBuffer byteBuffer = (ByteBuffer) TUnsafe.getUnsafe().allocateInstance(DIRECT_BYTE_BUFFER_CLASS);
             setAddress(byteBuffer, address);
             setCapacity(byteBuffer, capacity);
             setAttr(byteBuffer, deallocator);
