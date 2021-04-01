@@ -275,6 +275,7 @@ public class TPerformance {
 	 * @param headCount 返回的对象数
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
+	 * @throws InterruptedException 线程中断异常
 	 */
 	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException, InterruptedException {
 
@@ -318,6 +319,7 @@ public class TPerformance {
 	 * @param regex     对象匹配字符串
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
+	 * @throws InterruptedException 线程中断异常
 	 */
 	public static Map<String,ObjectInfo> getJVMObjectInfo(String regex) throws IOException, InterruptedException {
 		return TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, null);
@@ -396,7 +398,9 @@ public class TPerformance {
 
 	/**
 	 * 获取进程信息
+	 * @param isAll 是否返回详细信息, true: 包含详细信息, false: 不包含详细信息
 	 * @return 进程信息 Map
+	 * @throws IOException IO 异常
 	 */
 	public static Map<String,Object> getProcessInfo(boolean isAll) throws IOException {
 		Map<String,Object> processInfo = new Hashtable<String,Object>();
