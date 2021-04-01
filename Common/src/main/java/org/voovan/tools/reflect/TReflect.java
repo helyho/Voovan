@@ -185,9 +185,7 @@ public class TReflect {
     /**
      * 生成对象的读取的动态编译方法
      * @param clazz 目标对象类
-     * @param field 目标 Field 对象
      * @param override 是否覆盖注册
-     * @return DynamicFunction 对象
      * @throws ReflectiveOperationException 反射异常
      */
     public static void genAllFieldReader(Class clazz, boolean override) throws ReflectiveOperationException {
@@ -252,9 +250,7 @@ public class TReflect {
     /**
      * 生成对象的读取的动态编译方法
      * @param clazz 目标对象类
-     * @param field 目标 Field 对象
      * @param override 是否覆盖注册
-     * @return DynamicFunction 对象
      * @throws ReflectiveOperationException 反射异常
      */
     public static void genAllFieldWriter(Class clazz, boolean override) throws ReflectiveOperationException {
@@ -269,6 +265,7 @@ public class TReflect {
      * 生成构造方法的原生调用代码
      * @param clazz 根绝这个对象的元信息生成静态调用代码
      * @param constructor 需要生成于原生调用的构造方法
+     * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      */
     public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor, boolean override) {
@@ -347,7 +344,6 @@ public class TReflect {
      * 生成构造方法的原生调用代码
      * @param clazz 根绝这个对象的元信息生成静态调用代码
      * @param override 是否覆盖注册
-     * @return DynamicFunction 对象
      */
     public static void genAllConstructorInvoker(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
@@ -360,6 +356,7 @@ public class TReflect {
      * 生成方法的原生调用代码
      * @param clazz 根据这个对象的元信息生成静态调用代码
      * @param method 需要生成于原生调用的方法
+     * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      */
     public static DynamicFunction genMethodInvoker(Class clazz, Method method, boolean override) {
@@ -458,7 +455,6 @@ public class TReflect {
          * 生成方法的原生调用代码
          * @param clazz 根据这个对象的元信息生成静态调用代码
          * @param override 是否覆盖注册
-         * @return DynamicFunction 对象
          */
     public static void genAllMethodInvoker(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
