@@ -166,7 +166,7 @@ public class TConfig {
 					configName.put(fileName, configs);
 					return configs;
 				} else {
-					System.out.println("[CONF] Load configsconfigs file failed. File:" + configFile.getAbsolutePath() + " not exists");
+					System.out.println("[CONF] Load configsconfigs file failed. File:" + (configFile!=null ? configFile.getAbsolutePath() : "") + " not exists");
 					return null;
 				}
 			} else {

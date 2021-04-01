@@ -392,6 +392,11 @@ public class TEnv {
 		try {
 			String classLocation = getClassLocation(clazz);
 			String classPathName = TEnv.classToResource(clazz);
+
+			if(classLocation == null || classPathName == null) {
+				return null;
+			}
+
 			if (classLocation.endsWith("jar")) {
 				return TZip.loadFileFromZip(classLocation, classPathName);
 			} else {

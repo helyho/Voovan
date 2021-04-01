@@ -706,7 +706,7 @@ public class TString {
 		}
 
 		if(value.equals("null") && !clazz.isPrimitive()){
-			value = null;
+			return null;
 		}
 
 		if (clazz == int.class || clazz == Integer.class) {

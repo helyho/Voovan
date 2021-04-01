@@ -802,6 +802,11 @@ public class TReflect {
         T t = getFieldValueNatvie(obj, fieldName);
         if(t==EMPTY) {
             Field field = findField(obj.getClass(), fieldName);
+
+            if(field==null) {
+                return null;
+            }
+
             t = (T) field.get(obj);
         }
 
@@ -839,6 +844,10 @@ public class TReflect {
         boolean isSucc = setFieldValueNatvie(obj, fieldName, fieldValue);
         if(!isSucc) {
             Field field = findField(obj.getClass(), fieldName);
+            if(field==null) {
+                Logger.warn("TReflect.setFieldValue Field not found: " + fieldName);
+                return;
+            }
             setFieldValue(obj, field, fieldValue);
         }
     }
@@ -1476,9 +1485,14 @@ public class TReflect {
         else if(isExtends(clazz, Date.class)){
             //取 Map.Values 里的递第一个值
             String value = singleValue == null ? null : singleValue.toString();
-            SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
-            Date dateObj = singleValue != null ? dateFormat.parse(value.toString()) : null;
-            obj = (T) TReflect.newInstance(clazz,dateObj.getTime());
+
+            if(value==null) {
+                obj = null;
+            } else {
+                SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
+                Date dateObj = singleValue != null ? dateFormat.parse(value.toString()) : null;
+                obj = (T) TReflect.newInstance(clazz, dateObj.getTime());
+            }
         }
         //Map 类型
         else if(isImp(clazz, Map.class)){

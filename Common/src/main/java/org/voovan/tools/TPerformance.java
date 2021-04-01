@@ -150,7 +150,7 @@ public class TPerformance {
 	 */
 	public static double cpuPerCoreLoadAvg(){
 		double perCoreLoadAvg = osmxb.getSystemLoadAverage()/osmxb.getAvailableProcessors();
-		BigDecimal bg = new BigDecimal(perCoreLoadAvg);
+		BigDecimal bg = BigDecimal.valueOf(perCoreLoadAvg);
 		perCoreLoadAvg = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return perCoreLoadAvg;
 	}
@@ -186,7 +186,7 @@ public class TPerformance {
 		//freeMemory() 当前申请到的内存有多少没有使用的空闲内存
 		Runtime runtime = Runtime.getRuntime();
 		double memoryUsage = 1-((double)runtime.freeMemory()+(runtime.maxMemory()-runtime.totalMemory()))/(double)runtime.maxMemory();
-		BigDecimal bg = new BigDecimal(memoryUsage);
+		BigDecimal bg = BigDecimal.valueOf(memoryUsage);
 		memoryUsage = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return memoryUsage;
 	}
