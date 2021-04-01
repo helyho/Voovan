@@ -132,13 +132,14 @@ public class TReflect {
     /**
      * 生成对象的读取的动态编译方法
      * @param clazz 目标对象类
+     * @param field 目标 Field 对象
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static DynamicFunction genAllFieldReader(Class clazz, boolean override) throws ReflectiveOperationException {
+    public static DynamicFunction genFieldReader(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
         if(!override){
-            DynamicFunction dynamicFunction = FIELD_READER.get(getClassMark(clazz));
+            DynamicFunction dynamicFunction = FIELD_READER.get(getFieldMark(clazz, field.getName()));
             if(dynamicFunction!=null) {
                 return dynamicFunction;
             }
@@ -147,63 +148,66 @@ public class TReflect {
         Field[] fields = getFields(clazz);
 
         //arg1 obj, arg2 fieldName
-        String code = "switch(fieldName) {";
+        String code = "";
 
-        boolean hasGenCode = false;
-        for(Field field : fields) {
-            int modifier = field.getModifiers();
-            if(Modifier.isStatic(modifier) ||
-                    field.isSynthetic()) {
-                continue;
-            }
-
-            String methodPrefix = field.getType() == Boolean.class || field.getType() == boolean.class ? "is" : "get";
-
-            String methodName = methodPrefix + TString.upperCaseHead(field.getName());
-
-            if(TReflect.findMethod(clazz, methodName,  new Class[0]) == null){
-                continue;
-            }
-
-            code = code + "case \"" + field.getName() + "\" : ";
-
-            String methodCode = methodName + "();";
-            code = code + "return obj."+methodCode + " \r\n";
-            hasGenCode = true;
+        int modifier = field.getModifiers();
+        if(Modifier.isStatic(modifier) ||
+                field.isSynthetic()) {
+            return null;
         }
 
-        if(hasGenCode) {
-            code = code + "default : return TReflect.EMPTY;\r\n }";
+        String methodPrefix = field.getType() == Boolean.class || field.getType() == boolean.class ? "is" : "get";
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Reader", code);
-            dynamicFunction.addImport(clazz);
-            dynamicFunction.addImport(TReflect.class);
-            dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
-            dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //取值字段
-            dynamicFunction.compileCode();
+        String methodName = methodPrefix + TString.upperCaseHead(field.getName());
 
-            FIELD_READER.put(getClassMark(clazz), dynamicFunction);
-
-            if (Global.IS_DEBUG_MODE) {
-                Logger.debug(code);
-            }
-
-            return dynamicFunction;
+        if(TReflect.findMethod(clazz, methodName,  new Class[0]) == null){
+            return null;
         }
 
-        return null;
+        String methodCode = methodName + "();";
+        code = code + "return obj."+methodCode + " \r\n";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_" + field.getName() + "_Reader", code);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addImport(TReflect.class);
+        dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
+        dynamicFunction.compileCode();
+
+        FIELD_READER.put(getFieldMark(clazz, field.getName()), dynamicFunction);
+
+        if (Global.IS_DEBUG_MODE) {
+            Logger.debug(code);
+        }
+
+        return dynamicFunction;
+    }
+
+    /**
+     * 生成对象的读取的动态编译方法
+     * @param clazz 目标对象类
+     * @param field 目标 Field 对象
+     * @param override 是否覆盖注册
+     * @return DynamicFunction 对象
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static void genAllFieldReader(Class clazz, boolean override) throws ReflectiveOperationException {
+        StringBuilder code = new StringBuilder();
+        for(Field field : getFields(clazz)) {
+            genFieldReader(clazz, field, override);
+        }
     }
 
     /**
      * 生成对象的写入的动态编译方法
      * @param clazz 目标对象类
+     * @param field 目标 Field 对象
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static DynamicFunction genAllFieldWriter(Class clazz, boolean override) throws ReflectiveOperationException {
+    public static DynamicFunction genFieldWriter(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
         if(!override){
-            DynamicFunction dynamicFunction = FIELD_WRITER.get(getClassMark(clazz));
+            DynamicFunction dynamicFunction = FIELD_WRITER.get(getFieldMark(clazz, field.getName()));
             if(dynamicFunction!=null) {
                 return dynamicFunction;
             }
@@ -212,49 +216,52 @@ public class TReflect {
         Field[] fields = getFields(clazz);
 
         //arg1 obj, arg2 fieldName, arg3 value
-        String code = "switch(fieldName) {";
-        boolean hasGenCode = false;
-        for(Field field : fields) {
-            int modifier = field.getModifiers();
-            if(Modifier.isStatic(modifier) ||
-                    field.isSynthetic()) {
-                continue;
-            }
-
-            String methodName = "set"+TString.upperCaseHead(field.getName());
-
-            if(TReflect.findMethod(clazz, methodName, field.getType()) == null){
-                continue;
-            }
-
-            code = code + "case \"" + field.getName() + "\" : ";
-
-            String methodCode =methodName + "(("+TReflect.getClassName(field.getType())+")value); return null;";
-            code = code + "obj."+methodCode + " \r\n";
-            hasGenCode = true;
+        String code = "";
+        int modifier = field.getModifiers();
+        if(Modifier.isStatic(modifier) ||
+                field.isSynthetic()) {
+            return null;
         }
 
-        if(hasGenCode) {
-            code = code + "default : return TReflect.EMPTY;\r\n }";
+        String methodName = "set"+TString.upperCaseHead(field.getName());
 
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Writer", code);
-            dynamicFunction.addImport(clazz);
-            dynamicFunction.addImport(TReflect.class);
-            dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
-            dynamicFunction.addPrepareArg(1, String.class, "fieldName"); //写入字段
-            dynamicFunction.addPrepareArg(2, Object.class, "value");     //写入数据
-            dynamicFunction.compileCode();
-
-            FIELD_WRITER.put(getClassMark(clazz), dynamicFunction);
-
-            if (Global.IS_DEBUG_MODE) {
-                Logger.debug(code);
-            }
-
-            return dynamicFunction;
+        if(TReflect.findMethod(clazz, methodName, field.getType()) == null){
+            return null;
         }
 
-        return null;
+        String methodCode = methodName + "(("+TReflect.getClassName(field.getType())+")value); return null;";
+        code = code + "obj."+methodCode + " \r\n";
+
+        DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_" + field.getName() + "_Writer", code);
+        dynamicFunction.addImport(clazz);
+        dynamicFunction.addImport(TReflect.class);
+        dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
+        dynamicFunction.addPrepareArg(1, Object.class, "value");     //写入数据
+        dynamicFunction.compileCode();
+
+        FIELD_WRITER.put(getFieldMark(clazz, field.getName()), dynamicFunction);
+
+        if (Global.IS_DEBUG_MODE) {
+            Logger.debug(code);
+        }
+
+        return dynamicFunction;
+    }
+
+
+    /**
+     * 生成对象的读取的动态编译方法
+     * @param clazz 目标对象类
+     * @param field 目标 Field 对象
+     * @param override 是否覆盖注册
+     * @return DynamicFunction 对象
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static void genAllFieldWriter(Class clazz, boolean override) throws ReflectiveOperationException {
+        StringBuilder code = new StringBuilder();
+        for(Field field : getFields(clazz)) {
+            genFieldWriter(clazz, field, override);
+        }
     }
 
 
@@ -264,10 +271,18 @@ public class TReflect {
      * @param constructor 需要生成于原生调用的构造方法
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor) {
-        String paramtypeCode = "int paramLength = params==null ? 0 : params.length;\r\n\r\n";
+    public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor, boolean override) {
+        int mark = getConstructorParamTypeMark(clazz, getArrayClasses(constructor.getParameterTypes()));
+        if(!override){
+            DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(mark);
+            if(dynamicFunction!=null) {
+                return dynamicFunction;
+            }
+        }
 
         StringBuilder code = new StringBuilder();
+
+//        code.append("int paramLength = params==null ? 0 : params.length;\r\n\r\n");
         {
             int modifier = constructor.getModifiers();
             if (Modifier.isStatic(modifier) ||
@@ -277,15 +292,6 @@ public class TReflect {
             }
 
             Class[] paramTypes = constructor.getParameterTypes();
-            code.append("if(paramLength == " + paramTypes.length);
-
-            //参数类型匹配
-            for (int i = 0; i < paramTypes.length; i++) {
-                Class paramClazz = paramTypes[i];
-                code.append(" && (params[" + i + "] == null || params[" + i + "] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)) + ")");
-            }
-
-            code.append(" ) {");
 
             code.append("return new " + TReflect.getClassName(clazz) + "(");
 
@@ -297,23 +303,22 @@ public class TReflect {
                 code.setLength(code.length() - 1);
             }
 
-            code.append(");}\r\n");
+            code.append(");\r\n");
         }
 
         {
-
-            code.append("else { return TReflect.EMPTY; }");
-
-            code.insert(0, paramtypeCode);
-
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Constructor", code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
-            dynamicFunction.addPrepareArg(0, Object[].class, "params");     //写入数据
+
+            if(constructor.getParameterTypes().length > 0) {
+                dynamicFunction.addPrepareArg(0, Object[].class, "params");     //写入数据
+            }
 
             try {
                 //编译代码
                 dynamicFunction.compileCode();
+                CONSTRUCTOR_INVOKE.put(mark, dynamicFunction);
             } catch (ReflectiveOperationException e) {
                 Logger.error("TReflect.genMethodInvoker error", e);
             }
@@ -326,88 +331,29 @@ public class TReflect {
         }
     }
 
+
+    /**
+     * 生成构造方法的原生调用代码
+     * @param clazz 根绝这个对象的元信息生成静态调用代码
+     * @param constructor 需要生成于原生调用的构造方法
+     * @return DynamicFunction 对象
+     */
+    public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor) {
+        return genConstructorInvoker(clazz, constructor);
+    }
+
+
     /**
      * 生成构造方法的原生调用代码
      * @param clazz 根绝这个对象的元信息生成静态调用代码
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genAllConstructorInvoker(Class clazz, boolean override) {
-        if(!override){
-            DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(getClassMark(clazz));
-            if(dynamicFunction!=null) {
-                return dynamicFunction;
-            }
-        }
-
-        Constructor[] constructors = getConstructors(clazz);
-        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
-
+    public static void genAllConstructorInvoker(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
-        boolean hasGenCode = false;
-        for(Constructor constructor : constructors) {
-            int modifier = constructor.getModifiers();
-            if(Modifier.isStatic(modifier) ||
-                    Modifier.isPrivate(modifier) ||
-                    constructor.isSynthetic()) {
-                continue;
-            }
-
-            Class[] paramTypes = constructor.getParameterTypes();
-            code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(paramTypeLength == " + paramTypes.length );
-
-            //参数类型匹配
-            for(int i=0;i<paramTypes.length;i++) {
-                Class paramClazz = paramTypes[i];
-                code.append(" && (params["+i+"] == null || params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)) + ")");
-            }
-
-            code.append(" ) {");
-
-            code.append("return new " + TReflect.getClassName(clazz)+"(");
-
-            //拼装方法参数代码, 类似: (java.lang.String) params[i],
-            if(paramTypes.length > 0) {
-                for (int i = 0; i < paramTypes.length; i++) {
-                    code.append("(" + TReflect.getClassName(paramTypes[i]) + ") params[" + i + "],");
-                }
-                code.setLength(code.length() - 1);
-            }
-
-            code.append(");}\r\n");
-            hasGenCode = true;
+        for(Constructor constructor :  getConstructors(clazz)) {
+            genConstructorInvoker(clazz, constructor, override);
         }
-
-        if(hasGenCode) {
-
-            code.append("else { return TReflect.EMPTY; }");
-
-            code.insert(0, paramtypeCode);
-
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_All_Constructor", code.toString());
-            dynamicFunction.addImport(clazz);
-            dynamicFunction.addImport(TReflect.class);
-            dynamicFunction.addPrepareArg(0, Class.class, "clazz");     //写入数据
-            dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
-
-            try {
-                //编译代码
-                dynamicFunction.compileCode();
-            } catch (ReflectiveOperationException e) {
-                Logger.error("TReflect.genMethodInvoker error", e);
-            }
-
-            CONSTRUCTOR_INVOKE.put(getClassMark(clazz), dynamicFunction);
-
-            if (Global.IS_DEBUG_MODE) {
-                Logger.debug(code);
-            }
-
-            return dynamicFunction;
-        }
-
-        return null;
     }
 
     /**
@@ -416,12 +362,21 @@ public class TReflect {
      * @param method 需要生成于原生调用的方法
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genMethodInvoker(Class clazz, Method method) {
+    public static DynamicFunction genMethodInvoker(Class clazz, Method method, boolean override) {
+        int mark = getMethodParamTypeMark(clazz, method.getName(), getArrayClasses(method.getParameterTypes()));
+        if(!override){
+            DynamicFunction dynamicFunction = METHOD_INVOKE.get(mark);
+            if(dynamicFunction!=null) {
+                return dynamicFunction;
+            }
+        }
+
         String className = clazz.getCanonicalName();
 
         StringBuilder code = new StringBuilder();
-        String paramtypeCode = "int paramLength = params==null ? 0 : params.length;\r\n\r\n";
         {
+//            code.append("int paramLength = params==null ? 0 : params.length;\r\n\r\n");
+
             String methodName = method.getName();
 
             int modifier = method.getModifiers();
@@ -430,15 +385,6 @@ public class TReflect {
             }
 
             Class[] paramTypes = method.getParameterTypes();
-            code.append("if(paramLength == " + paramTypes.length);
-
-            //参数类型匹配
-            for (int i = 0; i < paramTypes.length; i++) {
-                Class paramClazz = paramTypes[i];
-                code.append(" && (params[" + i + "] == null || params[" + i + "] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)) + ")");
-            }
-
-            code.append(" ) {");
 
             //准备接收方法返回值的分段代码, 用于后面拼接
             Class returnClass = method.getReturnType();
@@ -466,23 +412,25 @@ public class TReflect {
             code.append(");");
 
             //拼装 return 代码
-            code.append(returnCode + "} \r\n");
+            code.append(returnCode + "\r\n");
         }
 
         {
-            code.append("else { return TReflect.EMPTY; }");
-
-            code.insert(0, paramtypeCode);
-
             DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Method", code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
-            dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
-            dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
+            if(!Modifier.isStatic(method.getModifiers())) {
+                dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
+            }
+            if(method.getParameterTypes().length > 0) {
+                dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
+            }
 
             try {
                 //编译代码
                 dynamicFunction.compileCode();
+
+                METHOD_INVOKE.put(mark, dynamicFunction);
             } catch (ReflectiveOperationException e) {
                 Logger.error("TReflect.genMethodInvoker error", e);
             }
@@ -495,115 +443,28 @@ public class TReflect {
         }
     }
 
-
     /**
      * 生成方法的原生调用代码
      * @param clazz 根据这个对象的元信息生成静态调用代码
-     * @param override 是否覆盖注册
+     * @param method 需要生成于原生调用的方法
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genAllMethodInvoker(Class clazz, boolean override) {
-        if(!override){
-            DynamicFunction dynamicFunction = METHOD_INVOKE.get(getClassMark(clazz));
-            if(dynamicFunction!=null) {
-                return dynamicFunction;
-            }
-        }
+    public static DynamicFunction genMethodInvoker(Class clazz, Method method) {
+        return genMethodInvoker(clazz, method, true);
+    }
 
-        String className = clazz.getCanonicalName();
-        Method[] methods = getMethods(clazz);
 
+        /**
+         * 生成方法的原生调用代码
+         * @param clazz 根据这个对象的元信息生成静态调用代码
+         * @param override 是否覆盖注册
+         * @return DynamicFunction 对象
+         */
+    public static void genAllMethodInvoker(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
-        String paramtypeCode = "int paramTypeLength = params==null ? 0 : params.length;\r\n\r\n";
-
-        boolean hasGenCode = false;
-        for(Method method : methods) {
-            String methodName = method.getName();
-
-            //过滤 bean 的 get / set 方法
-            if(methodName.startsWith("get") || methodName.startsWith("set")) {
-                String tryFieldName = methodName.substring(3);
-                if(findFieldIgnoreCase(clazz, tryFieldName)!=null) {
-                    continue;
-                }
-            }
-
-            int modifier = method.getModifiers();
-            if(Modifier.isPrivate(modifier) || methodName.startsWith("$")) {
-                continue;
-            }
-
-            Class[] paramTypes = method.getParameterTypes();
-            code.append(code.length() == 0 ? "if" : "else if");
-            code.append("(methodName.equals(\"" + methodName + "\") && ");
-            code.append("paramTypeLength == " + paramTypes.length);
-
-            //参数类型匹配
-            for(int i=0;i<paramTypes.length;i++) {
-                Class paramClazz = paramTypes[i];
-                code.append(" && (params["+i+"] == null || params["+i+"] instanceof " + TReflect.getPackageType(TReflect.getClassName(paramClazz)) + ")");
-            }
-
-            code.append(" ) {");
-
-            //准备接收方法返回值的分段代码, 用于后面拼接
-            Class returnClass = method.getReturnType();
-            String resultCode = ""; //接收响应数据
-            String returnCode = ""; //通过 return 返回数据
-            if(returnClass != void.class) {
-                resultCode = returnClass.getCanonicalName() + " result = ";
-                returnCode = " return result;";
-            } else {
-                returnCode = " return null;";
-            }
-
-            String main = Modifier.isStatic(modifier) ? clazz.getCanonicalName() : "obj";
-
-            code.append(resultCode + main + "." + methodName + "(");
-
-            //拼装方法参数代码, 类似: (java.lang.String) params[i],
-            if(paramTypes.length > 0) {
-                for (int i = 0; i < paramTypes.length; i++) {
-                    code.append("(" + paramTypes[i].getCanonicalName() + ") params[" + i + "],");
-                }
-                code.setLength(code.length() - 1);
-            }
-
-            code.append(");");
-
-            //拼装 return 代码
-            code.append(returnCode + "} \r\n");
-            hasGenCode = true;
+        for(Method method : getMethods(clazz)) {
+            genMethodInvoker(clazz, method, override);
         }
-
-        if(hasGenCode) {
-            code.append("else { return TReflect.EMPTY; }");
-
-            code.insert(0, paramtypeCode);
-
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_All_Method", code.toString());
-            dynamicFunction.addImport(clazz);
-            dynamicFunction.addImport(TReflect.class);
-            dynamicFunction.addPrepareArg(0, clazz, "obj");                 //目标对象
-            dynamicFunction.addPrepareArg(1, String.class, "methodName");   //写入字段
-            dynamicFunction.addPrepareArg(2, Object[].class, "params");     //写入数据
-
-            try {
-                //编译代码
-                dynamicFunction.compileCode();
-            } catch (ReflectiveOperationException e) {
-                Logger.error("TReflect.genMethodInvoker error", e);
-            }
-
-            METHOD_INVOKE.put(getClassMark(clazz), dynamicFunction);
-            if (Global.IS_DEBUG_MODE) {
-                Logger.debug(code);
-            }
-
-            return dynamicFunction;
-        }
-
-        return null;
     }
 
 
@@ -616,14 +477,14 @@ public class TReflect {
      * @throws ReflectiveOperationException 调用异常
      */
     public static <T> T getFieldValueNatvie(Object obj, String fieldName) throws ReflectiveOperationException {
-        DynamicFunction dynamicFunction = FIELD_READER.get(getClassMark(obj.getClass()));
+        DynamicFunction dynamicFunction = FIELD_READER.get(getFieldMark(obj.getClass(), fieldName));
 
         if(dynamicFunction == null) {
             return (T) EMPTY;
         }
 
         try {
-            return dynamicFunction.call(obj, fieldName);
+            return dynamicFunction.call(obj);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
                 throw new ReflectiveOperationException(e.getMessage(), e);
@@ -642,14 +503,14 @@ public class TReflect {
      * @return true:成功, false:失败
      */
     public static Boolean setFieldValueNatvie(Object obj, String fieldName, Object value) throws ReflectiveOperationException {
-        DynamicFunction dynamicFunction = FIELD_WRITER.get(getClassMark(obj.getClass()));
+        DynamicFunction dynamicFunction = FIELD_WRITER.get(getFieldMark(obj.getClass(), fieldName));
 
         if(dynamicFunction == null) {
             return false;
         }
 
         try {
-            return dynamicFunction.call(obj, fieldName, value);
+            return dynamicFunction.call(obj, value);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
                 throw new ReflectiveOperationException(e.getMessage(), e);
@@ -676,7 +537,7 @@ public class TReflect {
         }
 
         try {
-            return dynamicFunction.call(clazz, params);
+            return dynamicFunction.call(params);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
                 throw new ReflectiveOperationException(e.getMessage(), e);
@@ -697,7 +558,7 @@ public class TReflect {
      */
     public static <T> T invokeMethodNative(Object obj, String methodName, Object ... params) throws ReflectiveOperationException {
         Class clazz = obj instanceof Class ? (Class)obj : obj.getClass();
-        DynamicFunction dynamicFunction = METHOD_INVOKE.get(getClassMark(clazz));
+        DynamicFunction dynamicFunction = METHOD_INVOKE.get(getMethodParamTypeMark(clazz, methodName, getArrayClasses(params)));
 
         if(dynamicFunction == null) {
             return (T) EMPTY;
@@ -705,7 +566,7 @@ public class TReflect {
 
         try {
             obj = obj instanceof Class ? null : obj;
-            return dynamicFunction.call(obj, methodName, params);
+            return dynamicFunction.call(obj, params);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
                 throw new ReflectiveOperationException(e.getMessage(), e);
@@ -1511,10 +1372,11 @@ public class TReflect {
 
         Class<?>[] parameterTypes= new Class<?>[objs.length];
         for(int i=0;i<objs.length;i++){
-            if(objs[i]==null){
+            Class clazz = objs[i] == null || objs[i] instanceof Class ? (Class)objs[i] : objs[i].getClass();
+            if(clazz==null){
                 parameterTypes[i] = Object.class;
             }else {
-                parameterTypes[i] = objs[i].getClass();
+                parameterTypes[i] = getPackageClass(clazz);
             }
         }
         return parameterTypes;

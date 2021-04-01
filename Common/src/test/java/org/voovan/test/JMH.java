@@ -25,24 +25,19 @@ import java.util.concurrent.TimeUnit;
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
+@Measurement(iterations = 2, time = 2, timeUnit = TimeUnit.SECONDS)
 @Threads(3)
 @Fork(1)
 //@OutputTimeUnit(TimeUnit.)
 public class JMH {
     static String m = new String("abcdabcdefghijkabcdefghijkabcdefghijkabcdefghijkabcdefghijkabcdefghijkabcdefghijkefghijk");
-    static TestObject testObject = new TestObject();
+    static TestObject testObject;
     static Vector ml = new Vector();
     static Method method = TReflect.findMethod(TestObject.class, "getData", 2)[0];
     static MethodHandle methodHandle = null;
-    static Constructor constructor = TReflect.findConstructor(TestObject.class, 0)[0];
-    static DynamicFunction methodFunction = TReflect.genMethodInvoker(TestObject.class, method);
-    static DynamicFunction constructorFunction = TReflect.genConstructorInvoker(TestObject.class, constructor);
 
 
     static {
-        testObject.setBint(11);
-
         try {
             methodHandle = MethodHandles.lookup().unreflect(method);
         } catch (IllegalAccessException e) {
@@ -51,39 +46,49 @@ public class JMH {
     }
 
     @Benchmark
-    public static void anativeCall() throws Exception {
+    public static void a_nativeCall() throws Exception {
+        DynamicFunction dynamicFunction = TReflect.genMethodInvoker(TestObject.class, method, false);
+        testObject = new TestObject();
         for(int i=0;i<10000;i++) {
-            methodFunction.call(testObject, new Object[]{"123123", 111});
+            dynamicFunction.call(testObject, new Object[]{"123123", 111});
         }
     }
 
-    //    @Benchmark
+    @Benchmark
     public void reflectCall() throws Exception {
+        testObject = new TestObject();
         for(int i=0;i<10000;i++) {
             TReflect.invokeMethod(testObject, "getData", "123123", 111);
         }
     }
 
-    //    @Benchmark
-    public void directCall() {
+        @Benchmark
+    public void a_directCall() {
+        testObject = new TestObject();
         for(int i=0;i<10000;i++) {
             testObject.getData("123123", 111);
         }
     }
 
     @Benchmark
-    public void handlerCall() throws Throwable {
+    public void b_handlerCall() throws Throwable {
+        testObject = new TestObject();
         for(int i=0;i<10000;i++) {
-            methodHandle.invokeWithArguments(testObject, "123123", 111);
+            methodHandle.invoke(testObject, "123123", 111);
         }
     }
 
     public static void main(String[] args) throws Exception {
         TReflect.register(TestObject.class);
 
+        testObject = TReflect.newInstanceNative(TestObject.class, new Object[]{new Object[0]});
+        testObject.setBint(11);
+        testObject.setString("123123");
 
-
-        constructorFunction.call(new Object[]{new Object[0]});
+        System.out.println(TReflect.invokeMethod(testObject, "getData", new Object[]{"123123", 111}).toString());
+        System.out.println(TReflect.getFieldValueNatvie(testObject, "string").toString());
+        TReflect.setFieldValueNatvie(testObject, "string", "bingo_helyho");
+        System.out.println(testObject.getString());
 
         Options options = new OptionsBuilder()
                 .include(JMH.class.getSimpleName())
