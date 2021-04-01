@@ -54,6 +54,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		System.out.println("[SOCKET] DirectIO:\t\t" + DIRECT_IO);
 	}
 
+	//==================================================================================================================
+
 	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
 	public static EventRunnerGroup COMMON_IO_EVENT_RUNNER_GROUP;
 
@@ -115,7 +117,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		return COMMON_IO_EVENT_RUNNER_GROUP;
 	}
 
-
+	//==================================================================================================================
 	public static Long SC_FD_FIELD_OFFSET = null;
 	public static Long DC_FD_FIELD_OFFSET = null;
 
@@ -144,8 +146,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		}
 	}
 
-
-	//===============================SocketChannel=============================
+	//================================================== SocketContext =================================================
 	protected String host;
 	protected int port;
 	protected int readTimeout;
