@@ -107,7 +107,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 6000);
+		HttpClient httpClient = new HttpClient("https://api.huobiasia.vip/","UTF-8", 6000);
 		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
@@ -129,7 +129,7 @@ public class HttpClientUnit extends TestCase {
 	public static  WebSocketSession session ;
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/websocket","GBK2312",60);
+		HttpClient httpClient = new HttpClient("wss://api.huobiasia.vip/ws","GBK2312",60);
 
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
@@ -168,7 +168,7 @@ public class HttpClientUnit extends TestCase {
 			}
 		}.addFilterChain(new StringFilter()));
 
-		TEnv.sleep(100);
+		TEnv.sleep(100000);
 
 		HttpClientUnit.session.close();
 
