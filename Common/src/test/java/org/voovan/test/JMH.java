@@ -55,15 +55,23 @@ public class JMH {
     }
 
     @Benchmark
-    public void reflectCall() throws Exception {
+    public void a_reflectUtilCall() throws Exception {
         testObject = new TestObject();
         for(int i=0;i<10000;i++) {
             TReflect.invokeMethod(testObject, "getData", "123123", 111);
         }
     }
 
+    @Benchmark
+    public void a_reflectCall() throws Exception {
+        testObject = new TestObject();
+        for(int i=0;i<10000;i++) {
+            method.invoke(testObject, "123123", 111);
+        }
+    }
+
         @Benchmark
-    public void a_directCall() {
+    public void d_directCall() {
         testObject = new TestObject();
         for(int i=0;i<10000;i++) {
             testObject.getData("123123", 111);
