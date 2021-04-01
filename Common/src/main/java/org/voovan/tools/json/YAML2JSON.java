@@ -340,6 +340,11 @@ public class YAML2JSON {
 		String line = null;
 		String result = "";
 		markLine = markLine.trim();
+
+		if(markLine==null) {
+			return null;
+		}
+
 		while (true) {
 			//处理多行字符
 			line = readLine(jsonStr);

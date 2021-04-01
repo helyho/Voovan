@@ -172,7 +172,7 @@ public class TProperties {
 					propertiesName.put(fileName, properties);
 					return properties;
 				} else {
-					System.out.println("[PROPERTIES] Load properites file failed. File:" + configFile.getAbsolutePath() + " not exists");
+					System.out.println("[PROPERTIES] Load properites file failed. File:" + (configFile!=null ? configFile.getAbsolutePath() : "") + " not exists");
 					return null;
 				}
 			} else {
@@ -191,6 +191,11 @@ public class TProperties {
 	 */
 	public static String getString(File file, String name, String defaultValue) {
 		Properties properites = getProperties(file);
+
+		if(properites == null) {
+			return defaultValue;
+		}
+
 		String value = properites.getProperty(name);
 		return TString.isNullOrEmpty(value) ? defaultValue: value;
 	}
@@ -316,6 +321,9 @@ public class TProperties {
 	 */
 	public static void setString(File file, String name, String value) throws IOException {
 		Properties properites = getProperties(file);
+		if(properites==null) {
+			return;
+		}
 		properites.setProperty(name, value);
 		properites.store(new FileOutputStream(file), null);
 	}

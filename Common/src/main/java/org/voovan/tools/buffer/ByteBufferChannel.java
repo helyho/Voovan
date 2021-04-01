@@ -1265,7 +1265,9 @@ public class ByteBufferChannel {
         } catch (IOException e) {
             throw e;
         } finally {
-            randomAccessFile.close();
+            if(randomAccessFile!=null) {
+                randomAccessFile.close();
+            }
         }
 
     }
