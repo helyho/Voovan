@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
 
 /**
  * socket 上下文
@@ -55,9 +56,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
 	public static EventRunnerGroup COMMON_IO_EVENT_RUNNER_GROUP;
-
-	public static Long FD_FIELD_OFFSET = null;
-
 
 	/**
 	 * 构造事件管理器
@@ -115,6 +113,35 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		}
 
 		return COMMON_IO_EVENT_RUNNER_GROUP;
+	}
+
+
+	public static Long SC_FD_FIELD_OFFSET = null;
+	public static Long DC_FD_FIELD_OFFSET = null;
+
+	static  {
+		try {
+			Class socketChannelClazz = Class.forName("sun.nio.ch.SocketChannelImpl");
+			Field scFDField = TReflect.findField(socketChannelClazz, "fd");
+			SC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(scFDField);
+
+			Class DatagramChannelClazz = Class.forName("sun.nio.ch.DatagramChannelImpl");
+			Field dcFDField = TReflect.findField(DatagramChannelClazz, "fd");
+			DC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(dcFDField);
+		} catch (Exception e) {
+			Logger.error(e);
+		}
+	}
+
+	/**
+	 * 绑定 FileDescriptor 到 socketContext
+	 * @param socketContext SocketContext 对象
+	 */
+	private static void bindFileDescriptor(SocketContext socketContext) {
+		if(socketContext.connectModel != ConnectModel.LISTENER) {
+			long offset = socketContext.connectType == ConnectType.TCP ? SC_FD_FIELD_OFFSET : DC_FD_FIELD_OFFSET;
+			socketContext.fileDescriptor = (FileDescriptor) TUnsafe.getUnsafe().getObject(socketContext.socketChannel(), offset);
+		}
 	}
 
 
@@ -196,25 +223,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	public FileDescriptor getFileDescriptor() {
-		if(this.fileDescriptor == null) {
-			synchronized (this) {
-				if(this.fileDescriptor == null) {
-					try {
-						if (connectModel != ConnectModel.LISTENER) {
-							if (FD_FIELD_OFFSET == null) {
-								Field fdField = TReflect.findField(socketChannel().getClass(), "fd");
-								FD_FIELD_OFFSET = TUnsafe.getFieldOffset(fdField);
-							}
-							FileDescriptor fileDescriptor = (FileDescriptor) TUnsafe.getUnsafe().getObject(socketChannel(), FD_FIELD_OFFSET);
-							this.fileDescriptor = fileDescriptor;
-						}
-					} catch (Exception e) {
-						Logger.error("Get FileDescriptor failed", e);
-					}
-				}
-			}
-		}
-
 		return fileDescriptor;
 	}
 
@@ -550,6 +558,9 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		}
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
+
+		//绑定 FileDescriptor
+		bindFileDescriptor(this);
 	}
 
     /**
