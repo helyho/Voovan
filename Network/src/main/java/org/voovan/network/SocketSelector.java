@@ -117,7 +117,6 @@ public class SocketSelector implements Closeable {
 		return eventRunner;
 	}
 
-	public static Long fdFieldOffset = null;
 
 	/**
 	 * 注册一个 SocketContext 到选择器
@@ -160,21 +159,6 @@ public class SocketSelector implements Closeable {
 			if (selecting.get()) {
 				selector.wakeup();
 			}
-		}
-
-		// 设置 FileDescriptor
-		try {
-			if (socketContext.connectModel != ConnectModel.LISTENER) {
-				if (fdFieldOffset == null) {
-					Field fdField = TReflect.findField(socketContext.socketChannel().getClass(), "fd");
-					fdFieldOffset = TUnsafe.getFieldOffset(fdField);
-					System.out.println(fdFieldOffset);
-				}
-				FileDescriptor fileDescriptor = (FileDescriptor) TUnsafe.getUnsafe().getObject(socketContext.socketChannel(), fdFieldOffset);
-				socketContext.setFileDescriptor(fileDescriptor);
-			}
-		} catch (Exception e) {
-			Logger.error("Get FileDescriptor failed", e);
 		}
 
 		return true;
@@ -466,7 +450,7 @@ public class SocketSelector implements Closeable {
 					long offset = TByteBuffer.getAddress(byteBuffer) + byteBuffer.position();
 					int length = byteBuffer.remaining();
 					readSize = (int) READ_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
-					if(readSize > 0) {
+					if (readSize > 0) {
 						byteBuffer.position(byteBuffer.position() + readSize);
 					}
 				} else {

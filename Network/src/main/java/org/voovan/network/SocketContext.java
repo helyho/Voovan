@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
@@ -10,11 +11,13 @@ import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
 
@@ -52,6 +55,9 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
 	public static EventRunnerGroup COMMON_IO_EVENT_RUNNER_GROUP;
+
+	public static Long FD_FIELD_OFFSET = null;
+
 
 	/**
 	 * 构造事件管理器
@@ -190,6 +196,25 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	public FileDescriptor getFileDescriptor() {
+		if(this.fileDescriptor == null) {
+			synchronized (this) {
+				if(this.fileDescriptor == null) {
+					try {
+						if (connectModel != ConnectModel.LISTENER) {
+							if (FD_FIELD_OFFSET == null) {
+								Field fdField = TReflect.findField(socketChannel().getClass(), "fd");
+								FD_FIELD_OFFSET = TUnsafe.getFieldOffset(fdField);
+							}
+							FileDescriptor fileDescriptor = (FileDescriptor) TUnsafe.getUnsafe().getObject(socketChannel(), FD_FIELD_OFFSET);
+							this.fileDescriptor = fileDescriptor;
+						}
+					} catch (Exception e) {
+						Logger.error("Get FileDescriptor failed", e);
+					}
+				}
+			}
+		}
+
 		return fileDescriptor;
 	}
 
