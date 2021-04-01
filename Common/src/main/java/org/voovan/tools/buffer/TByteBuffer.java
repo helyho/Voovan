@@ -83,25 +83,12 @@ public class TByteBuffer {
 
     public final static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
-    public final static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
-    static {
-        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
-    }
-
     public final static Field addressField          = ByteBufferField("address");
     public final static Long addressFieldOffset     = TUnsafe.getFieldOffset(addressField);
     public final static Field capacityField         = ByteBufferField("capacity");
     public final static Long capacityFieldOffset    = TUnsafe.getFieldOffset(capacityField);
     public final static Field attField              = ByteBufferField("att");
     public final static Long attFieldOffset         = TUnsafe.getFieldOffset(attField);
-
-    private static Constructor getConsturctor(){
-        int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
-        Constructor[] constructor = TReflect.findConstructor(DIRECT_BYTE_BUFFER_CLASS, paramCount);
-
-        constructor[0].setAccessible(true);
-        return constructor[0];
-    }
 
     private static Field ByteBufferField(String fieldName){
         Field field = TReflect.findField(DIRECT_BYTE_BUFFER_CLASS, fieldName);
@@ -121,15 +108,12 @@ public class TByteBuffer {
             Deallocator deallocator = new Deallocator(address, capacity);
 
             ByteBuffer byteBuffer = null;
-            if(DIRECT_BYTE_BUFFER_CONSTURCTOR.getParameterCount() == 3) {
-                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
-            } else {
-                //jdk 14 兼容
-                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator, null);
-            }
+            byteBuffer = (ByteBuffer) TUnsafe.getUnsafe().allocateInstance(DIRECT_BYTE_BUFFER_CLASS);
+            setAddress(byteBuffer, address);
+            setCapacity(byteBuffer, capacity);
+            setAttr(byteBuffer, deallocator);
 
             Cleaner.create(byteBuffer, deallocator);
-
 
             malloc(capacity);
 
