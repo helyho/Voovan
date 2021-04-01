@@ -580,8 +580,8 @@ public class AnnotationRouter implements HttpRouter {
 
         try {
             //调用方法
-//             return TReflect.invokeMethod(annotationObj, method, params);
-            return methodDynamicFunction.call(annotationObj, params);
+             return TReflect.invokeMethod(annotationObj, method.getName(), params);
+//            return methodDynamicFunction.call(annotationObj, params);
         } catch (IllegalArgumentException e) {
             throw new AnnotationRouterException("Router method failed: \r\n [" + method + "]\r\n params" + JSON.toJSON(params), e);
         }
