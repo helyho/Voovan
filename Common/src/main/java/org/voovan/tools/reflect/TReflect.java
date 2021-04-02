@@ -1063,9 +1063,6 @@ public class TReflect {
     public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
             throws ReflectiveOperationException {
         T result = (T)method.invoke(obj, parameters);
-        if(Modifier.isPublic(method.getModifiers())) {
-            getMethodInvoker(method.getDeclaringClass(), method, true);
-        }
         return result;
     }
 
@@ -1251,12 +1248,8 @@ public class TReflect {
     public static <T> T newInstance(Constructor constructor, Object... parameters)
             throws ReflectiveOperationException {
         T result = (T)constructor.newInstance(parameters);
-        if(Modifier.isPublic(constructor.getModifiers())) {
-            getConstructorInvoker(constructor.getDeclaringClass(), constructor, true);
-        }
         return result;
     }
-
 
     /**
      * 构造新的对象
