@@ -7,8 +7,6 @@ import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.compiler.function.DynamicFunction;
@@ -19,7 +17,6 @@ import org.voovan.tools.reflect.TReflect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,7 +79,7 @@ public class AnnotationRouter implements HttpRouter {
             }
         }
 
-        methodDynamicFunction = TReflect.genMethodInvoker(clazz, method, true);
+        methodDynamicFunction = TReflect.getMethodInvoker(clazz, method, true);
     }
 
     public String getUrlPath() {

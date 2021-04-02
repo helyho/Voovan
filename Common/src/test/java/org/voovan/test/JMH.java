@@ -10,7 +10,6 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
@@ -47,7 +46,7 @@ public class JMH {
 
     @Benchmark
     public static void a_nativeCall() throws Exception {
-        DynamicFunction dynamicFunction = TReflect.genMethodInvoker(TestObject.class, method, false);
+        DynamicFunction dynamicFunction = TReflect.getMethodInvoker(TestObject.class, method, false);
         testObject = new TestObject();
         for(int i=0;i<10000;i++) {
             dynamicFunction.call(testObject, new Object[]{"123123", 111});
@@ -87,9 +86,10 @@ public class JMH {
     }
 
     public static void main(String[] args) throws Exception {
-        TReflect.register(TestObject.class);
+//        TReflect.register(TestObject.class);
 
-        testObject = TReflect.newInstanceNative(TestObject.class, new Object[]{new Object[0]});
+        testObject = TReflect.newInstance(TestObject.class, null);
+        testObject = TReflect.newInstance(TestObject.class, null);
         testObject.setBint(11);
         testObject.setString("123123");
 
