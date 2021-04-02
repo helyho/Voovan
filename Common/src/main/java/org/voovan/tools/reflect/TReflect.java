@@ -338,7 +338,7 @@ public class TReflect {
      * @return DynamicFunction 对象
      */
     public static DynamicFunction getConstructorInvoker(Class clazz, Constructor constructor) {
-        return getConstructorInvoker(clazz, constructor);
+        return getConstructorInvoker(clazz, constructor, false);
     }
 
 
@@ -453,7 +453,7 @@ public class TReflect {
      * @return DynamicFunction 对象
      */
     public static DynamicFunction getMethodInvoker(Class clazz, Method method) {
-        return getMethodInvoker(clazz, method, true);
+        return getMethodInvoker(clazz, method, false);
     }
 
     /**
@@ -530,14 +530,14 @@ public class TReflect {
      */
     public static <T> T newInstanceNative(Class clazz, Object ... params) throws ReflectiveOperationException {
 
-        DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(getClassMark(clazz));
+        DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(getConstructorParamTypeMark(clazz, getArrayClasses(params)));
 
         if(dynamicFunction == null) {
             return (T) EMPTY;
         }
 
         try {
-            return dynamicFunction.call(params);
+            return dynamicFunction.call(params, null);
         } catch (Exception e) {
             if (!(e instanceof ReflectiveOperationException)) {
                 throw new ReflectiveOperationException(e.getMessage(), e);
@@ -1063,6 +1063,9 @@ public class TReflect {
     public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
             throws ReflectiveOperationException {
         T result = (T)method.invoke(obj, parameters);
+        if(Modifier.isPublic(method.getModifiers())) {
+            getMethodInvoker(method.getDeclaringClass(), method, false);
+        }
         return result;
     }
 
@@ -1104,7 +1107,7 @@ public class TReflect {
             }
         }
 
-        if(method == null || exception!=null) {
+        if(exception!=null || method == null) {
             Method[] methods = null;
             methods = findMethod(objClass, methodName, args.length);
 
@@ -1248,6 +1251,9 @@ public class TReflect {
     public static <T> T newInstance(Constructor constructor, Object... parameters)
             throws ReflectiveOperationException {
         T result = (T)constructor.newInstance(parameters);
+        if(Modifier.isPublic(constructor.getModifiers())) {
+            getConstructorInvoker(constructor.getDeclaringClass(), constructor, false);
+        }
         return result;
     }
 
@@ -1314,7 +1320,7 @@ public class TReflect {
         }
 
 
-        if(constructor==null || exception!=null){
+        if(exception!=null || constructor==null){
             //如果失败循环尝试各种构造函数构造
             Constructor[] constructors = null;
             constructors = findConstructor(targetClazz, args.length);
