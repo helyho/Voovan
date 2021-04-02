@@ -272,6 +272,7 @@ public class TReflect {
         }
 
         int mark = getConstructorParamTypeMark(clazz, getArrayClasses(constructor.getParameterTypes()));
+
         if(!override){
             DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(mark);
             if(dynamicFunction!=null) {
@@ -367,6 +368,7 @@ public class TReflect {
         }
 
         int mark = getMethodParamTypeMark(clazz, method.getName(), getArrayClasses(method.getParameterTypes()));
+
         if(!override){
             DynamicFunction dynamicFunction = METHOD_INVOKE.get(mark);
             if(dynamicFunction!=null) {
