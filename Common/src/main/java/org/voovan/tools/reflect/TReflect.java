@@ -2,10 +2,7 @@ package org.voovan.tools.reflect;
 
 
 import org.voovan.Global;
-import org.voovan.tools.TDateTime;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
-import org.voovan.tools.TUnsafe;
+import org.voovan.tools.*;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
@@ -25,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -94,8 +92,8 @@ public class TReflect {
                 return false;
             }
 
-            TReflect.genAllFieldReader(clazz, override);
-            TReflect.genAllFieldWriter(clazz, override);
+            TReflect.genAllFieldGetter(clazz, override);
+            TReflect.genAllFieldSetter(clazz, override);
             TReflect.genAllConstructorInvoker(clazz, override);
             TReflect.genAllMethodInvoker(clazz, override);
             return true;
@@ -137,7 +135,7 @@ public class TReflect {
      * @return DynamicFunction 对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static DynamicFunction genFieldReader(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
+    public static DynamicFunction getFieldGetter(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
         if(!override){
             DynamicFunction dynamicFunction = FIELD_READER.get(getFieldMark(clazz, field.getName()));
             if(dynamicFunction!=null) {
@@ -188,10 +186,10 @@ public class TReflect {
      * @param override 是否覆盖注册
      * @throws ReflectiveOperationException 反射异常
      */
-    public static void genAllFieldReader(Class clazz, boolean override) throws ReflectiveOperationException {
+    private static void genAllFieldGetter(Class clazz, boolean override) throws ReflectiveOperationException {
         StringBuilder code = new StringBuilder();
         for(Field field : getFields(clazz)) {
-            genFieldReader(clazz, field, override);
+            getFieldGetter(clazz, field, override);
         }
     }
 
@@ -203,7 +201,7 @@ public class TReflect {
      * @return DynamicFunction 对象
      * @throws ReflectiveOperationException 反射异常
      */
-    public static DynamicFunction genFieldWriter(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
+    public static DynamicFunction getFieldSetter(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
         if(!override){
             DynamicFunction dynamicFunction = FIELD_WRITER.get(getFieldMark(clazz, field.getName()));
             if(dynamicFunction!=null) {
@@ -253,10 +251,10 @@ public class TReflect {
      * @param override 是否覆盖注册
      * @throws ReflectiveOperationException 反射异常
      */
-    public static void genAllFieldWriter(Class clazz, boolean override) throws ReflectiveOperationException {
+    private static void genAllFieldSetter(Class clazz, boolean override) throws ReflectiveOperationException {
         StringBuilder code = new StringBuilder();
         for(Field field : getFields(clazz)) {
-            genFieldWriter(clazz, field, override);
+            getFieldSetter(clazz, field, override);
         }
     }
 
@@ -268,7 +266,11 @@ public class TReflect {
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor, boolean override) {
+    public static DynamicFunction getConstructorInvoker(Class clazz, Constructor constructor, boolean override) {
+        if(!Modifier.isPublic(constructor.getModifiers())) {
+            return null;
+        }
+
         int mark = getConstructorParamTypeMark(clazz, getArrayClasses(constructor.getParameterTypes()));
         if(!override){
             DynamicFunction dynamicFunction = CONSTRUCTOR_INVOKE.get(mark);
@@ -335,8 +337,8 @@ public class TReflect {
      * @param constructor 需要生成于原生调用的构造方法
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genConstructorInvoker(Class clazz, Constructor constructor) {
-        return genConstructorInvoker(clazz, constructor);
+    public static DynamicFunction getConstructorInvoker(Class clazz, Constructor constructor) {
+        return getConstructorInvoker(clazz, constructor);
     }
 
 
@@ -345,10 +347,10 @@ public class TReflect {
      * @param clazz 根绝这个对象的元信息生成静态调用代码
      * @param override 是否覆盖注册
      */
-    public static void genAllConstructorInvoker(Class clazz, boolean override) {
+    private static void genAllConstructorInvoker(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
         for(Constructor constructor :  getConstructors(clazz)) {
-            genConstructorInvoker(clazz, constructor, override);
+            getConstructorInvoker(clazz, constructor, override);
         }
     }
 
@@ -359,7 +361,11 @@ public class TReflect {
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genMethodInvoker(Class clazz, Method method, boolean override) {
+    public static DynamicFunction getMethodInvoker(Class clazz, Method method, boolean override) {
+        if(!Modifier.isPublic(method.getModifiers())) {
+            return null;
+        }
+
         int mark = getMethodParamTypeMark(clazz, method.getName(), getArrayClasses(method.getParameterTypes()));
         if(!override){
             DynamicFunction dynamicFunction = METHOD_INVOKE.get(mark);
@@ -446,23 +452,21 @@ public class TReflect {
      * @param method 需要生成于原生调用的方法
      * @return DynamicFunction 对象
      */
-    public static DynamicFunction genMethodInvoker(Class clazz, Method method) {
-        return genMethodInvoker(clazz, method, true);
+    public static DynamicFunction getMethodInvoker(Class clazz, Method method) {
+        return getMethodInvoker(clazz, method, true);
     }
 
-
-        /**
-         * 生成方法的原生调用代码
-         * @param clazz 根据这个对象的元信息生成静态调用代码
-         * @param override 是否覆盖注册
-         */
-    public static void genAllMethodInvoker(Class clazz, boolean override) {
+    /**
+     * 生成方法的原生调用代码
+     * @param clazz 根据这个对象的元信息生成静态调用代码
+     * @param override 是否覆盖注册
+     */
+    private static void genAllMethodInvoker(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
         for(Method method : getMethods(clazz)) {
-            genMethodInvoker(clazz, method, override);
+            getMethodInvoker(clazz, method, override);
         }
     }
-
 
     /**
      * 通过原生调用的方式获取 Field 的值
@@ -1058,7 +1062,11 @@ public class TReflect {
      */
     public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
             throws ReflectiveOperationException {
-        return (T)method.invoke(obj, parameters);
+        T result = (T)method.invoke(obj, parameters);
+        if(Modifier.isPublic(method.getModifiers())) {
+            getMethodInvoker(method.getDeclaringClass(), method, true);
+        }
+        return result;
     }
 
     /**
@@ -1093,7 +1101,7 @@ public class TReflect {
 
         if(method!=null) {
             try {
-                return (T) method.invoke(obj, args);
+                return invokeMethod(obj, method, args);
             } catch (Exception e) {
                 exception = e;
             }
@@ -1110,7 +1118,7 @@ public class TReflect {
                 }
 
                 try {
-                    T result = (T) methodItem.invoke(obj, args);
+                    T result = invokeMethod(obj, methodItem, args);
                     //匹配到合适则加入缓存
                     METHODS.put(getMethodParamTypeMark(objClass, methodName, paramTypes), methodItem);
                     return result;
@@ -1240,6 +1248,16 @@ public class TReflect {
         return constructors;
     }
 
+    public static <T> T newInstance(Constructor constructor, Object... parameters)
+            throws ReflectiveOperationException {
+        T result = (T)constructor.newInstance(parameters);
+        if(Modifier.isPublic(constructor.getModifiers())) {
+            getConstructorInvoker(constructor.getDeclaringClass(), constructor, true);
+        }
+        return result;
+    }
+
+
     /**
      * 构造新的对象
      * 	通过参数中的构造参数对象parameters,选择特定的构造方法构造
@@ -1265,7 +1283,7 @@ public class TReflect {
         }
 
         //不可构造的类型使用最常用的类型
-        if(isImp(clazz, Map.class) && (Modifier.isAbstract(clazz.getModifiers()) && Modifier.isInterface(clazz.getModifiers()))){
+        if(isImp(clazz, Map.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
             targetClazz = LinkedHashMap.class;
         }
 
@@ -1296,7 +1314,7 @@ public class TReflect {
 
         if(constructor!=null) {
             try {
-                return (T) constructor.newInstance(args);
+                return (T) newInstance(constructor, args);
             } catch (Exception e) {
                 exception = e;
             }
@@ -1309,10 +1327,9 @@ public class TReflect {
             constructors = findConstructor(targetClazz, args.length);
             for(Constructor constructorItem : constructors) {
                 try {
-                    result = (T) constructorItem.newInstance(args);
+                    result = (T) newInstance(constructor, args);
                     //匹配到合适的则加入缓存
                     CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
-
                     return result;
                 } catch (Exception e) {
                     exception = e;
