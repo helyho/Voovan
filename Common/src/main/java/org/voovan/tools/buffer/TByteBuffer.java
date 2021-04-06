@@ -367,7 +367,7 @@ public class TByteBuffer {
                     if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
                         if(address!=0) {
                             byteBuffer.clear();
-                            synchronized (byteBuffer) {
+                            synchronized (buffer) {
                                 setAddress(byteBuffer, 0);
 
                                 UNSAFE.freeMemory(address);
