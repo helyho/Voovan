@@ -159,13 +159,13 @@ public class SSLParser {
 	public synchronized SSLEngineResult unwarpData(ByteBuffer netBuffer, ByteBuffer appBuffer) throws SSLException {
 		if (session.isConnected()) {
 			SSLEngineResult engineResult = null;
-			synchronized (appBuffer) {
-				if(!TByteBuffer.isReleased(appBuffer)) {
-					engineResult = engine.unwrap(netBuffer, appBuffer);
-				} else {
-					return null;
-				}
+
+			if(!TByteBuffer.isReleased(appBuffer)) {
+				engineResult = engine.unwrap(netBuffer, appBuffer);
+			} else {
+				return null;
 			}
+
 			return engineResult;
 		} else {
 			return null;
