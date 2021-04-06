@@ -696,7 +696,7 @@ public class SocketSelector implements Closeable {
 	 * @return 永远返回 -1
 	 */
 	public int dealException(SocketContext socketContext, Exception e) {
-		if(e.getMessage().contains(BROKEN_PIPE) || e.getMessage().contains(CONNECTION_RESET)){
+		if(e.getMessage()!=null && (e.getMessage().endsWith(CONNECTION_RESET) || e.getMessage().endsWith(BROKEN_PIPE))){
 			socketContext.close();
 			return -1;
 		}
