@@ -195,6 +195,7 @@ public class SocketSelector implements Closeable {
 			selectionKey.attach(null);
 
 			EventTrigger.fireDisconnect(socketContext.getSession());
+			socketContext.setFileDescriptor(null);
 		}
 	}
 
@@ -447,11 +448,13 @@ public class SocketSelector implements Closeable {
 
 				if(READ_METHOD_HANDLE!=null) {
 					FileDescriptor fileDescriptor = socketContext.getFileDescriptor();
-					long offset = TByteBuffer.getAddress(byteBuffer) + byteBuffer.position();
-					int length = byteBuffer.remaining();
-					readSize = (int) READ_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
-					if (readSize > 0) {
-						byteBuffer.position(byteBuffer.position() + readSize);
+					if (fileDescriptor != null) {
+						long offset = TByteBuffer.getAddress(byteBuffer) + byteBuffer.position();
+						int length = byteBuffer.remaining();
+						readSize = (int) READ_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
+						if (readSize > 0) {
+							byteBuffer.position(byteBuffer.position() + readSize);
+						}
 					}
 				} else {
 					readSize = socketChannel.read(byteBuffer);
@@ -489,11 +492,13 @@ public class SocketSelector implements Closeable {
 
 					if(WRITE_METHOD_HANDLE!=null) {
 						FileDescriptor fileDescriptor = socketContext.getFileDescriptor();
-						long offset = TByteBuffer.getAddress(buffer) + buffer.position();
-						int length = buffer.remaining();
-						sendSize = (int) WRITE_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
-						if(sendSize>0) {
-							buffer.position(buffer.position() + sendSize);
+						if(fileDescriptor!=null) {
+							long offset = TByteBuffer.getAddress(buffer) + buffer.position();
+							int length = buffer.remaining();
+							sendSize = (int) WRITE_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
+							if (sendSize > 0) {
+								buffer.position(buffer.position() + sendSize);
+							}
 						}
 					} else {
 						sendSize = socketContext.socketChannel().write(buffer);
