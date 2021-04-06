@@ -31,6 +31,7 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * 选择器
@@ -50,24 +51,6 @@ public class SocketSelector implements Closeable {
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
-	private static MethodHandle READ_METHOD_HANDLE = null;
-	private static MethodHandle WRITE_METHOD_HANDLE = null;
-
-	static {
-		if(SocketContext.DIRECT_IO) {
-			try {
-				final Class fileDispatcherClazz = Class.forName("sun.nio.ch.FileDispatcherImpl");
-				Method read0 = TReflect.findMethod(fileDispatcherClazz, "read0", FileDescriptor.class, long.class, int.class);
-				READ_METHOD_HANDLE = MethodHandles.lookup().unreflect(read0);
-
-				Method write1 = TReflect.findMethod(fileDispatcherClazz, "write0", FileDescriptor.class, long.class, int.class);
-				WRITE_METHOD_HANDLE = MethodHandles.lookup().unreflect(write1);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	/**
 	 * 构造方法
 	 * @param eventRunner 事件执行器
@@ -79,12 +62,7 @@ public class SocketSelector implements Closeable {
 		this.eventRunner = eventRunner;
 		this.isCheckTimeout = isCheckTimeout;
 
-		try {
-			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
-			TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectedKeys);
-		} catch (ReflectiveOperationException e) {
-			Logger.error(e);
-		}
+		NioUtil.transformSelector(selector, selectedKeys);
 
 		addIoEvent();
 
@@ -273,18 +251,18 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异常
 	 */
 	private void processSelect() throws IOException {
-		if(useSelectNow){
-			selector.selectNow();
-		} else {
-			try {
-				//检查超时
-				checkReadTimeout();
-				selecting.compareAndSet(false, true);
-				selector.select(SocketContext.SELECT_INTERVAL);
-				selecting.compareAndSet(true, false);
-			} catch (IOException e) {
-				Logger.error(e);
+		try {
+			if(useSelectNow){
+				NioUtil.select(selector, 0L);
+			} else {
+					//检查超时
+					checkReadTimeout();
+					selecting.compareAndSet(false, true);
+					NioUtil.select(selector, SocketContext.SELECT_INTERVAL);
+					selecting.compareAndSet(true, false);
 			}
+		} catch (Throwable e) {
+			Logger.error(e);
 		}
 	}
 
@@ -446,19 +424,7 @@ public class SocketSelector implements Closeable {
 				byteBuffer.position(byteBuffer.limit());
 				byteBuffer.limit(byteBuffer.capacity());
 
-				if(READ_METHOD_HANDLE!=null) {
-					FileDescriptor fileDescriptor = socketContext.getFileDescriptor();
-					if (fileDescriptor != null) {
-						long offset = TByteBuffer.getAddress(byteBuffer) + byteBuffer.position();
-						int length = byteBuffer.remaining();
-						readSize = (int) READ_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
-						if (readSize > 0) {
-							byteBuffer.position(byteBuffer.position() + readSize);
-						}
-					}
-				} else {
-					readSize = socketChannel.read(byteBuffer);
-				}
+				readSize = NioUtil.read(socketContext, byteBuffer);
 
 				byteBuffer.flip();
 			} catch (Throwable e) {
@@ -488,21 +454,7 @@ public class SocketSelector implements Closeable {
 			//循环发送直到全部内容发送完毕
 			try {
 				while (buffer.remaining() != 0) {
-
-
-					if(WRITE_METHOD_HANDLE!=null) {
-						FileDescriptor fileDescriptor = socketContext.getFileDescriptor();
-						if(fileDescriptor!=null) {
-							long offset = TByteBuffer.getAddress(buffer) + buffer.position();
-							int length = buffer.remaining();
-							sendSize = (int) WRITE_METHOD_HANDLE.invokeExact(fileDescriptor, offset, length);
-							if (sendSize > 0) {
-								buffer.position(buffer.position() + sendSize);
-							}
-						}
-					} else {
-						sendSize = socketContext.socketChannel().write(buffer);
-					}
+					sendSize = NioUtil.write(socketContext,buffer);
 
 					if (sendSize == 0) {
 						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
