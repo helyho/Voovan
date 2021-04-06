@@ -35,7 +35,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
     //================================线程管理===============================
 	public static int 		ACCEPT_THREAD_SIZE       	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 			    = TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
-	public final static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000);
+	public final static Long 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000L);
 	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", Boolean.class);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
@@ -115,35 +115,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		}
 
 		return COMMON_IO_EVENT_RUNNER_GROUP;
-	}
-
-	//==================================================================================================================
-	public static Long SC_FD_FIELD_OFFSET = null;
-	public static Long DC_FD_FIELD_OFFSET = null;
-
-	static  {
-		try {
-			Class socketChannelClazz = Class.forName("sun.nio.ch.SocketChannelImpl");
-			Field scFDField = TReflect.findField(socketChannelClazz, "fd");
-			SC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(scFDField);
-
-			Class DatagramChannelClazz = Class.forName("sun.nio.ch.DatagramChannelImpl");
-			Field dcFDField = TReflect.findField(DatagramChannelClazz, "fd");
-			DC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(dcFDField);
-		} catch (Exception e) {
-			Logger.error(e);
-		}
-	}
-
-	/**
-	 * 绑定 FileDescriptor 到 socketContext
-	 * @param socketContext SocketContext 对象
-	 */
-	private static void bindFileDescriptor(SocketContext socketContext) {
-		if(socketContext.connectModel != ConnectModel.LISTENER) {
-			long offset = socketContext.connectType == ConnectType.TCP ? SC_FD_FIELD_OFFSET : DC_FD_FIELD_OFFSET;
-			socketContext.fileDescriptor = (FileDescriptor) TUnsafe.getUnsafe().getObject(socketContext.socketChannel(), offset);
-		}
 	}
 
 	//================================================== SocketContext =================================================
@@ -561,7 +532,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		socketSelector.register(this, ops);
 
 		//绑定 FileDescriptor
-		bindFileDescriptor(this);
+		NioUtil.bindFileDescriptor(this);
 	}
 
     /**
