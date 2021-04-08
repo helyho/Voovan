@@ -24,6 +24,7 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpSocket;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
@@ -568,8 +569,8 @@ public class HttpClient extends PooledObject implements Closeable{
 			throw new SendMessageException("The WebSocket is connect, you can't send an http request.");
 		}
 
-		if(asyncHandler.isRunning()) {
-			throw new SendMessageException("The asyn is running, you can't send other http request. please wait a moment");
+		if(!TEnv.wait(socket.getReadTimeout(), false, ()->asyncHandler.isRunning())) {
+			throw new SendMessageException("asyncHandler failed by timeout, the lastest isn't resposne, Socket will be disconnect");
 		}
 
 		//构造 Request 对象
@@ -577,7 +578,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		session.getReadByteBufferChannel().clear();
 		session.getSendByteBufferChannel().clear();
-		synchronousHandler.clear();
+		synchronousHandler.reset();
 
 		//异步模式更新 handler
 		if(async != null) {
@@ -617,7 +618,7 @@ public class HttpClient extends PooledObject implements Closeable{
 				}
 			} finally {
 				//结束操作
-				finished(response);
+				reset(response);
 			}
 		}
 
@@ -655,10 +656,11 @@ public class HttpClient extends PooledObject implements Closeable{
 	}
 
 	/**
-	 * 请求完成
+	 * 重置
+	 * 		自动保留响应 cookie 到 request 中
 	 * @param response 请求对象
 	 */
-	protected void finished(Response response){
+	protected void reset(Response response){
 		//传递 cookie 到 Request 对象
 		if(response!=null
 				&& response.cookies()!=null
@@ -666,6 +668,14 @@ public class HttpClient extends PooledObject implements Closeable{
 			httpRequest.cookies().addAll(response.cookies());
 		}
 
+		reset();
+	}
+
+
+	/**
+	 * 重置
+	 */
+	public void reset(){
 		httpRequest.body().changeToBytes();
 
 		//清理请求对象,以便下次请求使用
@@ -676,6 +686,8 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//重新初始化 Header
 		initHeader();
+
+		asyncHandler.reset();
 	}
 
 	/**

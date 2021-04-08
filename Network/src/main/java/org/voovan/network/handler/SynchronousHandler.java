@@ -2,7 +2,6 @@ package org.voovan.network.handler;
 
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.tools.TEnv;
 
 import java.util.concurrent.*;
 
@@ -76,11 +75,11 @@ public class SynchronousHandler implements IoHandler {
             hold(timeout);
             return socketResponses;
         } finally {
-            clear();
+            reset();
         }
     }
 
-    public void clear(){
+    public void reset(){
         socketResponses = null;
     }
 
