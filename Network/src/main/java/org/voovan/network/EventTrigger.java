@@ -14,38 +14,38 @@ package org.voovan.network;
 public class EventTrigger {
 
 	public static void fireAcceptAsync(IoSession session){
-		fireEvent(session, Event.EventName.ON_ACCEPTED,null);
+		fireEventAsync(session, Event.EventName.ON_ACCEPTED,null);
 	}
 
 	public static void fireConnectAsync(IoSession session){
-		fireEvent(session, Event.EventName.ON_CONNECT,null);
+		fireEventAsync(session, Event.EventName.ON_CONNECT,null);
 	}
 
 	public static void fireReceiveAsync(IoSession session) {
-		fireEvent(session, Event.EventName.ON_RECEIVE, null);
+		fireEventAsync(session, Event.EventName.ON_RECEIVE, null);
 	}
 
 	public static void fireSentAsync(IoSession session, Object obj){
-		fireEvent(session, Event.EventName.ON_SENT, obj);
+		fireEventAsync(session, Event.EventName.ON_SENT, obj);
 	}
 
 
 	public static void fireFlushAsync(IoSession session){
-		fireEvent(session, Event.EventName.ON_FLUSH, null);
+		fireEventAsync(session, Event.EventName.ON_FLUSH, null);
 	}
 
 	public static void fireDisconnectAsync(IoSession session){
-		fireEvent(session, Event.EventName.ON_DISCONNECT, null);
+		fireEventAsync(session, Event.EventName.ON_DISCONNECT, null);
 	}
 
 	public static void fireIdleAsync(IoSession session){
 		if(session.getIdleInterval() >0 ) {
-			fireEvent(session, Event.EventName.ON_IDLE, null);
+			fireEventAsync(session, Event.EventName.ON_IDLE, null);
 		}
 	}
 
 	public static void fireExceptionAsync(IoSession session,Exception exception){
-		fireEvent(session, Event.EventName.ON_EXCEPTION,exception);
+		fireEventAsync(session, Event.EventName.ON_EXCEPTION,exception);
 	}
 
 	public static void fireAccept(IoSession session){
@@ -89,7 +89,7 @@ public class EventTrigger {
 	 * @param name     事件名称
 	 * @param other 附属对象
 	 */
-	public static void fireEvent(IoSession session, Event.EventName name, Object other){
+	public static void fireEventAsync(IoSession session, Event.EventName name, Object other){
         session.getEventRunner().addEvent(5, ()->{
 				Event event = new Event(session, name, other);
 				EventProcess.process(event);
