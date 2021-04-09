@@ -51,8 +51,6 @@ public class SocketSelector implements Closeable {
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
-	private Runnable ioEvent;
-
 	/**
 	 * 构造方法
 	 * @param eventRunner 事件执行器
@@ -66,16 +64,7 @@ public class SocketSelector implements Closeable {
 
 		NioUtil.transformSelector(selector, selectedKeys);
 
-		ioEvent = ()->{
-			try{
-				select();
-				eventRunner.addEvent(4, ioEvent);
-			} catch (Exception e) {
-				Logger.error("addChoseEvent error:", e);
-			}
-		};
-
-		eventRunner.addEvent(4, ioEvent);
+		addIoEvent();
 
 		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
@@ -100,8 +89,6 @@ public class SocketSelector implements Closeable {
 				}
 			}, 1);
 		}
-
-
 	}
 
 	public EventRunner getEventRunner() {
@@ -116,20 +103,28 @@ public class SocketSelector implements Closeable {
 	 * @return true:成功, false:失败
 	 */
 	public boolean register(SocketContext socketContext, int ops){
-		IoSession session = socketContext.getSession();
-
 		if(ops==0) {
+			IoSession session = socketContext.getSession();
 			session.setSocketSelector(this);
 		} else {
-			addEvent(4, () -> {
+			addEvent(6, () -> {
 				try {
 					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 
 					if (socketContext.connectModel != ConnectModel.LISTENER) {
+						IoSession session = socketContext.getSession();
+
 						session.setSelectionKey(selectionKey);
 						session.setSocketSelector(this);
 
-						EventTrigger.fireConnect(session);
+						if (!session.isSSLMode()) {
+							EventTrigger.fireConnect(session);
+						} else {
+							//客户端模式主动发起 SSL 握手
+							if (socketContext.connectModel == ConnectModel.CLIENT) {
+								session.getSSLParser().doHandShake();
+							}
+						}
 					}
 
 					socketContext.setRegister(true);
@@ -142,7 +137,6 @@ public class SocketSelector implements Closeable {
 			if (selecting.get()) {
 				selector.wakeup();
 			}
-
 		}
 
 		return true;
@@ -193,7 +187,17 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6-10: 预留事件等级
+	 */
+	public void addIoEvent(){
+		eventRunner.addEvent(4, () -> {
+			select();
+			addIoEvent();
+		});
+	}
+
+	/**
+	 * 向执行器中增加一个选择事件
+	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
 	 * @param runnable 在事件选择前执行的方法
 	 */
 	public void addEvent(int priority, Runnable runnable){
@@ -202,7 +206,13 @@ public class SocketSelector implements Closeable {
 		}
 
 		if(selector.isOpen()) {
-			eventRunner.addEvent(priority, runnable);
+			eventRunner.addEvent(priority, () -> {
+				try {
+					runnable.run();
+				} catch (Exception e) {
+					Logger.error("addChoseEvent error:", e);
+				}
+			});
 		}
 	}
 
