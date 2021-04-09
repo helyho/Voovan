@@ -66,29 +66,13 @@ public class VoovanTFB {
 			}
 		});
 		//性能测试请求
-		webServer.get("/vjson", new HttpRouter() {
+		webServer.get("/json", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
 				resp.write(TString.toAsciiBytes(JSON.toJSON(new Message(HELLO_WORLD_STR), false, false)));
 			}
 		});
-		//性能测试请求
-		webServer.get("/json", new HttpRouter() {
-			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
-				JsonStream stream = JsonStreamPool.borrowJsonStream();
-				try {
-					stream.reset(null);
-					stream.writeVal(Message.class, new Message("Hello, World!"));
-					resp.write(stream.buffer().data(), 0, stream.buffer().tail());
-					return ;
-				} catch (IOException e) {
-					throw new JsonException(e);
-				} finally {
-					JsonStreamPool.returnJsonStream(stream);
-				}
-			}
-		});
+
 
 		Logger.setEnable(true);
 

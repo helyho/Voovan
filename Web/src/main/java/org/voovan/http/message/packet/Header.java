@@ -34,9 +34,7 @@ public class Header {
 	 * @return HTTP-Header 转换候的 Map
 	 */
 	public Map<String,String> getHeaders() {
-		TreeMap<String, String> newHeaders = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-		newHeaders.putAll(headers);
-		return newHeaders;
+		return headers;
 	}
 
 	public void setHeaders(Map<String, String> headers) {
@@ -105,7 +103,7 @@ public class Header {
 	 * 清空头
 	 */
 	public void clear(){
-		headers = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+		headers.clear();
 	}
 
 	@Override
