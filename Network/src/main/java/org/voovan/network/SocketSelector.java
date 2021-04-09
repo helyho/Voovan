@@ -51,6 +51,8 @@ public class SocketSelector implements Closeable {
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
+	private Runnable ioEvent;
+
 	/**
 	 * 构造方法
 	 * @param eventRunner 事件执行器
@@ -64,7 +66,16 @@ public class SocketSelector implements Closeable {
 
 		NioUtil.transformSelector(selector, selectedKeys);
 
-		addIoEvent();
+		ioEvent = ()->{
+			try{
+				select();
+				eventRunner.addEvent(4, ioEvent);
+			} catch (Exception e) {
+				Logger.error("addChoseEvent error:", e);
+			}
+		};
+
+		eventRunner.addEvent(4, ioEvent);
 
 		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
@@ -89,6 +100,8 @@ public class SocketSelector implements Closeable {
 				}
 			}, 1);
 		}
+
+
 	}
 
 	public EventRunner getEventRunner() {
@@ -185,16 +198,6 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 */
-	public void addIoEvent(){
-		eventRunner.addEvent(4, () -> {
-			select();
-			addIoEvent();
-		});
-	}
-
-	/**
-	 * 向执行器中增加一个选择事件
 	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6-10: 预留事件等级
 	 * @param runnable 在事件选择前执行的方法
 	 */
@@ -204,13 +207,7 @@ public class SocketSelector implements Closeable {
 		}
 
 		if(selector.isOpen()) {
-			eventRunner.addEvent(priority, () -> {
-				try {
-					runnable.run();
-				} catch (Exception e) {
-					Logger.error("addChoseEvent error:", e);
-				}
-			});
+			eventRunner.addEvent(priority, runnable);
 		}
 	}
 
