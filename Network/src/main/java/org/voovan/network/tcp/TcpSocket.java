@@ -167,8 +167,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
 		socketChannel.configureBlocking(false);
 		bindToSocketSelector(SelectionKey.OP_READ);
-
-        waitConnect();
     }
 
 	protected void acceptStart() throws IOException {

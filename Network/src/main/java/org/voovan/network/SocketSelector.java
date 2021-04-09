@@ -107,31 +107,29 @@ public class SocketSelector implements Closeable {
 			IoSession session = socketContext.getSession();
 			session.setSocketSelector(this);
 		} else {
-			addEvent(6, () -> {
-				try {
-					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+			try {
+				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 
-					if (socketContext.connectModel != ConnectModel.LISTENER) {
-						IoSession session = socketContext.getSession();
+				if (socketContext.connectModel != ConnectModel.LISTENER) {
+					IoSession session = socketContext.getSession();
 
-						session.setSelectionKey(selectionKey);
-						session.setSocketSelector(this);
+					session.setSelectionKey(selectionKey);
+					session.setSocketSelector(this);
 
-						if (!session.isSSLMode()) {
-							EventTrigger.fireConnect(session);
-						} else {
-							//客户端模式主动发起 SSL 握手
-							if (socketContext.connectModel == ConnectModel.CLIENT) {
-								session.getSSLParser().doHandShake();
-							}
+					if (!session.isSSLMode()) {
+						EventTrigger.fireConnect(session);
+					} else {
+						//客户端模式主动发起 SSL 握手
+						if (socketContext.connectModel == ConnectModel.CLIENT) {
+							session.getSSLParser().doHandShake();
 						}
 					}
-
-					socketContext.setRegister(true);
-				} catch (ClosedChannelException e) {
-					Logger.error("Register " + socketContext + " to selector error", e);
 				}
-			});
+
+				socketContext.setRegister(true);
+			} catch (ClosedChannelException e) {
+				Logger.error("Register " + socketContext + " to selector error", e);
+			}
 
 			//正在 select 则唤醒
 			if (selecting.get()) {
@@ -197,7 +195,7 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
+	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6-10: 预留事件等级
 	 * @param runnable 在事件选择前执行的方法
 	 */
 	public void addEvent(int priority, Runnable runnable){

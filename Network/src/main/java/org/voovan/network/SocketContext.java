@@ -494,24 +494,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public abstract boolean close();
 
 	/**
-	 * 等待连接完成, 包含事件注册和 SSL 握手, 用于在同步调用的方法中同步
-	 */
-	public void waitConnect() {
-		try {
-			//等待注册完成
-			TEnv.wait(readTimeout, ()->!isRegister);
-
-			//等待 SSL 握手完成
-			if(getSession().isSSLMode()) {
-				getSession().getSSLParser().waitHandShakeDone();
-			}
-		}catch(Exception e){
-			Logger.error(e);
-			close();
-		}
-	}
-
-	/**
 	 * 绑定到 SocketSelector
 	 * @param ops 选择的操作类型
 	 */
