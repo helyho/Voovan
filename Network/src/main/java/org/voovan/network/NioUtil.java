@@ -146,12 +146,12 @@ public class NioUtil {
 	public static int select(Selector selector, long wait) throws Throwable {
 		if(SELECTOR_METHOD_HANDLE!=null) {
 			if(TEnv.JDK_VERSION > 9) {
-				return (int) SELECTOR_METHOD_HANDLE.invoke(selector, null, SocketContext.SELECT_INTERVAL);
+				return (int) SELECTOR_METHOD_HANDLE.invoke(selector, null, wait);
 			} else {
-				return (int) SELECTOR_METHOD_HANDLE.invoke(selector, SocketContext.SELECT_INTERVAL);
+				return (int) SELECTOR_METHOD_HANDLE.invoke(selector, wait);
 			}
 		} else {
-			return selector.select(SocketContext.SELECT_INTERVAL);
+			return wait==0L ? selector.selectNow() : selector.select(wait);
 		}
 	}
 
