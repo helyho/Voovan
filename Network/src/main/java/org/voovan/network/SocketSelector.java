@@ -121,12 +121,11 @@ public class SocketSelector implements Closeable {
 			session.setSocketSelector(this);
 		} else {
 			try {
-				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+				IoSession session = null;
 
 				if (socketContext.connectModel != ConnectModel.LISTENER) {
-					IoSession session = socketContext.getSession();
+					session = socketContext.getSession();
 
-					session.setSelectionKey(selectionKey);
 					session.setSocketSelector(this);
 
 					if (!session.isSSLMode()) {
@@ -137,6 +136,11 @@ public class SocketSelector implements Closeable {
 							session.getSSLParser().doHandShake();
 						}
 					}
+				}
+
+				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+				if(session!=null) {
+					session.setSelectionKey(selectionKey);
 				}
 
 				socketContext.setRegister(true);
