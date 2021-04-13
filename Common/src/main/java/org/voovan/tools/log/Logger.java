@@ -219,7 +219,7 @@ public class Logger {
 	}
 
 	//============================================== BASIC_LOG ==============================================
-	private static void basicLog(Object logLevel, Object msg, Throwable e) {
+	protected static void basicLog(Object logLevel, Object msg, Throwable e) {
 		if(!Logger.isEnable()){
 			return;
 		}
