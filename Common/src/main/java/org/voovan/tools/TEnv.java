@@ -330,7 +330,7 @@ public class TEnv {
 			String fileName = file.getCanonicalPath();
 			if("class".equals(TFile.getFileExtension(fileName))) {
 				//如果是内部类则跳过
-				if(TString.regexMatch(fileName,"G\\$\\d\\.class")>0){
+				if(TString.regexMatch(fileName,"\\$\\d\\.class")>0){
 					continue;
 				}
 				fileName = fileName.replace(rootfile.getCanonicalPath() + File.separator, "");
