@@ -278,14 +278,14 @@ public class SSLParser {
 					case NOT_HANDSHAKING:
 						handShakeDone = true;
 
-//                        //对于连续数据的处理
-//						if(sslByteBufferChannel.size() > 0){
-//							try {
-//								unWarpByteBufferChannel(sslByteBufferChannel.getByteBuffer());
-//							} finally {
-//								sslByteBufferChannel.compact();
-//							}
-//						}
+                        //对于粘包数据的处理
+						if(sslByteBufferChannel.size() > 0){
+							try {
+								unWarpByteBufferChannel();
+							} finally {
+								sslByteBufferChannel.compact();
+							}
+						}
 
 						//触发 onConnect 时间
 						EventTrigger.fireConnect(session);
