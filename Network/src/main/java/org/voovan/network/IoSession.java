@@ -453,7 +453,14 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				flush();
 			}
 
-			return sendByteBufferChannel.writeEnd(buffer);
+			int size = sendByteBufferChannel.writeEnd(buffer);
+
+			//强行每次发送都进行 flush
+			if(SocketContext.FORCE_FLUSH) {
+				flush();
+			}
+
+			return size;
 		} catch (Exception e) {
 			if (socketContext.isConnected()) {
 				Logger.error("Socket will be close, IoSession.sendByBuffer buffer failed " + this, e);
