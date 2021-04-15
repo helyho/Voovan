@@ -40,7 +40,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);
-
+	public final static boolean 	FORCE_FLUSH 	    = TEnv.getSystemProperty("forecFlush", false);
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
