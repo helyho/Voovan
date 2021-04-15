@@ -198,7 +198,7 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 *  @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册事件, 7-10 预留事件等级
+	 *  @param priority 指定的事件优先级, 越大优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册事件, 7-10 预留事件等级
 	 * @param runnable 在事件选择前执行的方法
 	 */
 	public void addEvent(int priority, Runnable runnable){
