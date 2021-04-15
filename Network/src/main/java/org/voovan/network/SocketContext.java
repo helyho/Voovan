@@ -499,6 +499,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public void bindToSocketSelector(int ops) {
 		EventRunner eventRunner = null;
+
 		if(connectModel == ConnectModel.LISTENER) {
 			if(acceptEventRunnerGroup == null) {
 				acceptEventRunnerGroup = getCommonAcceptEventRunnerGroup();
@@ -510,11 +511,16 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 			}
 			eventRunner = ioEventRunnerGroup.choseEventRunner();
 		}
+
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
 
 		//绑定 FileDescriptor
 		NioUtil.bindFileDescriptor(this);
+
+		if(connectModel != ConnectModel.LISTENER) {
+			EventTrigger.fireConnect(getSession());
+		}
 	}
 
     /**

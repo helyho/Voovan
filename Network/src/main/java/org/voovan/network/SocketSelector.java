@@ -121,40 +121,29 @@ public class SocketSelector implements Closeable {
 			session.setSocketSelector(this);
 		} else {
 			try {
-				IoSession session = null;
+				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 
 				if (socketContext.connectModel != ConnectModel.LISTENER) {
-					session = socketContext.getSession();
+					IoSession session = socketContext.getSession();
 
 					session.setSocketSelector(this);
-
-					if (!session.isSSLMode()) {
-						EventTrigger.fireConnect(session);
-					} else {
-						//客户端模式主动发起 SSL 握手
-						if (socketContext.connectModel == ConnectModel.CLIENT) {
-							session.getSSLParser().doHandShake();
-						}
-					}
-				}
-
-				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
-				if(session!=null) {
 					session.setSelectionKey(selectionKey);
 				}
 
 				socketContext.setRegister(true);
+
+				//正在 select 则唤醒
+				if (selecting.get()) {
+					selector.wakeup();
+				}
+
+				return true;
 			} catch (ClosedChannelException e) {
 				Logger.error("Register " + socketContext + " to selector error", e);
 			}
-
-			//正在 select 则唤醒
-			if (selecting.get()) {
-				selector.wakeup();
-			}
 		}
 
-		return true;
+		return false;
 	}
 
 	/**
