@@ -68,7 +68,7 @@ public class EventRunner implements Closeable {
 
 	/**
 	 * 添加事件
-	 * @param priority 事件优先级必须在1-10之间
+	 * @param priority 事件优先级必须在1-10之间, 越大优先级越高
 	 * @param runnable 事件执行器
 	 */
 	public void addEvent(int priority, Runnable runnable) {
