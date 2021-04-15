@@ -40,7 +40,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);
-	public final static boolean 	FORCE_FLUSH 	    = TEnv.getSystemProperty("forecFlush", false);
+	public final static boolean 	FORCE_FLUSH 	    = TEnv.getSystemProperty("ForecFlush", false);
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
@@ -52,6 +52,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		System.out.println("[SOCKET] AsyncSend:\t\t" + ASYNC_SEND);
 		System.out.println("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
 		System.out.println("[SOCKET] DirectIO:\t\t" + DIRECT_IO);
+		System.out.println("[SOCKET] ForecFlush:\t\t" + FORCE_FLUSH);
 	}
 
 	//==================================================================================================================
