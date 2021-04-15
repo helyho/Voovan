@@ -116,34 +116,36 @@ public class SocketSelector implements Closeable {
 	 * @return true:成功, false:失败
 	 */
 	public boolean register(SocketContext socketContext, int ops){
+		IoSession session = socketContext.getSession();
+
 		if(ops==0) {
-			IoSession session = socketContext.getSession();
 			session.setSocketSelector(this);
 		} else {
-			try {
-				SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
+			addEvent(4, () -> {
+				try {
+					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 
-				if (socketContext.connectModel != ConnectModel.LISTENER) {
-					IoSession session = socketContext.getSession();
+					if (socketContext.connectModel != ConnectModel.LISTENER) {
+						session.setSelectionKey(selectionKey);
+						session.setSocketSelector(this);
 
-					session.setSocketSelector(this);
-					session.setSelectionKey(selectionKey);
+						EventTrigger.fireConnect(session);
+					}
+
+					socketContext.setRegister(true);
+				} catch (ClosedChannelException e) {
+					Logger.error("Register " + socketContext + " to selector error", e);
 				}
+			});
 
-				socketContext.setRegister(true);
-
-				//正在 select 则唤醒
-				if (selecting.get()) {
-					selector.wakeup();
-				}
-
-				return true;
-			} catch (ClosedChannelException e) {
-				Logger.error("Register " + socketContext + " to selector error", e);
+			//正在 select 则唤醒
+			if (selecting.get()) {
+				selector.wakeup();
 			}
+
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
