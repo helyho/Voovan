@@ -57,7 +57,8 @@ public class EventProcess {
         IoSession session = event.getSession();
 
         //客户端模式主动发起 SSL 握手, 由握手完成后再发起下一次 onConnect
-        if (!session.getSSLParser().isHandShakeDone() &&
+        if (session.isSSLMode() &&
+                !session.getSSLParser().isHandShakeDone() &&
                 session.socketContext().connectModel == ConnectModel.CLIENT) {
             session.getSSLParser().doHandShake();
             return;
