@@ -1,5 +1,7 @@
 package org.voovan.http.message;
 
+import org.voovan.http.message.exception.BodyParseExecption;
+import org.voovan.http.message.exception.HttpParserException;
 import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
@@ -11,6 +13,7 @@ import org.voovan.tools.TByte;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
+import org.voovan.tools.json.JSONPath;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -171,6 +174,33 @@ public class Response {
 	 */
 	public Body body() {
 		return body;
+	}
+
+	/**
+	 * 使用 json 来解析 body
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T bodyObject(Class clazz){
+		return bodyObject(null, clazz);
+	}
+
+	/**
+	 * 使用 json 来解析 body
+	 * @param path 解析的路径
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T bodyObject(String path, Class clazz){
+		int status = protocol().getStatus();
+
+		if (status == 200) {
+			return body().getObject(path, clazz);
+		} else {
+			throw new BodyParseExecption(status, body.getBodyString(), "response status error");
+		}
 	}
 
 	public boolean isHasBody() {
