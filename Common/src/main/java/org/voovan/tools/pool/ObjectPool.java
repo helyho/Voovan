@@ -3,6 +3,7 @@ package org.voovan.tools.pool;
 import org.voovan.Global;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -28,6 +29,8 @@ import java.util.function.Supplier;
  * Licence: Apache v2 License
  */
 public class ObjectPool<T extends IPooledObject> {
+
+    public static HashWheelTimer OBJECT_POOL_HASH_WHEEL = new HashWheelTimer("WHEELTIMER-OBJECT-POOL", 60, 1000);
 
     //<ID, 缓存的对象>
     private ConcurrentHashMap<Long, InnerObject<T>> objects = new ConcurrentHashMap<Long, InnerObject<T>>();
@@ -470,7 +473,7 @@ public class ObjectPool<T extends IPooledObject> {
         if(interval > 0) {
             final ObjectPool finalobjectPool = this;
 
-            Global.getHashWheelTimer().addTask(new HashWheelTask() {
+            OBJECT_POOL_HASH_WHEEL.addTask(new HashWheelTask() {
                 @Override
                 public void run() {
                     try {
