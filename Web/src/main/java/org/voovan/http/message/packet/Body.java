@@ -369,6 +369,8 @@ public class Body {
 			changeToBytes();
 		}
 
+		jsonPath = null;
+
 		mark = 0;
 	}
 
@@ -428,5 +430,7 @@ public class Body {
 				bodyFile.delete();
 			}
 		}
+
+		jsonPath = null;
 	}
 }

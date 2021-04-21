@@ -10,23 +10,24 @@ import org.voovan.tools.exception.EmptyStackRuntimeException;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class BodyParseExecption extends EmptyStackRuntimeException {
+public class BodyParseExecption extends RuntimeException {
     private int status;
     private String body;
 
     public BodyParseExecption(int status, String body) {
+        super(body);
         this.status = status;
         this.body = body;
     }
 
     public BodyParseExecption(int status, String body, String message) {
-        super(message);
+        super(message + "\r\n" + body);
         this.status = status;
         this.body = body;
     }
 
     public BodyParseExecption(int status, String body, String message, Throwable cause) {
-        super(message, cause);
+        super(message + "\r\n" + body, cause);
         this.status = status;
         this.body = body;
     }
@@ -38,7 +39,7 @@ public class BodyParseExecption extends EmptyStackRuntimeException {
     }
 
     public BodyParseExecption(int status, String body, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+        super(message + "\r\n" + body, cause, enableSuppression, writableStackTrace);
         this.status = status;
         this.body = body;
     }
