@@ -38,7 +38,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -158,7 +158,7 @@ public class HttpClient extends PooledObject implements Closeable{
 				port = 443;
 			}
 
-			parameters = new HashMap<String, Object>();
+			parameters = new LinkedHashMap<String, Object>();
 
 			socket = new TcpSocket(hostString, port==-1?80:port, timeout*1000);
 			socket.filterChain().add(new HttpClientFilter(this));
@@ -449,7 +449,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 *  @param charset 参数的字符集
 	 * @return 请求字符串
 	 */
-	public static String buildQueryString(Map<String,Object> parameters,String charset){
+	public static String buildQueryString(Map<String,Object> parameters, String charset){
 		String queryString = "";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		try {
