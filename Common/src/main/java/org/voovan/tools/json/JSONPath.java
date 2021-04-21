@@ -11,10 +11,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -160,7 +157,17 @@ public class JSONPath {
                     List objList = (List)value;
                     obj = objList.stream().map(item-> {
                         try {
-                            return TReflect.getObjectFromMap(clazz, (Map<String, ?>) item, true);
+                            Class itemClazz = clazz;
+                            if(TReflect.isImp(itemClazz, Collection.class)) {
+                                Class[] itemClazzes = TReflect.getGenericClass(clazz);
+                                if(itemClazzes.length>0) {
+                                    itemClazz=itemClazzes[0];
+                                } else {
+                                    itemClazz = Object.class;
+                                }
+                            }
+
+                            return TReflect.getObjectFromMap(itemClazz, (Map<String, ?>) item, true);
                         } catch (Exception e) {
                             e.printStackTrace();
                             return null;

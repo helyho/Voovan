@@ -1,5 +1,6 @@
 package org.voovan.http.message;
 
+import org.voovan.http.message.exception.BodyParseExecption;
 import org.voovan.http.message.packet.*;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
@@ -137,6 +138,27 @@ public class Request {
      */
     public Body body() {
         return body;
+    }
+
+    /**
+     * 使用 json 来解析 body
+     * @param clazz 目标对象类描述, list / map 支持范型
+     * @param <T> 响应对象类型
+     * @return json 解析后的对象
+     */
+    public <T> T bodyObject(Class clazz){
+        return bodyObject(null, clazz);
+    }
+
+    /**
+     * 使用 json 来解析 body
+     * @param path 解析的路径
+     * @param clazz 目标对象类描述, list / map 支持范型
+     * @param <T> 响应对象类型
+     * @return json 解析后的对象
+     */
+    public <T> T bodyObject(String path, Class clazz){
+        return body().getObject(path, clazz);
     }
 
     /**

@@ -1,11 +1,14 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.message.exception.BodyParseExecption;
+import org.voovan.http.message.exception.HttpParserException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.TZip;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.JSONPath;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
@@ -31,6 +34,7 @@ public class Body {
 	private File bodyFile;
 	private long position;
 	private int mark = 0;
+	private JSONPath jsonPath;
 
 	/**
 	 * Body 类型枚举
@@ -202,6 +206,36 @@ public class Body {
 	}
 
 	/**
+	 * 使用 json 来解析 body
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T getBodyObject(Class clazz){
+		return getObject("/", clazz);
+	}
+
+	/**
+	 * 使用 json 来解析 body
+	 * @param path 解析的路径
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T getObject(String path, Class clazz){
+		path = path == null ? "/" : path;
+		String body = getBodyString();
+		try {
+			if(jsonPath == null) {
+				jsonPath = JSONPath.newInstance(getBodyString());
+			}
+			return (T) jsonPath.value(path, clazz);
+		} catch (Exception e) {
+			throw new BodyParseExecption(-400, getBodyString(),  "response parse error");
+		}
+	}
+
+	/**
 	 * 读取 Body 中的内容
 	 * @param byteBuffer ByteBuffer 对象
 	 * @return  读出的字节长度
@@ -345,22 +379,6 @@ public class Body {
 
 		if(type == BodyType.FILE) {
 			TFile.moveFile(bodyFile, destFile);
-		}
-	}
-
-	@Override
-	public String toString(){
-		byte[] bodyBytes = getBodyBytes();
-		try {
-			if(type == BodyType.FILE) {
-				return bodyFile.getPath();
-			}else{
-				return new String(bodyBytes, "UTF-8");
-
-			}
-		} catch (UnsupportedEncodingException e) {
-			Logger.error(e);
-			return null;
 		}
 	}
 
