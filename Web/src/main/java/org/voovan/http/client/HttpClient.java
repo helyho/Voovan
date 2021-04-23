@@ -61,7 +61,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
 	private String urlString;
-	private String path;
+	private String initLocation;
 	private boolean isSSL = false;
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
@@ -149,7 +149,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 			int parhStart = urlString.indexOf("/", 8);
 			if(parhStart > 8) {
-				this.path = urlString.substring(parhStart);
+				this.initLocation = urlString.substring(parhStart);
 			}
 
 			if(port==-1 && !isSSL){
@@ -574,7 +574,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		}
 
 		//构造 Request 对象
-		buildRequest(TString.isNullOrEmpty(location) ? path : location);
+		buildRequest(TString.isNullOrEmpty(location) ? initLocation : location);
 
 		session.getReadByteBufferChannel().clear();
 		session.getSendByteBufferChannel().clear();
@@ -723,10 +723,21 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @throws ReadMessageException  读取异常
 	 */
 	public void webSocket(String location, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		location = location == null ? initLocation : location;
 		this.webSocketRouter = webSocketRouter;
 
 		//处理升级后的消息
 		doWebSocketUpgrade(location);
+	}
+
+	/**
+	 * 连接 Websocket
+	 * @param webSocketRouter WebSocker的路由
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public void webSocket(WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		webSocket(null, webSocketRouter);
 	}
 
 	/**
