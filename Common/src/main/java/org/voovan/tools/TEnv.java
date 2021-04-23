@@ -677,6 +677,11 @@ public class TEnv {
 		return TObject.asList(supplier.get(), System.nanoTime() - startTime);
 	}
 
+	public static List measure(Supplier supplier, TimeUnit timeUnit){
+		long startTime = System.nanoTime();
+		return TObject.asList(supplier.get(), (System.nanoTime() - startTime)/(timeUnit.toNanos(1)*1f));
+	}
+
 	/**
 	 * 性能测试方法
 	 *      不需要响应
@@ -689,6 +694,13 @@ public class TEnv {
 		return System.nanoTime() - startTime;
 	}
 
+	public static float measure(Runnable runnable, TimeUnit timeUnit){
+		long startTime = System.nanoTime();
+		runnable.run();
+		return (System.nanoTime() - startTime)/(timeUnit.toNanos(1)*1f) ;
+	}
+
+
 	/**
 	 * 性能测试方法
 	 * @param msg 输出的消息
@@ -698,7 +710,8 @@ public class TEnv {
 	 */
 	public static List measure(String msg, Supplier supplier, TimeUnit timeUnit) {
 		List result = measure(supplier);
-		System.out.println(msg + " " + ((Long)result.get(1))/(timeUnit.toNanos(1)*1f) + ", result:" + result.get(0));
+		result.set(1, ((Long)result.get(1))/(timeUnit.toNanos(1)*1f));
+		System.out.println(msg + " " + result.get(1) + ", result:" + result.get(0));
 		return result;
 	}
 
@@ -710,7 +723,7 @@ public class TEnv {
 	 */
 	public static List measure(String msg, Supplier supplier) {
 		List result = measure(supplier);
-		System.out.println(msg + " " + ((Long)result.get(1))/(TimeUnit.MILLISECONDS.toNanos(1)*1f) + ", result:" + result.get(0));
+		System.out.println(msg + " " + ((Long)result.get(1))/(TimeUnit.MILLISECONDS.toNanos(1)*1f) + "ms, result:" + result.get(0));
 		return result;
 	}
 
@@ -720,7 +733,7 @@ public class TEnv {
 	 * @param runnable 执行器
 	 */
 	public static void measure(String msg, Runnable runnable) {
-		System.out.println(msg + " " + measure(runnable)/(TimeUnit.MILLISECONDS.toNanos(1)*1f));
+		System.out.println(msg + " " + measure(runnable)/(TimeUnit.MILLISECONDS.toNanos(1)*1f) + "ms");
 	}
 
 	/**
@@ -729,8 +742,10 @@ public class TEnv {
 	 * @param runnable 执行器
 	 * @param timeUnit 输出的时间单位
 	 */
-	public static void measure(String msg, Runnable runnable, TimeUnit timeUnit) {
-		System.out.println(msg + " " + measure(runnable)/(timeUnit.toNanos(1)*1f));
+	public static float measure(String msg, Runnable runnable, TimeUnit timeUnit) {
+		float measure = measure(runnable)/(timeUnit.toNanos(1)*1f);
+		System.out.println(msg + " " + measure);
+		return measure;
 	}
 
 	public static <T> T getSystemProperty(String propertyName, T defVal) {
