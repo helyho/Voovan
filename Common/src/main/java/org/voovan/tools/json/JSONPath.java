@@ -132,7 +132,7 @@ public class JSONPath {
     /**
      * 获取节点值并转换成相应的对象,默认忽略段大小写
      * @param pathQry  JSONPath 路径
-     * @param clazz    对象的 class
+     * @param clazz    对象的 class, Map:作为 Value 的类型, List 作为元素的类型
      * @param <T>      范型指代对象
      * @return  转换后的对象
      */
@@ -143,7 +143,7 @@ public class JSONPath {
             return null;
         }
 
-        if (TReflect.isSystemType(clazz)) {
+        if (TReflect.isSystemType(clazz) && TReflect.isSuper(value.getClass(), clazz)) {
             return (T)value;
         } else {
             try {
@@ -157,17 +157,12 @@ public class JSONPath {
                     List objList = (List)value;
                     obj = objList.stream().map(item-> {
                         try {
-                            Class itemClazz = clazz;
-                            if(TReflect.isImp(itemClazz, Collection.class)) {
-                                Class[] itemClazzes = TReflect.getGenericClass(clazz);
-                                if(itemClazzes.length>0) {
-                                    itemClazz=itemClazzes[0];
-                                } else {
-                                    itemClazz = Object.class;
-                                }
+                            if(item instanceof Map){
+                                return TReflect.getObjectFromMap(clazz, (Map<String, ?>) item, true);
+                            } else {
+                                return TString.toObject(item.toString(), clazz);
                             }
 
-                            return TReflect.getObjectFromMap(itemClazz, (Map<String, ?>) item, true);
                         } catch (Exception e) {
                             e.printStackTrace();
                             return null;
