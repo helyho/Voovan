@@ -288,7 +288,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	public boolean isTimeOut(){
-		if(CHECK_TIMEOUT == null || CHECK_TIMEOUT) {
+		if(CHECK_TIMEOUT == null || CHECK_TIMEOUT || readTimeout > 0) {
 			return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
 		} else {
 			return false;
@@ -376,15 +376,35 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	/**
-	 * 获取超时时间
-	 * @return 超时时间
+	 * 获取读超时时间
+	 * @return 超时时间, 小于等于0: 不做读超时判断, 大于0 启用超时判断
 	 */
 	public int getReadTimeout() {
 		return readTimeout;
 	}
 
+	/**
+	 * 设置读超时时间
+	 * @param readTimeout 读超时时间,小于等于0: 不做读超时判断, 大于0 启用超时判断
+	 */
+	public void setReadTimeout(int readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+
+	/**
+	 * 获取写超时时间
+	 * @return 超时时间,小于等于0: 不做读超时判断, 大于0 启用超时判断
+	 */
 	public int getSendTimeout(){
 		return sendTimeout;
+	}
+
+	/**
+	 * 获取写超时时间
+	 * @param sendTimeout 写超时时间, 小于等于0: 不做读超时判断, 大于0 启用超时判断
+	 */
+	public void setSendTimeout(int sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	/**

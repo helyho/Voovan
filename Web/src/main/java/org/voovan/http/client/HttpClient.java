@@ -698,6 +698,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @throws ReadMessageException 读取消息异常
 	 */
 	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
+		socket.setReadTimeout(-1);
 		IoSession session = socket.getSession();
 
 		httpRequest.header().put("Host", hostString);
