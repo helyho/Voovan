@@ -452,7 +452,7 @@ public class SocketSelector implements Closeable {
 					sendSize = NioUtil.write(socketContext,buffer);
 
 					if (sendSize == 0) {
-						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						if (socketContext.getSendTimeout() >0 && System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
 							Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
 							socketContext.close();
 							return -1;
@@ -570,7 +570,7 @@ public class SocketSelector implements Closeable {
 					}
 
 					if (sendSize == 0) {
-						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						if (socketContext.getSendTimeout() >0 && System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
 							Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
 							socketContext.close();
 							return -1;
