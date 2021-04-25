@@ -27,6 +27,7 @@ import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
@@ -772,6 +773,19 @@ public class HttpClient extends PooledObject implements Closeable{
 				buffer = (ByteBuffer) WebSocketDispatcher.filterEncoder(webSocketSession, result);
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
 				sendWebSocketData(webSocketFrame);
+
+				Global.getHashWheelTimer().addTask(new HashWheelTask() {
+					@Override
+					public void run() {
+						try {
+							sendWebSocketData(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+						} catch (SendMessageException e) {
+							e.printStackTrace();
+						} finally {
+							this.cancel();
+						}
+					}
+				}, socket.getReadTimeout() / 1000, true);
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
 			} catch (SendMessageException e) {
