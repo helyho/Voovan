@@ -36,7 +36,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public static int 		ACCEPT_THREAD_SIZE       	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 			    = TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
 	public final static Long 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000L);
-	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", Boolean.class);
+	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", true);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);
@@ -78,7 +78,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 				if(isAccept) {
 					isCheckTimeout = false;
 				} else {
-					isCheckTimeout = CHECK_TIMEOUT != null ? CHECK_TIMEOUT : true;
+					isCheckTimeout = CHECK_TIMEOUT;
 				}
 
 				return new SocketSelector(obj, isCheckTimeout);
@@ -288,7 +288,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	public boolean isTimeOut(){
-		if(CHECK_TIMEOUT == null || CHECK_TIMEOUT || readTimeout > 0) {
+		if(readTimeout > 0 && CHECK_TIMEOUT) {
 			return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
 		} else {
 			return false;
