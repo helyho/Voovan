@@ -342,9 +342,9 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 	/**
 	 * 获取本地端口
-	 * @return 返回-1为没有取到本地端口
+	 * @return 返回本地端口
 	 */
-	public abstract int loaclPort();
+	public abstract int localPort();
 
 	/**
 	 * 获取对端 IP 地址
@@ -354,7 +354,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 	/**
 	 * 获取对端端口
-	 * @return 	返回-1为没有取到对端端口
+	 * @return 	返回对端端口
 	 */
 	public abstract int remotePort();
 

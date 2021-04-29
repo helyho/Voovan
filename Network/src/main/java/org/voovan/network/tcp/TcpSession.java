@@ -4,7 +4,6 @@ import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -41,24 +40,16 @@ public class TcpSession extends IoSession<TcpSocket> {
 	 * @return 本地 IP 地址
 	 */
 	public String localAddress() {
-		if (socketChannel.isOpen()) {
-			return socketChannel.socket().getLocalAddress().getHostAddress();
-		} else {
-			return null;
-		}
+		return socketChannel.socket().getLocalAddress().getHostAddress();
 	}
 
 	/**
 	 * 获取本地端口
 	 *
-	 * @return 返回-1为没有取到本地端口
+	 * @return 返回本地端口
 	 */
-	public int loaclPort() {
-		if (socketChannel.isOpen()) {
-			return socketChannel.socket().getLocalPort();
-		} else {
-			return -1;
-		}
+	public int localPort() {
+		return socketChannel.socket().getLocalPort();
 	}
 
 	/**
@@ -67,24 +58,16 @@ public class TcpSession extends IoSession<TcpSocket> {
 	 * @return 对端 ip 地址
 	 */
 	public String remoteAddress() {
-		if (socketChannel.isOpen()) {
-			return socketChannel.socket().getInetAddress().getHostAddress();
-		} else {
-			return null;
-		}
+		return socketChannel.socket().getInetAddress().getHostAddress();
 	}
 
 	/**
 	 * 获取对端端口
 	 *
-	 * @return 返回-1为没有取到对端端口
+	 * @return 返回对端端口
 	 */
 	public int remotePort() {
-		if (socketChannel.isOpen()) {
-			return socketChannel.socket().getPort();
-		} else {
-			return -1;
-		}
+		return socketChannel.socket().getPort();
 	}
 
 	/**
@@ -135,6 +118,6 @@ public class TcpSession extends IoSession<TcpSocket> {
 
 	@Override
 	public String toString() {
-		return "L:[" + this.localAddress() + ":" + this.loaclPort() + "] <-> R:[" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "L:[" + this.localAddress() + ":" + this.localPort() + "] <-> R:[" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }
