@@ -4,7 +4,6 @@ import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.log.Logger;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.DatagramChannel;
 
@@ -47,24 +46,16 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 * @return 本地 IP 地址
 	 */
 	public String localAddress() {
-		if (datagramChannel.isOpen()) {
-			return datagramChannel.socket().getLocalAddress().getHostAddress();
-		} else {
-			return null;
-		}
+		return datagramChannel.socket().getLocalAddress().getHostAddress();
 	}
 
 	/**
 	 * 获取本地端口
 	 *
-	 * @return 返回-1为没有取到本地端口
+	 * @return 返回本地端口
 	 */
-	public int loaclPort() {
-		if (datagramChannel.isOpen()) {
-			return datagramChannel.socket().getLocalPort();
-		} else {
-			return -1;
-		}
+	public int localPort() {
+		return datagramChannel.socket().getLocalPort();
 	}
 
 	/**
@@ -73,11 +64,7 @@ public class UdpSession extends IoSession<UdpSocket> {
 	 * @return 对端 ip 地址
 	 */
 	public String remoteAddress() {
-		if (datagramChannel.isOpen()) {
-			return inetSocketAddress.getAddress().getHostAddress();
-		} else {
-			return null;
-		}
+		return inetSocketAddress.getAddress().getHostAddress();
 	}
 
 	public InetSocketAddress getInetSocketAddress() {
@@ -92,14 +79,10 @@ public class UdpSession extends IoSession<UdpSocket> {
 	/**
 	 * 获取对端端口
 	 *
-	 * @return 返回-1为没有取到对端端口
+	 * @return 返回对端端口
 	 */
 	public int remotePort() {
-		if (datagramChannel.isOpen()) {
-			return inetSocketAddress.getPort();
-		} else {
-			return -1;
-		}
+		return inetSocketAddress.getPort();
 	}
 
 	/**
@@ -150,6 +133,6 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	@Override
 	public String toString() {
-		return "[" + this.localAddress() + ":" + this.loaclPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "[" + this.localAddress() + ":" + this.localPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }
