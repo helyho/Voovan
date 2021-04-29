@@ -12,6 +12,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 系统性能相关
@@ -30,6 +31,10 @@ public class TPerformance {
 	private static ConcurrentHashMap<String, byte[]> LOCAL_IP_MAC = new ConcurrentHashMap<>();
 	private static List<NetworkInterface> NETWROK_INTERFACE = new ArrayList<NetworkInterface>();
 
+
+	private static long START_TIME_MILLIS	= System.currentTimeMillis();
+
+
 	static {
 		getLocalIpAddrs();
 	}
@@ -37,7 +42,7 @@ public class TPerformance {
 	/**
 	 * 内存信息类型枚举
 	 */
-	public enum MEMTYPE{
+	public enum MemType {
 		NOHEAP_INIT,
 		HEAP_INIT,
 
@@ -145,7 +150,7 @@ public class TPerformance {
 	 */
 	public static double cpuPerCoreLoadAvg(){
 		double perCoreLoadAvg = osmxb.getSystemLoadAverage()/osmxb.getAvailableProcessors();
-		BigDecimal bg = new BigDecimal(perCoreLoadAvg);
+		BigDecimal bg = BigDecimal.valueOf(perCoreLoadAvg);
 		perCoreLoadAvg = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return perCoreLoadAvg;
 	}
@@ -181,7 +186,7 @@ public class TPerformance {
 		//freeMemory() 当前申请到的内存有多少没有使用的空闲内存
 		Runtime runtime = Runtime.getRuntime();
 		double memoryUsage = 1-((double)runtime.freeMemory()+(runtime.maxMemory()-runtime.totalMemory()))/(double)runtime.maxMemory();
-		BigDecimal bg = new BigDecimal(memoryUsage);
+		BigDecimal bg = BigDecimal.valueOf(memoryUsage);
 		memoryUsage = bg.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
 		return memoryUsage;
 	}
@@ -191,22 +196,22 @@ public class TPerformance {
 	 * @param memType 获取的信息类型
 	 * @return 当前内存数值
 	 */
-	public static long getJVMMemoryInfo(MEMTYPE memType){
-		if(memType==MEMTYPE.NOHEAP_INIT){
+	public static long getJVMMemoryInfo(MemType memType){
+		if(memType== MemType.NOHEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getInit();
-		} else if(memType==MEMTYPE.NOHEAP_MAX){
+		} else if(memType== MemType.NOHEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getMax();
-		} else if(memType==MEMTYPE.NOHEAP_USAGE){
+		} else if(memType== MemType.NOHEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
-		} else if(memType== MEMTYPE.NOHEAP_COMMIT){
+		} else if(memType== MemType.NOHEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getCommitted();
-		} else if(memType==MEMTYPE.HEAP_INIT){
+		} else if(memType== MemType.HEAP_INIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getInit();
-		} else if(memType==MEMTYPE.HEAP_MAX){
+		} else if(memType== MemType.HEAP_MAX){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-		} else if(memType==MEMTYPE.HEAP_USAGE){
+		} else if(memType== MemType.HEAP_USAGE){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
-		} else if(memType==MEMTYPE.HEAP_COMMIT){
+		} else if(memType== MemType.HEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getCommitted();
 		}else{
 			throw new RuntimeException("getMemoryInfo function arg error!");
@@ -219,15 +224,15 @@ public class TPerformance {
 	 */
 	public static MemoryInfo getJVMMemoryInfo(){
 		MemoryInfo memoryInfo = new MemoryInfo();
-		memoryInfo.setHeapInit(getJVMMemoryInfo(MEMTYPE.HEAP_INIT));
-		memoryInfo.setHeapUsage(getJVMMemoryInfo(MEMTYPE.HEAP_USAGE));
-		memoryInfo.setHeapCommit(getJVMMemoryInfo(MEMTYPE.HEAP_COMMIT));
-		memoryInfo.setHeapMax(getJVMMemoryInfo(MEMTYPE.HEAP_MAX));
+		memoryInfo.setHeapInit(getJVMMemoryInfo(MemType.HEAP_INIT));
+		memoryInfo.setHeapUsage(getJVMMemoryInfo(MemType.HEAP_USAGE));
+		memoryInfo.setHeapCommit(getJVMMemoryInfo(MemType.HEAP_COMMIT));
+		memoryInfo.setHeapMax(getJVMMemoryInfo(MemType.HEAP_MAX));
 
-		memoryInfo.setNoHeapInit(getJVMMemoryInfo(MEMTYPE.NOHEAP_INIT));
-		memoryInfo.setNoHeapUsage(getJVMMemoryInfo(MEMTYPE.NOHEAP_USAGE));
-		memoryInfo.setNoHeapCommit(getJVMMemoryInfo(MEMTYPE.NOHEAP_COMMIT));
-		memoryInfo.setNoHeapMax(getJVMMemoryInfo(MEMTYPE.NOHEAP_MAX));
+		memoryInfo.setNoHeapInit(getJVMMemoryInfo(MemType.NOHEAP_INIT));
+		memoryInfo.setNoHeapUsage(getJVMMemoryInfo(MemType.NOHEAP_USAGE));
+		memoryInfo.setNoHeapCommit(getJVMMemoryInfo(MemType.NOHEAP_COMMIT));
+		memoryInfo.setNoHeapMax(getJVMMemoryInfo(MemType.NOHEAP_MAX));
 		memoryInfo.setFree(Runtime.getRuntime().freeMemory());
 		memoryInfo.setTotal(Runtime.getRuntime().totalMemory());
 		memoryInfo.setMax(Runtime.getRuntime().maxMemory());
@@ -242,7 +247,8 @@ public class TPerformance {
 	 */
 	public static Map<String, String> getJVMGCInfo(long pid) throws IOException {
 		LinkedHashMap<String, String> result = new LinkedHashMap<String, String>();
-		InputStream processInputStream = TEnv.createSysProcess("jstat -gcutil "+pid, null, (File)null).getInputStream();
+		Process process = TEnv.createSysProcess("jstat -gcutil "+pid, null, (File)null);
+		InputStream processInputStream = process.getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
 		String[] consoleLines = console.split(System.lineSeparator());
 		String[] titleLine = consoleLines[0].trim().split("\\s+");
@@ -269,10 +275,16 @@ public class TPerformance {
 	 * @param headCount 返回的对象数
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
+	 * @throws InterruptedException 线程中断异常
 	 */
-	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException {
+	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex, Integer headCount) throws IOException, InterruptedException {
+
+		regex = regex == null ? ".*" : regex;
+
 		LinkedHashMap<String,ObjectInfo> result = new LinkedHashMap<String,ObjectInfo>();
-		InputStream processInputStream = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null).getInputStream();
+		Process process = TEnv.createSysProcess("jmap -histo "+pid, null, (File)null);
+		process.waitFor();
+		InputStream processInputStream = process.getInputStream();
 		String console = new String(TStream.readAll(processInputStream));
 
 
@@ -304,12 +316,12 @@ public class TPerformance {
 
 	/**
 	 * 获取指定进程的对象信息
-	 * @param pid		进程 Id
 	 * @param regex     对象匹配字符串
 	 * @return 虚拟机中的对象信息
 	 * @throws IOException IO 异常
+	 * @throws InterruptedException 线程中断异常
 	 */
-	public static Map<String,ObjectInfo> getJVMObjectInfo(long pid, String regex) throws IOException {
+	public static Map<String,ObjectInfo> getJVMObjectInfo(String regex) throws IOException, InterruptedException {
 		return TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, null);
 	}
 
@@ -319,7 +331,7 @@ public class TPerformance {
 	 * @param headCount 头部记录数
 	 * @return 系统对象信息的Map
 	 */
-	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, int headCount) {
+	public static Map<String,TPerformance.ObjectInfo> getJVMObjectInfo(String regex, Integer headCount) {
 		if(regex==null){
 			regex = ".*";
 		}
@@ -327,7 +339,7 @@ public class TPerformance {
 		Map<String,TPerformance.ObjectInfo> result;
 		try {
 			result = TPerformance.getJVMObjectInfo(TEnv.getCurrentPID(), regex, headCount);
-		} catch (IOException e) {
+		} catch (IOException | InterruptedException e) {
 			result = new Hashtable<String,TPerformance.ObjectInfo>();
 		}
 
@@ -376,15 +388,32 @@ public class TPerformance {
 		return threadDetailList;
 	}
 
-	/**
-	 * 获取处理器信息
-	 * @return 处理器信息 Map
-	 */
-	public static Map<String,Object>  getProcessorInfo(){
+	public static Map<String,Object> getCpuInfo(){
 		Map<String,Object> processInfo = new Hashtable<String,Object>();
 		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
-		processInfo.put("ProcessorCpuUsage",TPerformance.getProcessCpuUsage());
-		processInfo.put("SystemLoadAverage",TPerformance.getSystemLoadAverage());
+		processInfo.put("CpuUsage",TPerformance.getProcessCpuUsage());
+		processInfo.put("LoadAverage",TPerformance.getSystemLoadAverage());
+		return processInfo;
+	}
+
+	/**
+	 * 获取进程信息
+	 * @param isAll 是否返回详细信息, true: 包含详细信息, false: 不包含详细信息
+	 * @return 进程信息 Map
+	 * @throws IOException IO 异常
+	 */
+	public static Map<String,Object> getProcessInfo(boolean isAll) throws IOException {
+		Map<String,Object> processInfo = new Hashtable<String,Object>();
+		processInfo.put("ProcessorCount",TPerformance.getProcessorCount());
+		processInfo.put("CpuUsage",TPerformance.getProcessCpuUsage());
+		processInfo.put("LoadAverage",TPerformance.getSystemLoadAverage());
+		processInfo.put("Memory",TPerformance.getJVMMemoryInfo());
+
+		if(isAll) {
+			processInfo.put("ThreadCount", TEnv.getThreads().length);
+			processInfo.put("RunningThreads", TPerformance.getThreadDetail("RUNNABLE", false).size());
+			processInfo.put("GC", TPerformance.getJVMGCInfo());
+		}
 		return processInfo;
 	}
 
@@ -400,6 +429,22 @@ public class TPerformance {
 		return jvmInfo;
 	}
 
+	/**
+	 * 获取当前进程的运行时间
+	 * @param timeUnit 时间单位
+	 * @return 响应的时间
+	 */
+	public static Long getRuningTime(TimeUnit timeUnit){
+		return timeUnit.convert(getRuningTime(), TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * 获取当前进程的运行时间 (毫秒)
+	 * @return 当前进程的运行时间
+	 */
+	public static Long getRuningTime(){
+		return System.currentTimeMillis() - START_TIME_MILLIS;
+	}
 
 	/**
 	 * JVM 中对象信息

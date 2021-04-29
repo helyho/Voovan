@@ -3,6 +3,9 @@ package org.voovan.network.messagesplitter;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.network.filter.ByteFilter;
+import org.voovan.tools.TByte;
+import org.voovan.tools.Varint;
+import org.voovan.tools.buffer.TByteBuffer;
 
 import java.nio.ByteBuffer;
 
@@ -19,26 +22,36 @@ public class ByteMessageSplitter implements MessageSplitter {
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 		int originPosition = byteBuffer.position();
 
-		try {
+		int ret = -1;
 
+		try {
 			if (byteBuffer.remaining() > ByteFilter.HEAD_LEGNTH) {
 				if(byteBuffer.get() == ByteFilter.SPLITER) {
+					int lengthByteOffset = byteBuffer.position();
+					int length = Varint.varintToInt(byteBuffer);
+					int lengthByteSize = byteBuffer.position() - lengthByteOffset;
 
-					int length = byteBuffer.getInt();
-
-					if (byteBuffer.get() == ByteFilter.SPLITER) {
-						if (length > 0 && byteBuffer.remaining() >= length) {
-							return ByteFilter.HEAD_LEGNTH + length;
-						}
-					} else {
+					if(length < 0){
 						session.close();
 					}
+
+					if(byteBuffer.hasRemaining()) {
+						if (byteBuffer.get() == ByteFilter.SPLITER) {
+							if (length > 0 && byteBuffer.remaining() >= length) {
+								ret = ByteFilter.HEAD_LEGNTH + lengthByteSize + length;
+							}
+						} else {
+							session.close();
+						}
+					}
+				} else {
+					session.close();
 				}
 			}
 		} finally {
 			byteBuffer.position(originPosition);
 		}
 
-		return -1;
+		return ret;
 	}
 }

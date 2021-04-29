@@ -41,6 +41,11 @@ public class AsyncHandler implements IoHandler {
         return running;
     }
 
+    public void reset(){
+        running = false;
+        async = null;
+    }
+
     @Override
     public Object onConnect(IoSession session) {
         return null;
@@ -58,9 +63,9 @@ public class AsyncHandler implements IoHandler {
             async.accept(response);
         }
 
-        httpClient.finished(response);
+        httpClient.reset(response);
         running = false;
-        if (synchronousHandler != null) {
+        if (session.socketContext().handler() == this && synchronousHandler != null) {
             session.socketContext().handler(synchronousHandler);
         }
         return null;

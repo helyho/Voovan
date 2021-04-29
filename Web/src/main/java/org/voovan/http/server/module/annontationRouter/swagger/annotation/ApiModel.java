@@ -20,5 +20,11 @@ public @interface ApiModel {
      * 实体类说明, 作为响应时的描述
      * @return 实体类说明
      */
-    String value();
+    String value() default "";
+
+    /**
+     * 实体需要隐藏的属性, 用于继承在不同场景下隐藏不同的属性
+     * @return 需要隐藏的属性
+     */
+    String[] hiddenProperty() default "";
 }

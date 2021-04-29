@@ -5,10 +5,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 
 /**
  *	格式化日志信息并输出<br>
@@ -37,23 +34,56 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class Formater {
-    private String template;
-    private LoggerThread loggerThread;
-    private List<String> logLevel;
-    private String dateStamp;
-    private int maxLineLength = -1;
-    private String lineHead;
-    private String lineTail;
+    public static int INFO;
+    public static int FRAMEWORK;
+    public static int SQL;
+    public static int DEBUG;
+    public static int TRACE;
+    public static int WARN;
+    public static int ERROR;
+    public static int FATAL;
+    public static int SIMPLE;
 
     private static String DATE = TDateTime.now("yyyyMMdd");
 
-    static{
+    static {
+        ArrayList<String> logLevel = getLogLevels();
+        INFO        = logLevel.indexOf("INFO");
+        FRAMEWORK   = logLevel.indexOf("FRAMEWORK");
+        SQL         = logLevel.indexOf("SQL");
+        DEBUG       = logLevel.indexOf("DEBUG");
+        TRACE       = logLevel.indexOf("TRACE");
+        WARN        = logLevel.indexOf("WARN");
+        ERROR       = logLevel.indexOf("ERROR");
+        FATAL       = logLevel.indexOf("FATAL");
+        SIMPLE      = logLevel.indexOf("SIMPLE");
+
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
             public void run() {
                 DATE = TDateTime.now("yyyyMMdd");
             }
         }, 1);
+    }
+
+    public static FastThreadLocal<ArrayList<String>>  THREAD_LOG_LEVEL = FastThreadLocal.withInitial(()-> {
+        return getLogLevels();
+    });
+
+    private String template;
+    private LoggerThread loggerThread;
+    private String dateStamp;
+    private int maxLineLength = -1;
+    private String lineHead;
+    private String lineTail;
+
+
+
+
+    public static ArrayList<String> getLogLevels() {
+        ArrayList<String> logLevel = new ArrayList<>();
+        logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
+        return logLevel;
     }
 
     protected String getDateStamp() {
@@ -70,9 +100,6 @@ public class Formater {
      */
     public Formater(String template) {
         this.template = template;
-
-        logLevel = new Vector<String>();
-        logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
         this.dateStamp = DATE;
 
         final Formater finalFormater = this;
@@ -98,7 +125,7 @@ public class Formater {
      * @return 获取日志记录级别信息
      */
     public List<String> getLogLevel() {
-        return logLevel;
+        return THREAD_LOG_LEVEL.get();
     }
 
     /**
@@ -107,7 +134,11 @@ public class Formater {
      */
     public static StackTraceElement currentStackLine() {
         StackTraceElement[] stackTraceElements = TEnv.getStackElements();
-        return stackTraceElements[8];
+        if(stackTraceElements.length <= 8) {
+            return stackTraceElements[stackTraceElements.length - 1];
+        } else {
+            return stackTraceElements[8];
+        }
     }
 
     /**
@@ -204,7 +235,7 @@ public class Formater {
         }
 
         if(LoggerStatic.HAS_RUNTIME) {
-            tokens.put("R", Long.toString(System.currentTimeMillis() - LoggerStatic.getStartTimeMillis())); //系统运行时间
+            tokens.put("R", TDateTime.formatElapsedSecs(TPerformance.getRuningTime()/1000)); //系统运行时间
         }
 
         if(LoggerStatic.HAS_STACK) {
@@ -239,32 +270,14 @@ public class Formater {
     }
 
     /**
-     * 消息类型是否可以记录
-     * @param message 消息对象
-     * @return 是否可写入
-     */
-    public boolean messageWritable(Message message){
-        if(logLevel.contains("ALL")){
-            return true;
-        }
-        else if(logLevel.contains(message.getLevel())){
-            return true;
-        }else{
-            return false;
-        }
-    }
-
-    /**
      * 写入消息对象,在进行格式化后的写入
      * @param message 消息对象
      */
     public void writeFormatedLog(Message message) {
-        if(messageWritable(message)){
-            if("SIMPLE".equals(message.getLevel())){
-                writeLog(simpleFormat(message)+"\r\n");
-            }else{
-                writeLog(format(message));
-            }
+        if("SIMPLE".equals(message.getLevel())){
+            writeLog(simpleFormat(message)+"\r\n");
+        }else{
+            writeLog(format(message));
         }
     }
 

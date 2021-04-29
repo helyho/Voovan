@@ -20,7 +20,8 @@ public class HeartBeat {
     private ByteBuffer pingBuffer;
     private ByteBuffer pongBuffer;
     private boolean isFirstBeat = true;
-    private LinkedBlockingDeque<Integer> queue;
+    private volatile boolean hasPing;
+    private volatile boolean hasPong;
     private int failedCount = 0;
 
 
@@ -33,17 +34,16 @@ public class HeartBeat {
     private HeartBeat(String ping, String pong){
         this.ping = ping.getBytes();
         this.pong = pong.getBytes();
-        this.pingBuffer = ByteBuffer.wrap(this.ping);
-        this.pongBuffer = ByteBuffer.wrap(this.pong);
-        queue = new LinkedBlockingDeque<Integer>();
-    }
+        this.pingBuffer = ByteBuffer.allocate(this.ping.length);
+        this.pongBuffer = ByteBuffer.allocate(this.pong.length);
 
-    /**
-     * 获取心跳包队列
-     * @return 心跳包队列
-     */
-    private LinkedBlockingDeque<Integer> getQueue() {
-        return queue;
+        this.hasPing = false;
+        this.hasPong = false;
+
+        pingBuffer.put(this.ping);
+        pongBuffer.put(this.pong);
+        pingBuffer.flip();
+        pongBuffer.flip();
     }
 
     /**
@@ -76,7 +76,7 @@ public class HeartBeat {
      * @param session 会话对象
      * @return true: 成功, false: 失败
      */
-    public static boolean interceptHeartBeat(IoSession session){
+    public static boolean intercept(IoSession session){
         if(session==null || session.getHeartBeat()==null){
             return false;
         }
@@ -84,18 +84,18 @@ public class HeartBeat {
         HeartBeat heartBeat = session.getHeartBeat();
         ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 
-        if (heartBeat != null && byteBufferChannel.size() > 0) {
+        if (byteBufferChannel.size() > 0) {
             //心跳处理
             if (heartBeat != null) {
                 if (byteBufferChannel.startWith(heartBeat.getPing())) {
                     byteBufferChannel.shrink(0, heartBeat.getPing().length);
-                    heartBeat.getQueue().addLast(1);
+                    heartBeat.hasPing = true;
                     return true;
                 }
 
                 if (byteBufferChannel.startWith(heartBeat.getPong())) {
                     byteBufferChannel.shrink(0, heartBeat.getPong().length);
-                    heartBeat.getQueue().addLast(2);
+                    heartBeat.hasPong = true;
                     return true;
                 }
             }
@@ -116,42 +116,35 @@ public class HeartBeat {
             return false;
         }
 
-        //收个心跳返回成功
+        //首个心跳默认成功
         if (heartBeat.isFirstBeat) {
-            heartBeat.isFirstBeat = false;
+            //客户端默认发起第一次的心跳
             if (session.socketContext().getConnectModel() == ConnectModel.CLIENT) {
-                //等待这个时间的目的是为了等待客户端那边的心跳检测启动
-                TEnv.sleep(session.getIdleInterval());
-                session.send(heartBeat.pingBuffer);
-                session.flush();
+                heartBeat.hasPong = true;
             }
+
+            heartBeat.isFirstBeat = false;
             return true;
         }
 
-        //弥补双方发送的时间差,等待心跳到来,如果超过空闲事件周期则认为是失败
-        TEnv.wait(session.getIdleInterval() * 1000, false, ()->heartBeat.getQueue().size() == 0);
-
-        if (heartBeat.getQueue().size() > 0) {
-            int beatType = heartBeat.getQueue().pollFirst();
-
-            if (beatType == 1) {
-                session.send(heartBeat.pongBuffer);
-                session.flush();
-                heartBeat.failedCount = 0;
-                return true;
-            } else if (beatType == 2) {
-                session.send(heartBeat.pingBuffer);
-                session.flush();
-                heartBeat.failedCount = 0;
-                return true;
-            } else {
-                heartBeat.failedCount++;
-                return false;
-            }
+        if (heartBeat.hasPing) {
+            session.send(heartBeat.pongBuffer);
+            session.flush();
+            heartBeat.pongBuffer.flip();
+            heartBeat.failedCount = 0;
+            heartBeat.hasPing = false;
+            return true;
+        } else if (heartBeat.hasPong) {
+            session.send(heartBeat.pingBuffer);
+            session.flush();
+            heartBeat.pingBuffer.flip();
+            heartBeat.failedCount = 0;
+            heartBeat.hasPong = false;
+            return true;
+        } else {
+            heartBeat.failedCount++;
+            return false;
         }
-
-        heartBeat.failedCount++;
-        return false;
     }
     /**
      * 将心跳绑定到 Session

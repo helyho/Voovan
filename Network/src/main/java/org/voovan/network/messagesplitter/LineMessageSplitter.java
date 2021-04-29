@@ -1,5 +1,6 @@
 package org.voovan.network.messagesplitter;
 
+import org.voovan.Global;
 import org.voovan.network.IoSession;
 import org.voovan.network.MessageSplitter;
 import org.voovan.tools.buffer.TByteBuffer;
@@ -16,11 +17,12 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class LineMessageSplitter implements MessageSplitter {
+	public byte[] bytes = Global.STR_LF.getBytes();
 
 	@Override
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 		if(byteBuffer.limit() > 1){
-			int lineBreakIndex = TByteBuffer.indexOf(byteBuffer, "\n".getBytes());
+			int lineBreakIndex = TByteBuffer.indexOf(byteBuffer, bytes);
 			if(lineBreakIndex >=0 )
 				return lineBreakIndex+1;
 		}

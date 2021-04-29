@@ -130,10 +130,7 @@ public class HashWheel {
             List<HashWheelTask> tasks = wheel.get(currentSlot);
 
             if (tasks != null) {
-                List<HashWheelTask> tmpList = new ArrayList<HashWheelTask>();
-                tmpList.addAll(tasks);
-
-                for (HashWheelTask task : tmpList) {
+                for (HashWheelTask task : tasks.toArray(new HashWheelTask[tasks.size()])) {
                     if(task!=null) {
                         task.doTask();
                     } else {

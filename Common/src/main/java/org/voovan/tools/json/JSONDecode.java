@@ -19,6 +19,13 @@ import java.util.*;
 
 /**
  * JSON字符串分析成 Map
+ * 1.多行文本
+ * 2.行尾不精确效验逗号
+ * 3.键值对冒号可用等号代替
+ * 4.非精确效验双引号包裹
+ * 5.可使用单双引号进行包裹
+ * 6.支持 JAVA/C 语言的两种形式的注释以及井号 形式的注释
+ * 7.支持 HCL 配置解析
  *
  * @author helyho
  *
@@ -27,7 +34,7 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class JSONDecode {
-	public final static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
+	public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
 	public final static IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
 
 	static {
@@ -46,8 +53,9 @@ public class JSONDecode {
 
 	public static Object parse(String jsonStr) {
 		Object value;
-		int jsonHash = THash.HashFNV1(jsonStr);
+		int jsonHash = 0;
 		if(JSON_HASH) {
+			jsonHash = THash.HashFNV1(jsonStr);
 			value = JSON_DECODE_CACHE.get(jsonHash);
 
 			if (value != null) {
@@ -55,13 +63,48 @@ public class JSONDecode {
 			}
 		}
 
-		value = parse(new StringReader(jsonStr.trim() + "\0"));
+		value = parse(new StringReader(jsonStr.trim()));
 
 		if(JSON_HASH) {
 			JSON_DECODE_CACHE.put(jsonHash, value);
 		}
 
 		return value;
+	}
+
+	/**
+	 * 创建根对象
+	 * @param reader StringReader 对象
+	 * @return 根对象
+	 * @throws IOException IO 异常
+	 */
+	public static Object createRootObj (StringReader reader) throws IOException {
+		int type = 0;
+		Object root = null;
+
+		//根据起始和结束符号,决定返回的对象类型
+		if (type == 0) {
+			char flag = (char) reader.read();
+
+			if (flag == Global.CHAR_LC_BRACES) {
+				type = E_OBJECT;
+			}
+
+			if (flag == Global.CHAR_LS_BRACES) {
+				type = E_ARRAY;
+			}
+		}
+
+		//对象类型构造返回的对象
+		if (E_OBJECT == type) {
+			root = (Map) new LinkedHashMap<String, Object>(1024);
+		} else if (E_ARRAY == type) {
+			root = (List) new ArrayList<Object>(1024);
+		} else {
+			reader.skip(-1);
+		}
+
+		return root;
 	}
 
 	/**
@@ -78,33 +121,7 @@ public class JSONDecode {
 				return null;
 			}
 
-			int type = 0;
-			Object jsonResult = null;
-			boolean isFirstChar = true;
-
-			//根据起始和结束符号,决定返回的对象类型
-			if (type == 0) {
-				char flag = (char) reader.read();
-
-				if (flag == Global.CHAR_LC_BRACES) {
-					type = E_OBJECT;
-				}
-
-				if (flag == Global.CHAR_LS_BRACES) {
-					type = E_ARRAY;
-				}
-			}
-
-			//对象类型构造返回的对象
-			if (E_OBJECT == type) {
-				jsonResult = (Map) new LinkedHashMap<String, Object>(1024);
-				isFirstChar = false;
-			} else if (E_ARRAY == type) {
-				jsonResult = (List) new ArrayList<Object>(1024);
-				isFirstChar = false;
-			} else {
-				reader.skip(-1);
-			}
+			Object root = null;
 
 			String keyString = null;
 			Object value = null;
@@ -122,25 +139,83 @@ public class JSONDecode {
 			while (true) {
 				currentChar = (char) reader.read();
 
+				reader.mark(0);
 				nextChar = (char) reader.read();
-				if (nextChar != 65535) {
-					reader.skip(-1);
-				}
+				reader.reset();
 
-				if (!isFirstChar) {
-					reader.skip(-2);
+				if (reader.skip(-2)==-2) {
 					prevChar = (char) reader.read();
-					reader.skip(1);
+				}
+				reader.reset();
+
+				//====================  处理注释  ====================
+				if (!isString) {
+					//单行注释开始, # ......
+					if (currentChar == Global.CHAR_SHAPE){
+						isComment = 1;
+					}
+
+					if(currentChar == Global.CHAR_BACKSLASH && isComment == 0) {
+						//单行注释开始, like: // ......
+						if (nextChar != 0 && nextChar == Global.CHAR_BACKSLASH){
+							isComment = 1;
+						}
+
+						//多行注释开始, like: /* ...... */
+						if (nextChar != 0 && nextChar == Global.CHAR_STAR) {
+							isComment = 2;
+							if (currentChar == 65535) {
+								return root;
+							}
+							continue;
+						}
+					}
+
+					//在无逗号结尾的行,带有注释时准确区分数据
+					if(itemString.length()>0 && isComment>0) {
+						reader.skip(-1);
+						nextChar = currentChar;
+						currentChar = ',';
+						isComment = 0;
+					}
+
+					if(isComment > 0) {
+						//单行注释结束
+						if (isComment == 1 && currentChar == Global.CHAR_LF) {
+							isComment = 0;
+						}
+
+						//多行注释结束
+						if (isComment == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
+							isComment = 0;
+							if (currentChar == 65535) {
+								return root;
+							}
+							continue;
+						}
+
+						if (currentChar == 65535) {
+							return root;
+						}
+						continue;
+					}
 				}
 
-				isFirstChar = false;
+				//====================  创建根对象((有根包裹)  ====================
+				if (root == null && !isString && isComment==0 && !isFunction) {
+					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
+						reader.skip(-1);
+						root = createRootObj(reader);
+						continue;
+					}
+				}
 
+				//====================  处理字符串  ====================
 				//分析字符串,如果是字符串不作任何处理
 				if (currentChar == Global.CHAR_QUOTE || currentChar == Global.CHAR_S_QUOTE) {
-					//i小于1的不是转意字符,判断为字符串(因为转意字符要2个字节),大于2的要判断是否\\"的转义字符
-					if (isComment==0 && nextChar != 0 && prevChar != Global.CHAR_SLASH) {
-
-						//字符串起始的"
+					//非注释状态, 并且不是转移字符
+					if (isComment==0 && prevChar != Global.CHAR_SLASH) {
+						//字符串起始的 " 或 '
 						if (stringWarpFlag == Global.CHAR_EOF) {
 							stringWarpFlag = currentChar;
 							isString = true;
@@ -154,74 +229,53 @@ public class JSONDecode {
 					}
 				}
 
-				//处理注释
-				if (!isString) {
 
-					if(currentChar == Global.CHAR_BACKSLASH && isComment == 0) {
-						if (nextChar != 0 && nextChar == Global.CHAR_BACKSLASH){
-							isComment = 1; //单行注释
-						}
-
-						if (nextChar != 0 && nextChar == Global.CHAR_STAR) {
-							isComment = 2; //多行注释
-							if (currentChar == 65535) {
-								return jsonResult;
-							}
-							continue;
-						}
-					}
-
-					if(isComment > 0) {
-						if (isComment == 1 && currentChar == Global.CHAR_LF ) {
-							isComment = 0; //单行注释结束
-						}
-
-						if (isComment == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
-							isComment = 0; //多行注释结束
-							if (currentChar == 65535) {
-								return jsonResult;
-							}
-							continue;
-						}
-
-						if (currentChar == 65535) {
-							return jsonResult;
-						}
-						continue;
-					}
-				}
-
-				//处理对象的包裹
+				//====================  处理对象的包裹  ====================
 				if(!isString &&  !isFunction) {
-					//JSON数组字符串分组,以符号对称的方式取 []
+					//数组 []
 					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
-						//递归解析处理,取 value 对象
-						value = JSONDecode.parse(reader);
-						continue;
+
+						//支持{ key [...] }的形式, 插入一个 : 作为分割
+						if(itemString.length() >0) {
+							nextChar = currentChar;
+							currentChar = ':';
+						} else {
+							//递归解析处理,取 value 对象
+							value = JSONDecode.parse(reader);
+							continue;
+						}
+
 					} else if (currentChar == Global.CHAR_RS_BRACES) {
-						//最后一个元素,追加一个,号来将其附加到结果集
+						//最后一个元素,追加一个,好将其附加到结果集
 						if (itemString.length() != 0 || value != null) {
 							currentChar = Global.CHAR_COMMA;
 							reader.skip(-1);
 						} else {
-							return jsonResult;
+							return root;
 						}
 					}
 
-					//JSON对象字符串分组,以符号对称的方式取 {}
+					//对象 {}
 					else if (currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
-						//递归解析处理,取 value 对象
-						value = JSONDecode.parse(reader);
-						continue;
+
+						//支持{ key {...} }的形式,, 插入一个 : 作为分割
+						if(itemString.length() >0) {
+							nextChar = currentChar;
+							currentChar = ':';
+						} else {
+							//递归解析处理,取 value 对象
+							value = JSONDecode.parse(reader);
+							continue;
+						}
 					} else if (currentChar == Global.CHAR_RC_BRACES) {
 						//最后一个元素,追加一个,号来将其附加到结果集
 						if (itemString.length() != 0 || value != null) {
 							currentChar = Global.CHAR_COMMA;
 							reader.skip(-1);
 						} else {
-							return jsonResult;
+							return root;
 						}
 					}
 				}
@@ -230,10 +284,6 @@ public class JSONDecode {
 				//如果不是字符串,则只拼装可见字符
 				if (isString || (!isString && !Character.isWhitespace(currentChar))) {
 					itemString.append(currentChar);
-				}
-
-				if (jsonResult == null) {
-					jsonResult = value;
 				}
 
 				//处理数据
@@ -283,7 +333,7 @@ public class JSONDecode {
 				}
 
 				//返回值处理
-				if (value != null && jsonResult != null) {
+				if (value != null) {
 					//判断取值不是任何对象
 					if (value instanceof String) {
 						String stringValue = (String)value;
@@ -343,12 +393,17 @@ public class JSONDecode {
 						}
 					}
 
-					//这里 key 和 value 都准备完成了
+					//====================  创建根对象(无根包裹)  ====================
+					if(root == null) {
+						if(keyString!=null) {
+							root = (Map) new LinkedHashMap<String, Object>(1024);
+						} else {
+							root = (List) new ArrayList<Object>(1024);
+						}
+					}
 
 					//判断返回对象的类型,填充返回对象
-					if (jsonResult instanceof HashMap) {
-						@SuppressWarnings("unchecked")
-						HashMap<String, Object> result = (HashMap<String, Object>) jsonResult;
+					if (root instanceof HashMap) {
 						if (keyString != null) {
 							//判断是字符串去掉头尾的包裹符号
 							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_QUOTE) {
@@ -358,30 +413,31 @@ public class JSONDecode {
 							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_S_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_S_QUOTE) {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
-							result.put(keyString, value);
+							((Map)root).put(keyString, value);
 						}
-					} else if (jsonResult instanceof ArrayList && value != null) {
-						@SuppressWarnings("unchecked")
-						ArrayList<Object> result = (ArrayList<Object>) jsonResult;
-						result.add(value);
-					} else if(jsonResult==null){
-						jsonResult = value;
+					} else if (root instanceof ArrayList && value != null) {
+						((List)root).add(value);
+					} else if(root == null){
+						root = value;
 					}
 					//处理完侯将 value 放空
 					keyString = null;
 					value = null;
 				}
 
-				if (currentChar == 65535) {
+				if (nextChar == 65535) {
+					if(root==null && value == null && keyString == null) {
+						root = itemString.toString();
+					}
 					break;
 				}
 			}
 
-			return jsonResult;
-		}catch(Exception e){
+			return root;
+		} catch(Exception e){
 			try {
-				int position = ((int) TReflect.getFieldValue(reader,"next") -1);
-				String jsonStr = (String) TReflect.getFieldValue(reader,"str");
+				int position = ((int) TReflect.getFieldValue(reader, "next") -1);
+				String jsonStr = (String) TReflect.getFieldValue(reader, "str");
 				jsonStr = jsonStr.substring(0, position)+"^"+jsonStr.substring(position, position+10);
 				Logger.error(jsonStr, e);
 			} catch (ReflectiveOperationException ex) {

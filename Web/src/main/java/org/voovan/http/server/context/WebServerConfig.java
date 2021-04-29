@@ -27,13 +27,13 @@ import java.util.Vector;
  * Licence: Apache v2 License
  */
 public class WebServerConfig {
-    private String serverName;
+    private String serverName               = "voovan";
     private String host                     = "0.0.0.0";
     private int port                        = 28080;
     private int readTimeout                 = 30;
     private int sendTimeout                 = 30;
     private String contextPath              = "WEBAPP";
-    private boolean MatchRouteIgnoreCase    = false;
+    private boolean MatchRouteIgnoreCase    = true;
     private String characterSet             = "UTF-8";
     private String responseCharacterSet     = "";
     private String sessionContainer         = TReflect.getClassName(CacheMap.class);
@@ -49,7 +49,7 @@ public class WebServerConfig {
     private String lifeCycleClass           = null;
     private String pauseURL                 = null;
     private WeaveConfig weaveConfig         = null;
-    private int maxRequestSize              = 2048;         //2m
+    private int maxRequestSize              = 1024*10;         //单位:kb, 默认: 10m
     private boolean cache                   = false;
     private boolean enablePathVariables     = true;
     private boolean enableWebSocket         = true;

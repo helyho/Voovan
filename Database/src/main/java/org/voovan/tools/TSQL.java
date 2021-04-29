@@ -78,6 +78,8 @@ public class TSQL {
 				preparedStatement.setObject(i + 1, data);
 			} else if(data instanceof BigDecimal){
 				preparedStatement.setObject(i + 1, data.toString());
+			} else if(data instanceof Array){
+				preparedStatement.setObject(i + 1, ((Array) data).getArray());
 			} else {
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
 				preparedStatement.setObject(i + 1, JSON.toJSON(data));

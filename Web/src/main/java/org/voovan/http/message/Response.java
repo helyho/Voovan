@@ -1,5 +1,7 @@
 package org.voovan.http.message;
 
+import org.voovan.http.message.exception.BodyParseExecption;
+import org.voovan.http.message.exception.HttpParserException;
 import org.voovan.http.message.packet.Body;
 import org.voovan.http.message.packet.Cookie;
 import org.voovan.http.message.packet.Header;
@@ -11,6 +13,7 @@ import org.voovan.tools.TByte;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.MemoryReleasedException;
+import org.voovan.tools.json.JSONPath;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -34,12 +37,12 @@ public class Response {
 	private Header				header;
 	private List<Cookie>		cookies;
 	private Body 				body;
-	private boolean				isCompress;
-	private boolean         	hasBody;
-	protected boolean 			isSend = false;
-	private boolean 			async = false;
-	private boolean         	cookieParsed = false;
-	private Long                mark;
+	private volatile boolean	isCompress;
+	private volatile boolean    hasBody;
+	protected volatile boolean 	isSend = false;
+	private volatile boolean 	async = false;
+	private volatile boolean    cookieParsed = false;
+	private volatile Long       mark;
 
 	/**
 	 * 构造函数
@@ -57,6 +60,7 @@ public class Response {
 		this.cookies = response.cookies;
 		this.isCompress = response.isCompress;
 		this.isSend = false;
+		this.async = false;
 		this.mark = response.mark;
 		this.hasBody = response.hasBody;
 	}
@@ -172,6 +176,33 @@ public class Response {
 		return body;
 	}
 
+	/**
+	 * 使用 json 来解析 body
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T bodyObject(Class clazz){
+		return bodyObject(null, clazz);
+	}
+
+	/**
+	 * 使用 json 来解析 body
+	 * @param path 解析的路径
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T bodyObject(String path, Class clazz){
+		int status = protocol().getStatus();
+
+		if (status == 200) {
+			return body().getObject(path, clazz);
+		} else {
+			throw new BodyParseExecption(status, body.getBodyString(), "response status error");
+		}
+	}
+
 	public boolean isHasBody() {
 		return hasBody;
 	}
@@ -251,8 +282,12 @@ public class Response {
 	 * @throws IOException IO异常
 	 */
 	public void send(IoSession session) throws IOException {
+		ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
+
 		try {
-			ByteBufferChannel byteBufferChannel = session.getSendByteBufferChannel();
+			if(isSend) {
+				return;
+			}
 
 			//发送报文头
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer(); //THREAD_BYTE_BUFFER.get();
@@ -299,7 +334,7 @@ public class Response {
 					//判断是否需要发送 chunked 段长度
 					if (isCompress() && avaliableSize != 0) {
 						String chunkedLengthLine = Integer.toHexString(avaliableSize) + HttpStatic.LINE_MARK_STRING;
-						byteBuffer.put(chunkedLengthLine.getBytes());
+						byteBuffer.put(TString.toAsciiBytes(chunkedLengthLine));
 					}
 
 					//重置 Bytebuffer 可用字节数为 readSize
@@ -329,7 +364,6 @@ public class Response {
 				//发送报文结束符
 				byteBuffer.put(readEnd());
 				byteBuffer.flip();
-				byteBufferChannel.compact();
 			} catch (Throwable e) {
 				if (!(e instanceof MemoryReleasedException)) {
 					Logger.error("Response writeToChannel error: ", (Exception) e);
@@ -339,6 +373,8 @@ public class Response {
 
 			this.isSend = true;
 		} finally {
+			byteBufferChannel.compact();
+
 			if(async) {
 				session.flush();
 			}
@@ -384,9 +420,10 @@ public class Response {
 
 			this.header().remove("Date");
 			this.header().remove("Server");
+			this.isSend = false;
 		} else {
 			this.async 		= otherResponse.async;
-			this.isSend = otherResponse.isSend;
+			this.isSend 	= otherResponse.isSend;
 		}
 
 		return this;

@@ -5,6 +5,7 @@ import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.ObjectPool;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -25,31 +26,31 @@ public class HttpClientPool {
     private static int MIN_SIZE = TPerformance.getProcessorCount();
     private static int MAX_SIZE = TPerformance.getProcessorCount();
 
-    public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
+    public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize, int maxBorrow) {
         pool = new ObjectPool<HttpClient>()
+            .maxBorrow(maxBorrow)
             .minSize(minSize).maxSize(maxSize)
             .validator(httpClient -> httpClient.isConnect())
             .supplier(()->{
-                HttpClient httpClient = null;
-
-                long start = System.currentTimeMillis();
-                do {
-                    httpClient = HttpClient.newInstance(host, timeout);
-                    if (httpClient == null) {
-                        if(System.currentTimeMillis() - start > timeout) {
-                            Logger.error("Create httpclient by supplier failed");
-                        } else {
-                            TEnv.sleep(1);
-                            continue;
-                        }
-                    }
-                } while (httpClient==null);
-
-                return httpClient;
+                try {
+                    return HttpClient.newInstance(host, timeout);
+                } catch (Exception e) {
+                    Logger.error("Create HttpClient " + host + " error:", e);
+                    TEnv.sleep(timeout * 1000);
+                    return null;
+                }
             }).destory(httpClient -> {
                 httpClient.close();
                 return true;
             }).create();
+    }
+
+    public HttpClientPool(String host, Integer timeout, Integer minSize, Integer maxSize) {
+        this(host, timeout, minSize, maxSize, 0);
+    }
+
+    public HttpClientPool(String host, Integer timeout, Integer maxBorrow) {
+        this(host, timeout, MIN_SIZE, MAX_SIZE, maxBorrow);
     }
 
     public HttpClientPool(String host, Integer timeout) {
@@ -80,6 +81,23 @@ public class HttpClientPool {
     }
 
     public void restitution(HttpClient httpClient) {
+        httpClient.reset();
         pool.restitution(httpClient);
+    }
+
+    public <T> T send(ExFunction<HttpClient, T> function) {
+        HttpClient httpClient = this.getHttpClient();
+        try {
+            return function.apply(httpClient);
+        } catch (Throwable e) {
+            Logger.error(e);
+            return null;
+        } finally {
+            this.restitution(httpClient);
+        }
+    }
+
+    public interface ExFunction<T, R> {
+        R apply(T t) throws Exception;
     }
 }

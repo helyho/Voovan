@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
@@ -10,12 +11,16 @@ import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import javax.net.ssl.SSLException;
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
 
 /**
  * socket 上下文
@@ -30,10 +35,12 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
     //================================线程管理===============================
 	public static int 		ACCEPT_THREAD_SIZE       	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 			    = TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
-	public final static int 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000);
-	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", Boolean.class);
+	public final static Long 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000L);
+	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", true);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
+	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);
+	public final static boolean 	FORCE_FLUSH 	    = TEnv.getSystemProperty("ForecFlush", false);
 
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
@@ -44,7 +51,11 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		System.out.println("[SOCKET] CheckTimeout:\t\t" + CHECK_TIMEOUT);
 		System.out.println("[SOCKET] AsyncSend:\t\t" + ASYNC_SEND);
 		System.out.println("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
+		System.out.println("[SOCKET] DirectIO:\t\t" + DIRECT_IO);
+		System.out.println("[SOCKET] ForecFlush:\t\t" + FORCE_FLUSH);
 	}
+
+	//==================================================================================================================
 
 	public static EventRunnerGroup COMMON_ACCEPT_EVENT_RUNNER_GROUP;
 	public static EventRunnerGroup COMMON_IO_EVENT_RUNNER_GROUP;
@@ -60,14 +71,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		name = name + "-" + (isAccept ? "Accept" : "IO");
 		int threadPriority = isAccept ? 10 : 9;
 
-		return EventRunnerGroup.newInstance(name, size, false, threadPriority, (obj)->{
+		EventRunnerGroup eventRunnerGroup =  EventRunnerGroup.newInstance(name, size, false, threadPriority, (obj)->{
 			try {
 				boolean isCheckTimeout = true;
 
 				if(isAccept) {
 					isCheckTimeout = false;
 				} else {
-					isCheckTimeout = CHECK_TIMEOUT != null ? CHECK_TIMEOUT : true;
+					isCheckTimeout = CHECK_TIMEOUT;
 				}
 
 				return new SocketSelector(obj, isCheckTimeout);
@@ -77,6 +88,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 			return null;
 		});
+
+		return eventRunnerGroup.process();
 	}
 
 	/**
@@ -105,8 +118,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		return COMMON_IO_EVENT_RUNNER_GROUP;
 	}
 
-
-	//===============================SocketChannel=============================
+	//================================================== SocketContext =================================================
 	protected String host;
 	protected int port;
 	protected int readTimeout;
@@ -131,6 +143,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	private EventRunnerGroup acceptEventRunnerGroup;
 	private EventRunnerGroup ioEventRunnerGroup;
+
+	private FileDescriptor fileDescriptor;
 
 	/**
 	 * 构造函数
@@ -179,6 +193,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.sendFilterChain = (Chain<IoFilter>) filterChain.clone();
 		this.messageSplitter = new TransferSplitter();
 		this.handler = new SynchronousHandler();
+	}
+
+	public FileDescriptor getFileDescriptor() {
+		return fileDescriptor;
+	}
+
+	protected void setFileDescriptor(FileDescriptor fileDescriptor) {
+		this.fileDescriptor = fileDescriptor;
 	}
 
 	public EventRunnerGroup getAcceptEventRunnerGroup() {
@@ -266,10 +288,10 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	public boolean isTimeOut(){
-		if(CHECK_TIMEOUT == null || CHECK_TIMEOUT) {
-			return false;
-		} else {
+		if(readTimeout > 0 && CHECK_TIMEOUT) {
 			return (System.currentTimeMillis() - lastReadTime) >= readTimeout;
+		} else {
+			return false;
 		}
 	}
 
@@ -354,15 +376,35 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	/**
-	 * 获取超时时间
-	 * @return 超时时间
+	 * 获取读超时时间
+	 * @return 超时时间, 小于等于0: 不做读超时判断, 大于0 启用超时判断
 	 */
 	public int getReadTimeout() {
 		return readTimeout;
 	}
 
+	/**
+	 * 设置读超时时间
+	 * @param readTimeout 读超时时间,小于等于0: 不做读超时判断, 大于0 启用超时判断
+	 */
+	public void setReadTimeout(int readTimeout) {
+		this.readTimeout = readTimeout;
+	}
+
+	/**
+	 * 获取写超时时间
+	 * @return 超时时间,小于等于0: 不做读超时判断, 大于0 启用超时判断
+	 */
 	public int getSendTimeout(){
 		return sendTimeout;
+	}
+
+	/**
+	 * 获取写超时时间
+	 * @param sendTimeout 写超时时间, 小于等于0: 不做读超时判断, 大于0 启用超时判断
+	 */
+	public void setSendTimeout(int sendTimeout) {
+		this.sendTimeout = sendTimeout;
 	}
 
 	/**
@@ -496,6 +538,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	public void bindToSocketSelector(int ops) {
 		EventRunner eventRunner = null;
+
 		if(connectModel == ConnectModel.LISTENER) {
 			if(acceptEventRunnerGroup == null) {
 				acceptEventRunnerGroup = getCommonAcceptEventRunnerGroup();
@@ -507,8 +550,16 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 			}
 			eventRunner = ioEventRunnerGroup.choseEventRunner();
 		}
+
 		SocketSelector socketSelector = (SocketSelector)eventRunner.attachment();
 		socketSelector.register(this, ops);
+
+		//绑定 FileDescriptor
+		NioUtil.bindFileDescriptor(this);
+
+		if(connectModel != ConnectModel.LISTENER) {
+			EventTrigger.fireConnect(getSession());
+		}
 	}
 
     /**

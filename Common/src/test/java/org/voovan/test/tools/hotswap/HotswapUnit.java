@@ -21,7 +21,7 @@ public class HotswapUnit extends TestCase{
 
         //构造 Hotswaper 对象,然后定时调用 autoReload 方法即可
 
-        Hotswaper hotSwaper = new Hotswaper();
+        Hotswaper hotSwaper = Hotswaper.get();
         hotSwaper.autoReload(1);
 
         System.out.println("=============Run=============");

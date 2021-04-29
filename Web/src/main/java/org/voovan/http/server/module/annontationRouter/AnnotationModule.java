@@ -1,18 +1,26 @@
 package org.voovan.http.server.module.annontationRouter;
 
 import org.voovan.Global;
+import org.voovan.http.server.HttpDispatcher;
 import org.voovan.http.server.HttpModule;
+import org.voovan.http.server.WebServer;
+import org.voovan.http.server.module.annontationRouter.annotation.Router;
+import org.voovan.http.server.module.annontationRouter.annotation.WebSocket;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Swagger;
+import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hotswap.Hotswaper;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -27,7 +35,7 @@ public class AnnotationModule extends HttpModule {
     public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();
     public ConcurrentHashMap<String, Method> URL_METHOD_MAP = new ConcurrentHashMap<String, Method>();
     public static String DEFAULT_SCAN_ROUTER_PACKAGE = "com;org;net;io";
-    public static int DEFAULT_SCAN_ROUTER_INTERVAL = 30;
+    public static int DEFAULT_SCAN_ROUTER_INTERVAL = -1;
 
     private HashWheelTask scanRouterTask;
     private AnnotationRouterFilter annotationRouterFilter;
@@ -64,32 +72,63 @@ public class AnnotationModule extends HttpModule {
         return annotationRouterFilter == AnnotationRouterFilter.EMPYT ? null : annotationRouterFilter;
     }
 
+    /**
+     * 扫描包含Router注解的类
+     */
+    public void scanRouterClassAndRegister() {
+        int routeMethodNum = 0;
+
+        String modulePath = this.getModuleConfig().getPath();
+        modulePath = HttpDispatcher.fixRoutePath(modulePath);
+
+        WebServer webServer = this.getWebServer();
+        try {
+            //查找包含 Router 注解的类
+            String[] scanRouterPackageArr = this.getScanRouterPackage().split(";");
+            for(String scanRouterPackage : scanRouterPackageArr) {
+                scanRouterPackage = scanRouterPackage.trim();
+
+                List<Class> routerClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{Router.class});
+                for (Class routerClass : routerClasses) {
+                    AnnotationRouter.routerRegister(this, routerClass);
+                }
+
+                //查找包含 WebSocket 注解的类
+                List<Class> webSocketClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{WebSocket.class});
+                for (Class webSocketClass : webSocketClasses) {
+                    AnnotationRouter.webSocketRegister(this, webSocketClass);
+                }
+            }
+
+        } catch (Exception e){
+            Logger.error("Scan router class error.", e);
+        }
+    }
+
     @Override
     public void install() {
         final AnnotationModule annotationModule = this;
         String scanRouterPackage = getScanRouterPackage();
+
+        Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan package: "+ this.getScanRouterPackage());
+        Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
+
         if (scanRouterPackage != null) {
-            AnnotationRouter.scanRouterClassAndRegister(annotationModule);
+            scanRouterClassAndRegister();
         }
 
-
-        if(scanRouterPackage != null && getScanRouterInterval() > 0){
+        if(scanRouterPackage != null && getScanRouterInterval() > 0) {
 
             scanRouterTask = new HashWheelTask() {
                 @Override
                 public void run() {
                     //查找并刷新新的@Route 注解类
-                    AnnotationRouter.scanRouterClassAndRegister(annotationModule);
+                    scanRouterClassAndRegister();
                 }
             };
 
             //更新 ClassPath, 步长1秒, 槽数60个;
             Global.getHashWheelTimer().addTask(scanRouterTask, getScanRouterInterval());
-
-            Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan package: "+ this.getScanRouterPackage());
-            Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Router scan interval: "+ this.getScanRouterInterval());
-
-            Logger.simple("[HTTP] Module ["+this.getModuleConfig().getName()+"] Start auto scan annotation router.");
         }
 
         try {

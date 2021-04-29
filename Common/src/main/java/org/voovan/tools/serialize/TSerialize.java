@@ -6,6 +6,10 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +37,7 @@ public class TSerialize {
 
         try {
             Class serializeClazz = Class.forName(serializeType);
-            TReflect.isImpByInterface(serializeClazz, Serialize.class);
+            TReflect.isImp(serializeClazz, Serialize.class);
             SERIALIZE = (Serialize) TReflect.newInstance(serializeClazz);
         } catch (ReflectiveOperationException e) {
             Logger.error(e);
@@ -76,6 +80,18 @@ public class TSerialize {
 
     /**
      * 注册一个 Class 名称简写
+     * @param mark  Class 别名
+     * @param clazz 类对象
+     * @return 注册的 hashcode
+     */
+    public static int register(String mark, Class clazz){
+        int hashcode = THash.HashFNV1(mark);
+        register(hashcode, clazz);
+        return hashcode;
+    }
+
+    /**
+     * 注册一个 Class 名称简写
      * @param code  简写代码
      * @param clazz 类对象
      */
@@ -84,8 +100,10 @@ public class TSerialize {
             throw new RuntimeException("simple name is exists");
         }
 
-        if(HASH_AND_CLASS.containsKey(code) && !CLASS_AND_HASH.containsKey(clazz)) {
-            throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
+        if(HASH_AND_CLASS.containsKey(code)) {
+            if(!HASH_AND_CLASS.get(code).equals(clazz)) {
+                throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
+            }
         } else {
             CLASS_AND_HASH.put(clazz, code);
             HASH_AND_CLASS.put(code, clazz);
@@ -111,6 +129,10 @@ public class TSerialize {
         CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
         CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
+        CLASS_AND_HASH.put(ArrayList.class,    THash.HashFNV1(ArrayList.class.getName()));
+        CLASS_AND_HASH.put(HashMap.class,    THash.HashFNV1(HashMap.class.getName()));
+        CLASS_AND_HASH.put(HashSet.class,    THash.HashFNV1(HashSet.class.getName()));
+        CLASS_AND_HASH.put(BigDecimal.class,    THash.HashFNV1(BigDecimal.class.getName()));
 
         for(Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
 

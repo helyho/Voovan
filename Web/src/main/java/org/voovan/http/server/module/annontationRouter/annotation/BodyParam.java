@@ -27,7 +27,7 @@ public @interface BodyParam {
 
     /**
      * 样例数据
-     * @return
+     * @return 样例数据
      */
     String example() default "";
 }

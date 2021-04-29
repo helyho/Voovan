@@ -3,6 +3,7 @@ package org.voovan.test.network;
 
 import org.voovan.network.*;
 import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class ServerHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-            System.out.println("HB==>" + heartBeat.beat(session) );
+            System.out.println(TDateTime.now() + " ===============>  HB==>" + heartBeat.beat(session) );
 
 			if (heartBeat.getFailedCount() > 5) {
                 session.close();

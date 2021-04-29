@@ -1,7 +1,11 @@
 package org.voovan.tools.event;
 
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.threadpool.ThreadPool;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -15,7 +19,7 @@ import java.util.function.Function;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventRunnerGroup {
+public class EventRunnerGroup implements Closeable {
 	private AtomicInteger indexAtom = new AtomicInteger();
 	private EventRunner[] eventRunners;
 	private ThreadPoolExecutor threadPool;
@@ -43,11 +47,9 @@ public class EventRunnerGroup {
 				eventRunner.attachment(attachmentSupplier.apply(eventRunner));
 			}
 			eventRunners[i] = eventRunner;
-
-			//为事件执行器分配线程并启动
-			eventRunner.process();
 		}
 	}
+
 
 	public boolean isSteal() {
 		return isSteal;
@@ -81,6 +83,31 @@ public class EventRunnerGroup {
 		return eventRunner;
 	}
 
+	public EventRunnerGroup process() {
+		for(EventRunner eventRunner : eventRunners) {
+			eventRunner.process();
+		}
+
+		return this;
+	}
+
+	/**
+	 * 添加事件
+	 * @param priority 事件优先级必须在1-10之间
+	 * @param runnable 事件执行器
+	 */
+	public void addEvent(int priority, Runnable runnable) {
+		choseEventRunner().addEvent(priority, runnable);
+	}
+
+	/**
+	 * 添加事件
+	 * @param runnable 事件执行器
+	 */
+	public void addEvent(Runnable runnable){
+		addEvent(5, runnable);
+	}
+
 	/**
 	 * 从任务最多的 EventRunner 窃取任务
 	 * @return EventTask 对象
@@ -92,7 +119,7 @@ public class EventRunnerGroup {
 
 		EventRunner largestEventRunner = null;
 		for(EventRunner eventRunner : eventRunners) {
-			if(eventRunner == null) {
+			if(largestEventRunner == null) {
 				largestEventRunner = eventRunner;
 				continue;
 			}
@@ -114,6 +141,30 @@ public class EventRunnerGroup {
 
 	}
 
+	public void await() {
+		process();
+		for(;;) {
+			int count = 0;
+			for (EventRunner eventRunner : eventRunners) {
+				count += eventRunner.getEventQueue().size();
+			}
+
+			if(count>0) {
+				TEnv.sleep(1);
+				continue;
+			} else {
+				break;
+			}
+		}
+	}
+
+	@Override
+	public void close() {
+		for(EventRunner eventRunner : eventRunners) {
+			eventRunner.close();
+		}
+	}
+
 	/**
 	 * 静态构造方法
 	 * @param groupName 事件执行器名称
@@ -127,4 +178,19 @@ public class EventRunnerGroup {
 		ThreadPoolExecutor threadPoolExecutor = ThreadPool.createThreadPool(groupName, size, size, 60*1000, true, threadPriority);
 		return new EventRunnerGroup(threadPoolExecutor, size, isSteal, attachmentSupplier);
 	}
+
+
+	public static EventRunnerGroup newInstance(int size, boolean isSteal) {
+		ThreadPoolExecutor threadPoolExecutor  = ThreadPool.createThreadPool("ERG", size, size , 60*1000);
+		return new EventRunnerGroup(threadPoolExecutor, threadPoolExecutor.getMaximumPoolSize(),isSteal, null);
+	}
+
+	public static EventRunnerGroup newInstance(int size) {
+		return EventRunnerGroup.newInstance(size, true);
+	}
+
+	public static EventRunnerGroup newInstance() {
+		return EventRunnerGroup.newInstance(TPerformance.getProcessorCount(), true);
+	}
+
 }

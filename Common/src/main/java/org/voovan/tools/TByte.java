@@ -281,7 +281,15 @@ public class TByte {
      * @param byte2 比较的数据 byte[]
      * @return 1: 大于, 0: 等于, -1: 小于
      */
-    public static int byteArrayCompare(byte[] byte1, byte[] byte2){
+    public static int byteArrayCompare(byte[] byte1, byte[] byte2) {
+        if(byte1.length == 0 && byte2.length >0) {
+            return -1;
+        }
+
+        if(byte1.length > 0 && byte2.length == 0) {
+            return 1;
+        }
+
         for(int i = 0; i < byte1.length; i++) {
             if(i > byte2.length - 1) {
                 return 1;
@@ -300,7 +308,7 @@ public class TByte {
     }
 
     /**
-     * 安自己比较两个byte[]的大小
+     * 安字节比较两个byte[]的大小
      * @param byte1 被比较的 byte[]
      * @param offset1 被比较的 byte[] 的偏移量
      * @param length1 被比较的 byte[] 的长度
@@ -311,6 +319,22 @@ public class TByte {
      */
     public static int byteArrayCompare(byte[] byte1, int offset1, int length1, byte[] byte2, int offset2, int length2){
         int compareLength = length1 < length2 ? length1 : length2;
+
+        if(offset1 + length1 > byte1.length) {
+            throw new IllegalArgumentException("offset1 + length1 > byte1.length");
+        }
+
+        if(offset2 + length2 > byte2.length) {
+            throw new IllegalArgumentException("offset2 + length2 > byte2.length");
+        }
+
+        if(length1 == 0 && length2 >0) {
+            return -1;
+        }
+
+        if(length1 > 0 && length2 == 0) {
+            return 1;
+        }
 
         for(int i = 0; i < compareLength; i++) {
             if(i > length2 - 1) {

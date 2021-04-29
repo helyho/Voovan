@@ -2,7 +2,6 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.Global;
 import org.voovan.tools.TByte;
-import org.voovan.tools.TDateTime;
 import org.voovan.tools.TFile;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
@@ -35,7 +34,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         RocksDB.loadLibrary();
     }
 
-    public final static String DEFAULT_COLUMN_FAMILY_NAME = "Default";
+    public final static String DEFAULT_DB_NAME = "Default";
 
     private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
@@ -99,6 +98,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             columnFamilyHandle.close();
         }
 
+        try {
+            rocksDB.syncWal();
+        } catch (RocksDBException e) {
+            e.printStackTrace();
+        }
         rocksDB.close();
         COLUMN_FAMILY_HANDLE_MAP.remove(rocksDB);
     }
@@ -115,6 +119,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     //--------------------- 成员变量 --------------------
     public transient DBOptions            dbOptions;
+
     public transient ReadOptions          readOptions;
     public transient WriteOptions         writeOptions;
     public transient ColumnFamilyOptions  columnFamilyOptions;
@@ -194,7 +199,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOnly 是否以只读模式打开
      */
     public RocksMap(String dbname, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
-        this.dbname = dbname == null ? DEFAULT_COLUMN_FAMILY_NAME : dbname;
+        this.dbname = dbname == null ? DEFAULT_DB_NAME : dbname;
         this.columnFamilyName = columnFamilyName == null ? "voovan_default" : columnFamilyName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
@@ -214,8 +219,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         this.dataPath = DEFAULT_DB_PATH + this.dbname;
         this.walPath = DEFAULT_WAL_PATH +this.dbname;
-
-        this.dbOptions.useDirectIoForFlushAndCompaction();
 
         this.dbOptions.setWalDir(walPath);
 
@@ -367,23 +370,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param backupableDBOptions 备份选项
      * @param beforeFlush 是否在备份前执行 flush
      * @return 备份路径
-     * @throws RocksDBException 异常
      */
-    public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeFlush) throws RocksDBException {
+    public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeFlush) {
         if(backupableDBOptions==null) {
             backupableDBOptions = createBackupableOption(this.dbname);
         }
 
-        BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
-        backupEngine.createNewBackup(this.rocksDB, beforeFlush);
-        return backupableDBOptions.backupDir();
+        try {
+            BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
+            backupEngine.createNewBackup(this.rocksDB, beforeFlush);
+            return backupableDBOptions.backupDir();
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap createBackup failed , " + e.getMessage(), e);
+        }
     }
 
-    public String createBackup(BackupableDBOptions backupableDBOptions) throws RocksDBException {
+    public String createBackup(BackupableDBOptions backupableDBOptions) {
         return createBackup(backupableDBOptions, false);
     }
 
-    public String createBackup() throws RocksDBException {
+    public String createBackup() {
         return createBackup(null, false);
     }
 
@@ -391,18 +397,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 获取备份信息
      * @param backupableDBOptions 备份选线
      * @return 备份信息清单
-     * @throws RocksDBException 异常
      */
-    public List<BackupInfo> getBackupInfo(BackupableDBOptions backupableDBOptions) throws RocksDBException {
+    public List<BackupInfo> getBackupInfo(BackupableDBOptions backupableDBOptions) {
         if(backupableDBOptions==null) {
             backupableDBOptions = createBackupableOption(this.dbname);
         }
 
-        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
-        return backupEngine.getBackupInfo();
+        try {
+            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+            return backupEngine.getBackupInfo();
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap getBackupInfo failed , " + e.getMessage(), e);
+        }
     }
 
-    public List<BackupInfo> getBackupInfo() throws RocksDBException {
+    public List<BackupInfo> getBackupInfo() {
         return getBackupInfo(null);
     }
 
@@ -411,25 +420,28 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbName 数据库名, 用以确定恢复路径
      * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
-     * @throws RocksDBException 异常
      */
-    public static void restoreFromLatestBackup(String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) throws RocksDBException {
+    public static void restoreLatestBackup(String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) {
 
         if(backupableDBOptions==null) {
             backupableDBOptions = createBackupableOption(dbName);
         }
 
-        String dataPath = DEFAULT_DB_PATH + dbName;
-        String walPath = DEFAULT_WAL_PATH + dbName;
+        try {
+            String dataPath = DEFAULT_DB_PATH + dbName;
+            String walPath = DEFAULT_WAL_PATH + dbName;
 
-        RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
+            RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
 
-        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
-        backupEngine.restoreDbFromLatestBackup(dataPath, walPath, restoreOptions);
+            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+            backupEngine.restoreDbFromLatestBackup(dataPath, walPath, restoreOptions);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap restoreFromLatestBackup failed , " + e.getMessage(), e);
+        }
     }
 
-    public static void restoreFromLatestBackup() throws RocksDBException {
-        restoreFromLatestBackup(DEFAULT_COLUMN_FAMILY_NAME, null, true);
+    public static void restoreLatestBackup() {
+        restoreLatestBackup(DEFAULT_DB_NAME, null, true);
     }
 
     /**
@@ -438,25 +450,47 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param dbName 数据库名, 用以确定恢复路径
      * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
-     * @throws RocksDBException 异常
      */
-    public static void restore(int backupId, String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) throws RocksDBException {
+    public static void restore(int backupId, String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) {
 
         if(backupableDBOptions==null) {
             backupableDBOptions = createBackupableOption(dbName);
         }
 
-        String dataPath = DEFAULT_DB_PATH + dbName;
-        String walPath = DEFAULT_WAL_PATH + dbName;
+        try {
+            String dataPath = DEFAULT_DB_PATH + dbName;
+            String walPath = DEFAULT_WAL_PATH + dbName;
 
-        RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
+            RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
 
-        BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
-        backupEngine.restoreDbFromBackup(backupId, dataPath, walPath, restoreOptions);
+            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+            backupEngine.restoreDbFromBackup(backupId, dataPath, walPath, restoreOptions);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap restore failed , " + e.getMessage(), e);
+        }
     }
 
     public static void restore(int backupId) throws RocksDBException {
-        restoreFromLatestBackup(DEFAULT_COLUMN_FAMILY_NAME, null, true);
+        restoreLatestBackup(DEFAULT_DB_NAME, null, true);
+    }
+
+    /**
+     * 清理备份
+     * @param dbName 数据库明城
+     * @param backupableDBOptions 备份选项
+     * @param number 保留的备份书
+     */
+    public static void PurgeOldBackups(String dbName, BackupableDBOptions backupableDBOptions, int number) {
+        if(backupableDBOptions==null) {
+            backupableDBOptions = createBackupableOption(dbName);
+        }
+
+        try {
+            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+            backupEngine.purgeOldBackups(number);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap PurgeOldBackups failed , " + e.getMessage(), e);
+        }
     }
 
 
@@ -551,6 +585,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取某个序号以后的更新操作记录
+     *          包含 start 和 end
      * @param startSequence 起始序号
      * @param endSequence 结束序号
      * @param filter 过滤器,用来过滤可用的操作类型和列族
@@ -558,9 +593,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 日志记录集合
      */
     public List<RocksWalRecord> getWalBetween(Long startSequence, Long endSequence, BiFunction<Integer, Integer, Boolean> filter, boolean  withSerial) {
+        ArrayList<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
         try (TransactionLogIterator transactionLogIterator = rocksDB.getUpdatesSince(startSequence)) {
-
-            ArrayList<RocksWalRecord> rocksWalRecords = new ArrayList<RocksWalRecord>();
 
             if(startSequence > getLastSequence()) {
                 return rocksWalRecords;
@@ -579,10 +613,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     continue;
                 }
 
-                //不包含 endSequence 指定的日志
-                if(endSequence!=null && batchResult.sequenceNumber() >= endSequence) {
+                if(endSequence!=null && batchResult.sequenceNumber() > endSequence) {
                     break;
                 }
+
                 seq = batchResult.sequenceNumber();
                 try (WriteBatch writeBatch = batchResult.writeBatch()) {
                     List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(writeBatch.data()), filter, withSerial);
@@ -598,7 +632,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 Logger.debug("wal between: " + startSequence + "->" + endSequence +  ", "  + rocksWalRecords.get(0).getSequence() + "->" + rocksWalRecords.get(rocksWalRecords.size()-1).getSequence());
             return rocksWalRecords;
         } catch (RocksDBException e) {
-            throw new RocksMapException("getUpdatesSince failed, " + e.getMessage(), e);
+            throw new RocksMapException("getWalBetween failed, " + e.getMessage(), e);
         }
     }
 
@@ -681,13 +715,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         try {
             T object = transFunction.apply(this);
             if (object == null) {
-                rollback();
+                rollback(false);
             } else {
                 commit();
             }
             return object;
         } catch (Throwable e) {
-            rollback();
+            try {
+                rollback(false);
+            } catch(Exception re) {
+                Logger.error("RocksMap withTransaction.catch.rollback error", re);
+            }
             throw e;
         }
     }
@@ -714,6 +752,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSnapShot   是否启用快照事务
      */
     public void beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
+        baseBeginTransaction(expire, deadlockDetect, withSnapShot);
+    }
+
+    /**
+     * 开启事务
+     *      同一个线程共线给一个事务
+     *      事务都是读事务，无论操作的记录间是否有交集，都不会锁定。
+     *      事务包含读、写事务：
+     *      所有的读事务不会锁定，读到的数据取决于snapshot设置。
+     *      写事务之间如果不存在记录交集，不会锁定。
+     *      写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
+     * @param expire         提交时锁超时时间
+     * @param deadlockDetect 死锁检测是否打开
+     * @param withSnapShot   是否启用快照事务
+     * @return Transaction 事务对象
+     */
+    private Transaction baseBeginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null) {
             transaction = createTransaction(expire, deadlockDetect, withSnapShot);
@@ -721,6 +776,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         } else {
             savePoint();
         }
+
+        return transaction;
     }
 
     private Transaction createTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
@@ -750,7 +807,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return transaction;
     }
 
-    public Transaction getTransaction(){
+    private void closeTransaction() {
+        Transaction transaction = threadLocalTransaction.get();
+        if(transaction!=null) {
+            transaction.close();
+            threadLocalTransaction.set(null);
+        }
+    }
+
+
+    private Transaction getTransaction(){
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null){
             throw new RocksMapException("RocksMap is not in transaction model");
@@ -788,7 +854,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         Transaction transaction = getTransaction();
         if(threadLocalSavePointCount.get() == 0) {
             commit(transaction);
-            threadLocalTransaction.set(null);
         } else {
             threadLocalSavePointCount.set(threadLocalSavePointCount.get()-1);
         }
@@ -804,7 +869,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             } catch (RocksDBException e) {
                 throw new RocksMapException("RocksMap commit failed, " + e.getMessage(), e);
             } finally {
-                transaction.close();
+                closeTransaction();
             }
         } else {
             throw new RocksMapException("RocksMap is not in transaction model");
@@ -815,7 +880,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 事务回滚
      */
     public void rollback() {
-       rollback(true);
+        rollback(true);
     }
 
     /**
@@ -827,8 +892,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         if(all) {
             rollback(transaction);
-            threadLocalTransaction.set(null);
-        } else if(threadLocalSavePointCount.get()!=0) {
+        } else if(threadLocalSavePointCount.get()==0) {
+            rollback(transaction);
+        } else {
             rollbackSavePoint();
         }
     }
@@ -843,7 +909,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             } catch(RocksDBException e){
                 throw new RocksMapException("RocksMap rollback failed, " + e.getMessage(), e);
             } finally{
-                transaction.close();
+                closeTransaction();
             }
         } else {
             throw new RocksMapException("RocksMap is not in transaction model");
@@ -1059,32 +1125,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public List<V> getAll(Collection<K> keys) {
-        try {
-            ArrayList<byte[]> keysBytes = new ArrayList<byte[]>();
-            ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<ColumnFamilyHandle>();
-            Iterator keysIterator = keys.iterator();
-            for (int i = 0; i < keys.size(); i++) {
-                keysBytes.add(serialize(keysIterator.next()));
-                columnFamilyHandles.add(dataColumnFamilyHandle);
-            }
+        ArrayList<V> values = new ArrayList<V>(keys.size());
 
-            Transaction transaction = threadLocalTransaction.get();
-            List<byte[]> valuesBytes;
-            if (transaction != null) {
-                valuesBytes = Arrays.asList(transaction.multiGet(readOptions, columnFamilyHandles, keysBytes.toArray(new byte[0][0])));
-            } else {
-                valuesBytes = rocksDB.multiGetAsList(readOptions, columnFamilyHandles, keysBytes);
-            }
-
-            ArrayList<V> values = new ArrayList<V>();
-            for (byte[] valueByte : valuesBytes) {
-                values.add((V) unserialize(valueByte));
-            }
-            return values;
-        } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap getAll failed, " + e.getMessage(), e);
+        Iterator<K> keysIterator = keys.iterator();
+        while (keysIterator.hasNext()) {
+            values.add(get(keysIterator.next()));
         }
 
+        return values;
     }
 
     private byte[] put(byte[] keyBytes, byte[] valueBytes, boolean isRetVal) {
@@ -1130,22 +1178,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] valueBytes = serialize(value);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
-        Transaction innerTransaction = createTransaction(-1, false, false);
+        Transaction transaction = baseBeginTransaction(-1, true, false);
 
         try {
-            byte[] oldValueBytes = innerTransaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+            byte[] oldValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
 
             if(oldValueBytes == null){
-                innerTransaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
+                transaction.put(dataColumnFamilyHandle, keyBytes, valueBytes);
                 return null;
             } else {
                 return (V) unserialize(oldValueBytes);
             }
         } catch (RocksDBException e) {
-            rollback(innerTransaction);
+            rollback();
             throw new RocksMapException("RocksMap putIfAbsent error, " + e.getMessage(), e);
         } finally {
-            commit(innerTransaction);
+            commit();
         }
     }
 
@@ -1159,8 +1207,29 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     private boolean keyMayExists(byte[] keyBytes) {
-        Holder<byte[]> holder = new Holder<byte[]>(new byte[0]);
-        boolean result = rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, holder);
+        return rocksDB.keyMayExist(dataColumnFamilyHandle, keyBytes, null);
+    }
+
+
+    /**
+     * 判断 key 是否不存在
+     * @param key key对象
+     * @return 当返回 false 的时候 key 不存在, 当返回 true 的时候, key 存在
+     */
+    public boolean isKeyExists(K key) {
+        return isKeyExists(serialize(key));
+    }
+
+    private boolean isKeyExists(byte[] keyBytes) {
+        boolean result = keyMayExists(keyBytes);
+
+        if(result) {
+            try {
+                return rocksDB.get(keyBytes) != null;
+            } catch (RocksDBException e) {
+                throw new RocksMapException("RocksMap isKeyExists failed , " + e.getMessage(), e);
+            }
+        }
         return result;
     }
 
@@ -1171,22 +1240,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] oldValueBytes = serialize(oldValue);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
-        Transaction innerTransaction = createTransaction(-1, false, false);
+        Transaction transaction = baseBeginTransaction(-1, true, false);
 
         try {
-            byte[] oldDbValueBytes = innerTransaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
+            byte[] oldDbValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
             if(oldDbValueBytes!=null && Arrays.equals(oldDbValueBytes, oldValueBytes)){
-                innerTransaction.put(dataColumnFamilyHandle, keyBytes, newValueBytes);
+                transaction.put(dataColumnFamilyHandle, keyBytes, newValueBytes);
                 return true;
             } else {
                 return false;
             }
 
         } catch (RocksDBException e) {
-            rollback(innerTransaction);
+            rollback();
             throw new RocksMapException("RocksMap replace failed , " + e.getMessage(), e);
         } finally {
-            commit(innerTransaction);
+            commit();
         }
     }
 
@@ -1196,7 +1265,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param isRetVal 是否返回被移除的 value
      * @return 返回值, 在 isRetVal=false 时, 总是为 null
      */
-    private byte[] remove(byte[] keyBytes, boolean isRetVal) throws RocksDBException {
+    private byte[] remove(byte[] keyBytes, boolean isRetVal) {
         if(keyBytes == null){
             throw new NullPointerException();
         }
@@ -1206,13 +1275,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             valueBytes = get(keyBytes);
         }
 
-        if(!isRetVal || valueBytes != null) {
-            Transaction transaction = threadLocalTransaction.get();
-            if(transaction!=null) {
-                transaction.delete(dataColumnFamilyHandle, keyBytes);
-            } else {
-                rocksDB.delete(dataColumnFamilyHandle, writeOptions, keyBytes);
+        try {
+
+            if (!isRetVal || valueBytes != null) {
+                Transaction transaction = threadLocalTransaction.get();
+                if (transaction != null) {
+                    transaction.delete(dataColumnFamilyHandle, keyBytes);
+                } else {
+                    rocksDB.delete(dataColumnFamilyHandle, writeOptions, keyBytes);
+                }
             }
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap remove failed , " + e.getMessage(), e);
         }
         return valueBytes;
     }
@@ -1228,12 +1302,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new NullPointerException();
         }
 
-        try {
-            byte[] valuesByte = remove(serialize(key), isRetVal);
-            return (V) unserialize(valuesByte);
-        } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap remove " + key + " failed", e);
-        }
+        byte[] valuesByte = remove(serialize(key), isRetVal);
+        return (V) unserialize(valuesByte);
     }
 
     @Override
@@ -1365,7 +1435,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 刷新数据到文件
+     * 刷新当前列族数据到文件
      * @param sync 同步刷新
      * @param allowStall 是否允许写入暂停
      */
@@ -1375,31 +1445,58 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             flushOptions.setWaitForFlush(sync);
             flushOptions.setAllowWriteStall(allowStall);
             rocksDB.flush(flushOptions, this.dataColumnFamilyHandle);
-            if(!sync) {
-                Global.getHashWheelTimer().addTask(()->{
-                    flushOptions.waitForFlush();
-                }, 1, true);
-            }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush failed", e);
         }
     }
 
     /**
-     * 刷新数据到文件
-     * @param sync 同步刷新
+     * 刷新当前列族数据到文件
+     * @param allowStall 允许 stall
      */
-    public void flush(boolean sync){
-        flush(sync, true);
+    public void flush(boolean allowStall){
+        flush(true, allowStall);
     }
 
     /**
-     * 刷新数据到文件
+     * 刷新当前列族数据到文件, not stall
      */
     public void flush(){
-        flush(true, true);
+        flush(true, false);
     }
 
+    /**
+     * 刷新所有列族数据到文件
+     * @param sync 同步刷新
+     * @param allowStall 是否允许写入暂停
+     */
+    public void flushAll(boolean sync, boolean allowStall) {
+        try {
+            Map<String, ColumnFamilyHandle> columnFamilyHandleMap = RocksMap.COLUMN_FAMILY_HANDLE_MAP.get(rocksDB);
+            List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList(columnFamilyHandleMap.values());
+            FlushOptions flushOptions = new FlushOptions();
+            flushOptions.setWaitForFlush(sync);
+            flushOptions.setAllowWriteStall(allowStall);
+            rocksDB.flush(flushOptions, columnFamilyHandleList);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap flush all failed", e);
+        }
+    }
+
+    /**
+     * 刷新所有列族数据到文件
+     * @param allowStall 是否允许写入暂停
+     */
+    public void flushAll(boolean allowStall) {
+        flushAll(true, allowStall);
+    }
+
+    /**
+     * 刷新所有列族数据到文件, not stall
+     */
+    public void flushAll() {
+        flushAll(true, false);
+    }
 
     /**
      * 刷新WAL数据到文件
@@ -1425,12 +1522,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         try {
-            drop();
-            ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyName.getBytes(), columnFamilyOptions);
-            dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
-            COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).put(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
-            //设置列族
-            dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
+            synchronized (rocksDB) {
+                drop();
+                ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyName.getBytes(), columnFamilyOptions);
+                dataColumnFamilyHandle = rocksDB.createColumnFamily(columnFamilyDescriptor);
+                COLUMN_FAMILY_HANDLE_MAP.get(rocksDB).put(new String(dataColumnFamilyHandle.getName()), dataColumnFamilyHandle);
+                //设置列族
+                dataColumnFamilyHandle = getColumnFamilyHandler(rocksDB, this.columnFamilyName);
+            }
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap clear failed", e);
         }
@@ -1455,7 +1554,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     @Override
     public Set keySet() {
-        TreeSet<K> keySet = new TreeSet<K>();
+        LinkedHashSet<K> keySet = new LinkedHashSet<K>();
         try (RocksIterator iterator = getIterator()){
             iterator.seekToFirst();
             while (iterator.isValid()) {
@@ -1490,7 +1589,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     @Override
     public Set<Entry<K, V>> entrySet() {
-        TreeSet<Entry<K,V>> entrySet =  new TreeSet<Entry<K,V>>();
+        LinkedHashSet<Entry<K,V>> entrySet =  new LinkedHashSet<Entry<K,V>>();
         try (RocksIterator iterator = getIterator()) {
             iterator.seekToFirst();
             while (iterator.isValid()) {
@@ -1545,7 +1644,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             } catch (RocksDBException e) {
                 throw new RocksMapException("RocksMap rollback on close failed", e);
             } finally {
-                transaction.close();
+                closeTransaction();
             }
         }
 
@@ -1652,6 +1751,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
         RocksMap<K,V> innerRocksMap = this.duplicate(this.getColumnFamilyName(), false);
 
+        if(disableWal) {
+            innerRocksMap.writeOptions.setSync(false);
+        }
+
         innerRocksMap.writeOptions.setDisableWAL(disableWal);
 
         try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
@@ -1727,11 +1830,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         public void remove(){
-            try {
-                rocksMap.remove(keyBytes, false);
-            } catch (RocksDBException e) {
-                throw new RocksMapException("RocksMapEntry remove failed", e);
-            }
+            rocksMap.remove(keyBytes, false);
         }
     }
 
@@ -1813,7 +1912,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (toKeyBytes == null) {
                 ret = iterator.isValid();
             } else {
-                ret = iterator.isValid() && TByte.byteArrayCompare(toKeyBytes, iterator.key()) == 0;
+                ret = iterator.isValid() && TByte.byteArrayCompare(toKeyBytes, iterator.key()) != 0;
             }
             return ret;
         }
@@ -2202,19 +2301,25 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 endSequence = lastSequence + batchSeqsize;
             }
 
-            List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence, endSequence, (columnFamilyId, type)-> {
-                return (walTypes == null ? true : walTypes.contains(type)) &&
-                        (columnFamilys==null ? true : columnFamilys.contains(columnFamilyId));
+            try {
+                List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence, endSequence, (columnFamilyId, type) -> {
+                    return (walTypes == null ? true : walTypes.contains(type)) &&
+                            (columnFamilys == null ? true : columnFamilys.contains(columnFamilyId));
 
-            }, true);
+                }, true);
 
-            if(rocksWalRecords.size() > 0) {
-                //调用处理器
-                rocksWalProcessor.process(endSequence, rocksWalRecords);
+                if (rocksWalRecords.size() > 0) {
+                    //调用处理器
+                    rocksWalProcessor.process(endSequence, rocksWalRecords);
+                }
+
+                rocksMap.put(mark, endSequence);
+                lastSequence = endSequence;
+            } catch (RocksMapException ex) {
+                if(!ex.getMessage().contains("while stat a file for size")) {
+                    throw ex;
+                }
             }
-
-            rocksMap.put(mark, endSequence);
-            lastSequence = endSequence;
         }
 
         /**

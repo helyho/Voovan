@@ -1,8 +1,5 @@
 package org.voovan.test.tools.json;
 
-import org.voovan.tools.reflect.annotation.Serialization;
-import org.voovan.tools.reflect.convert.StringConvert;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Objects;
@@ -12,6 +9,8 @@ public class TestObject implements Serializable {
 	
 	public String string;
 	private Integer bint;
+	private float[] floatArr;
+	private TestObject2[] TestObject2Arr;
 	private HashMap<String, Object> map = new HashMap<String, Object>();
 	private Vector<Object> list= new Vector<Object>();
 	private TestObject2 tb2 = new TestObject2();
@@ -28,6 +27,14 @@ public class TestObject implements Serializable {
 	public void setBint(int bint) {
 		this.bint = bint;
 	}
+	public float[] getFloatArr() {
+		return floatArr;
+	}
+
+	public void setFloatArr(float[] floatArr) {
+		this.floatArr = floatArr;
+	}
+
 	public HashMap<String, Object> getMap() {
 		return map;
 	}

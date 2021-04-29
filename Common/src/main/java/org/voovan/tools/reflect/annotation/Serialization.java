@@ -1,5 +1,6 @@
 package org.voovan.tools.reflect.annotation;
 
+import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.reflect.convert.Convert;
 
 import java.lang.annotation.*;
@@ -20,4 +21,5 @@ public @interface Serialization {
     String value() default "";
     String name() default "";
     Class<? extends Convert> convert() default Convert.class;
+    Class<? extends Exclude> exclude() default Exclude.class;
 }

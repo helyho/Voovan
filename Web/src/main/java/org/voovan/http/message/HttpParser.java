@@ -10,7 +10,6 @@ import org.voovan.network.IoSession;
 import org.voovan.tools.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Http 报文解析类
@@ -52,10 +52,10 @@ public class HttpParser {
 	private final static FastThreadLocal<Object[]> THREAD_PACKET_MAP = FastThreadLocal.withInitial(()->new Object[20]);
 	private final static FastThreadLocal<Request>  THREAD_REQUEST    = FastThreadLocal.withInitial(()->new Request());
 	private final static FastThreadLocal<Response> THREAD_RESPONSE   = FastThreadLocal.withInitial(()->new Response());
-	private final static FastThreadLocal<byte[]>   THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[1024]);
+	private final static FastThreadLocal<byte[]>   THREAD_BYTE_ARRAY = FastThreadLocal.withInitial(()->new byte[4096]);
 
-	private final static LongKeyMap<Long> 	  	   PROTOCOL_HASH_MAP = new LongKeyMap<Long>(64);
-	private final static LongKeyMap<Object[]> 	   PARSED_PACKET_MAP = new LongKeyMap<Object[]>(64);
+	private final static ConcurrentHashMap<Long, Long> 		PROTOCOL_HASH_MAP = new ConcurrentHashMap<Long, Long>(64);
+	private final static ConcurrentHashMap<Long, Object[]>  PARSED_PACKET_MAP = new ConcurrentHashMap<Long, Object[]>(64);
 
 	public static final int PARSER_TYPE_REQUEST = 0;
 	public static final int PARSER_TYPE_RESPONSE = 1;
@@ -489,18 +489,17 @@ public class HttpParser {
 
 	/**
 	 * 获取可用缓存
-	 * @param byteBufferChannel 字节缓冲通道
+	 * @param byteBuffer bytebuffer 缓冲数据
 	 * @param protocolPosition 协议行结束位置
 	 * @param protocolMark 协议行 hash
 	 * @return null: 无可用缓存, not null: 获取到可用的缓存
 	 */
-	private static Object[] findCache(ByteBufferChannel byteBufferChannel, int protocolPosition, long protocolMark) {
+	private static Object[] findCache(ByteBuffer byteBuffer, int protocolPosition, long protocolMark) {
 		if(!WebContext.isCache()) {
 			return null;
 		}
 
 		Long cachedMark = PROTOCOL_HASH_MAP.get(protocolMark);
-		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
 		try {
 			if (cachedMark != null) {
@@ -508,19 +507,19 @@ public class HttpParser {
 
 				if (cachedPacketMap != null) {
 					//高位清空, 获得整个头的长度
-					long totalLengthInMark = cachedMark & 0x00000000FFFFFFFFL;
+					long totalLengthInMark = cachedMark & 0x000000000FFFFFFFL;
 
 					if (totalLengthInMark >= byteBuffer.limit() ||
-							(byteBufferChannel.size() >= totalLengthInMark &&
-									byteBufferChannel.get((int) totalLengthInMark - 1) == 10 &&
-									byteBufferChannel.get((int) totalLengthInMark - 2) == 13 &&
-									byteBufferChannel.get((int) totalLengthInMark - 3) == 10 &&
-									byteBufferChannel.get((int) totalLengthInMark - 4) == 13
+							(byteBuffer.limit()>= totalLengthInMark &&
+									byteBuffer.get((int) totalLengthInMark - 1) == 10 &&
+									byteBuffer.get((int) totalLengthInMark - 2) == 13 &&
+									byteBuffer.get((int) totalLengthInMark - 3) == 10 &&
+									byteBuffer.get((int) totalLengthInMark - 4) == 13
 							)
 					) {
 
 						int headerMark = THash.HashFNV1(byteBuffer, protocolPosition, (int) (totalLengthInMark - protocolPosition));
-						if (protocolMark + headerMark == cachedMark >> 32) {
+						if (protocolMark + headerMark == cachedMark >> 28) {
 							byteBuffer.position((int) totalLengthInMark);
 
 							return Arrays.copyOf(cachedPacketMap, cachedPacketMap.length);
@@ -553,8 +552,9 @@ public class HttpParser {
 		if(WebContext.isCache()) {
 			int headerMark = THash.HashFNV1(byteBuffer, protocolPosition, (int) (totalLength - protocolPosition));
 			//高位存头部 hash, 低位存整个头的长度
-			long mark = ((protocolMark + headerMark) << 32) + totalLength;
+			long mark = ((protocolMark + headerMark) << 28) + totalLength;
 			packetMap[HEADER_MARK] = mark;
+
 
 			Object[] cachedPacketMap = Arrays.copyOf(packetMap, packetMap.length);
 			PARSED_PACKET_MAP.put(mark, cachedPacketMap);
@@ -575,7 +575,7 @@ public class HttpParser {
 	 * @param type 解析的报文类型, 0: Request, 1: Response
 	 * @param byteBufferChannel 输入流
 	 * @param timeout 读取超时时间参数
-	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: byte
 	 * @return 解析后的 Map
 	 * @throws IOException IO 异常
 	 */
@@ -616,7 +616,7 @@ public class HttpParser {
 				}
 
 				//检查缓存是否存在,并获取
-				Object[] cachedPacketMap = findCache(byteBufferChannel, protocolPosition, protocolMark);
+				Object[] cachedPacketMap = findCache(byteBuffer, protocolPosition, protocolMark);
 				if (cachedPacketMap != null) {
 					packetMap = cachedPacketMap;
 					headerMap = (TreeMap<String, Object>) packetMap[HEADER];
@@ -678,8 +678,8 @@ public class HttpParser {
 					//累计请求大小
 					totalLength = totalLength + readSize;
 					//请求过大的处理
-					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					if(totalLength > requestMaxSize){
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 					}
 
 					//确认 boundary 结尾字符, 如果是"--" 则标识报文结束
@@ -761,9 +761,9 @@ public class HttpParser {
 								}
 
 								//请求过大的处理
-								if(totalLength > requestMaxSize * 1024){
+								if(totalLength > requestMaxSize){
 									TFile.deleteFile(new File(localFileName));
-									throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+									throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 								}
 
 								continue;
@@ -775,9 +775,6 @@ public class HttpParser {
 									totalLength = totalLength + dataLength;
 								}
 							}
-
-
-
 
 							if(!isFileRecvDone){
 								TEnv.sleep(100);
@@ -863,8 +860,8 @@ public class HttpParser {
 					}
 
 					//请求过大的处理
-					if(totalLength > requestMaxSize * 1024){
-						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+					if(totalLength > requestMaxSize){
+						throw new RequestTooLarge("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 					}
 
 					//跳过换行符号
@@ -885,8 +882,8 @@ public class HttpParser {
 				totalLength = totalLength + contentSize;
 
 				//请求过大的处理
-				if(totalLength > requestMaxSize * 1024){
-					throw new HttpParserException("Request is too large: {max size: " + requestMaxSize*1024 + ", expect size: " + totalLength + "}");
+				if(totalLength > requestMaxSize){
+					throw new HttpParserException("Request is too large: {max size: " + requestMaxSize + ", expect size: " + totalLength + "}");
 				}
 
 
@@ -914,7 +911,7 @@ public class HttpParser {
 	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
-	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: byte
 	 * @return   返回请求报文
 	 * @throws IOException IO 异常
 	 */
@@ -929,7 +926,7 @@ public class HttpParser {
 	 * @param session socket 会话对象
 	 * @param byteBufferChannel  输入字节流
 	 * @param timeOut 读取超时时间参数
-	 * @param requestMaxSize 上传文件的最大尺寸, 单位: kb
+	 * @param requestMaxSize 上传文件的最大尺寸, 单位: byte
 	 * @return   返回请求报文
 	 * @throws IOException IO 异常
 	 */
