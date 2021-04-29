@@ -17,7 +17,7 @@ public class ClientHandlerTest implements IoHandler {
 	public Object onConnect(IoSession session) {
 		reciveCount = 0;
 		System.out.println("onConnect");
-		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
+		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.localPort());
 		session.setAttribute("key", "attribute value");
 		String msg = new String("test message\r\n");
 
@@ -39,7 +39,7 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
+		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.localPort());
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
