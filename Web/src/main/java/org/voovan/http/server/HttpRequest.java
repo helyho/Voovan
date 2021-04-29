@@ -24,11 +24,11 @@ import java.util.*;
  */
 public class HttpRequest extends Request {
 
-	private HttpSession session;
-	private String characterSet;
+	private volatile HttpSession session;
+	private volatile String characterSet;
 	private Map<String, String> parameters;
 	private Map<String, Object> attributes;
-	private IoSession socketSession;
+	private volatile IoSession socketSession;
 	private SessionManager sessionManager;
 
 	/**
@@ -224,9 +224,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return int 类型的数据
 	 */
-	public int getParameterAsInt(String paramName){
+	public Integer getParameterAsInt(String paramName){
 		try {
-			return (int) TString.toObject(parameters.get(paramName), int.class);
+			return (Integer) TString.toObject(parameters.get(paramName), int.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as int error.",e);
 		}
@@ -237,9 +237,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return float 类型的数据
 	 */
-	public float getParameterAsFloat(String paramName){
+	public Float getParameterAsFloat(String paramName){
 		try {
-			return (float) TString.toObject(parameters.get(paramName), float.class);
+			return (Float) TString.toObject(parameters.get(paramName), float.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as float error.",e);
 		}
@@ -250,9 +250,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return long 类型的数据
 	 */
-	public long getParameterAsLong(String paramName){
+	public Long getParameterAsLong(String paramName){
 		try {
-			return (long) TString.toObject(parameters.get(paramName), long.class);
+			return (Long) TString.toObject(parameters.get(paramName), long.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as long error.",e);
 		}
@@ -263,9 +263,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return short 类型的数据
 	 */
-	public short getParameterAsShort(String paramName){
+	public Short getParameterAsShort(String paramName){
 		try {
-			return (short) TString.toObject(parameters.get(paramName), short.class);
+			return (Short) TString.toObject(parameters.get(paramName), short.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as short error.",e);
 		}
@@ -276,9 +276,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return double 类型的数据
 	 */
-	public double getParameterAsDouble(String paramName){
+	public Double getParameterAsDouble(String paramName){
 		try {
-			return (double) TString.toObject(parameters.get(paramName), double.class);
+			return (Double) TString.toObject(parameters.get(paramName), double.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as double error.",e);
 		}
@@ -289,9 +289,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return boolean 类型的数据
 	 */
-	public boolean getParameterAsBoolean(String paramName){
+	public Boolean getParameterAsBoolean(String paramName){
 		try {
-			return (boolean) TString.toObject(parameters.get(paramName), boolean.class);
+			return (Boolean) TString.toObject(parameters.get(paramName), boolean.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as boolean error.",e);
 		}
@@ -302,7 +302,7 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return byte 类型的数据
 	 */
-	public byte getParameterAsByte(String paramName){
+	public Byte getParameterAsByte(String paramName){
 		try {
 			return (byte) TString.toObject(parameters.get(paramName), byte.class);
 		}catch(Exception e){
@@ -315,9 +315,9 @@ public class HttpRequest extends Request {
 	 * @param paramName 请求参数名称
 	 * @return char 类型的数据
 	 */
-	public char getParameterAsChar(String paramName){
+	public Character getParameterAsChar(String paramName){
 		try {
-			return (char) TString.toObject(parameters.get(paramName), char.class);
+			return (Character) TString.toObject(parameters.get(paramName), char.class);
 		}catch(Exception e){
 			throw new RuntimeException("Get parameter ["+paramName+"] as char error.",e);
 		}
@@ -413,6 +413,9 @@ public class HttpRequest extends Request {
 	 * @throws IOException IO 异常
 	 */
 	public void send() throws IOException {
+		if(socketSession == null) {
+			throw new NullPointerException("Socket session is null, are you clear this object before?");
+		}
 		super.send(socketSession);
 	}
 

@@ -11,9 +11,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * JSON 使用路径解析的工具类
@@ -47,17 +47,18 @@ public class JSONPath {
         }
     }
 
-    /**
-     * 获取JSONPath 对应的节点数据,忽略段大小写
-     * @param pathQry JSONPath 路径
-     * @return  节点的数据
-     */
-    public Object value(String pathQry) {
+    public Object parse(String pathQry, Object parsedObj) {
         Object currentPathObject = parsedObj;
         String[] pathElems = pathQry.split("/");
         ArrayList result = new ArrayList();
 
-        for (String pathElem : pathElems) {
+        for (int m=0;m<pathElems.length;m++) {
+            String pathElem = pathElems[m];
+
+            if(currentPathObject == null) {
+                return null;
+            }
+
             pathElem = pathElem.trim();
 
             if (pathElem.isEmpty()) {
@@ -66,6 +67,7 @@ public class JSONPath {
 
             //获取 list 索引位置
             if ( pathElem.indexOf("[") > -1 &&  pathElem.indexOf("]") > -1 ) {
+                //多级数组支持
                 String[] pathElemSegms = pathElem.trim().split("\\[");
 
                 for(int i=0;i<pathElemSegms.length;i++ ){
@@ -75,19 +77,44 @@ public class JSONPath {
                     }
                     if(pathElemSegm.endsWith("]")){
                         int index = Integer.parseInt(TString.removeSuffix(pathElemSegms[i]));
-                        currentPathObject = ((List)currentPathObject).get(index);
+                        currentPathObject = ((List) currentPathObject).get(index);
                     }else {
                         currentPathObject = (List) ((Map) currentPathObject).get(pathElemSegms[i]);
                     }
                 }
             }else{
-                currentPathObject =  ((Map)currentPathObject).get(pathElem);
+                if(currentPathObject instanceof List) {
+                    //遍历list中的元素
+                    StringJoiner stringJoiner = new StringJoiner("/");
+                    for(int k=m; k<pathElems.length;k++) {
+                        stringJoiner.add(pathElems[k]);
+                    }
+
+                    List currentList = (List)currentPathObject;
+                    List ret = new ArrayList();
+                    for(Object listElem : currentList) {
+                        ret.add(parse(stringJoiner.toString(), listElem));
+                    }
+                    return ret;
+                }
+
+                if(currentPathObject instanceof Map) {
+
+                    currentPathObject = ((Map) currentPathObject).get(pathElem);
+                }
             }
-
-
         }
 
         return currentPathObject;
+    }
+
+    /**
+     * 获取JSONPath 对应的节点数据,忽略段大小写
+     * @param pathQry JSONPath 路径
+     * @return  节点的数据
+     */
+    public Object value(String pathQry) {
+        return parse(pathQry, parsedObj);
     }
 
 
@@ -105,7 +132,7 @@ public class JSONPath {
     /**
      * 获取节点值并转换成相应的对象,默认忽略段大小写
      * @param pathQry  JSONPath 路径
-     * @param clazz    对象的 class
+     * @param clazz    对象的 class, Map:作为 Value 的类型, List 作为元素的类型
      * @param <T>      范型指代对象
      * @return  转换后的对象
      */
@@ -116,11 +143,32 @@ public class JSONPath {
             return null;
         }
 
-        if (TReflect.isSystemType(clazz)) {
+        if (TReflect.isSystemType(clazz) && TReflect.isSuper(value.getClass(), clazz)) {
             return (T)value;
         } else {
             try {
-                Object obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
+                Object obj = null;
+
+                if(value instanceof Map) {
+                    obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
+                }
+
+                if(value instanceof List) {
+                    List objList = (List)value;
+                    obj = objList.stream().map(item-> {
+                        try {
+                            if(item instanceof Map){
+                                return TReflect.getObjectFromMap(clazz, (Map<String, ?>) item, true);
+                            } else {
+                                return TString.toObject(item.toString(), clazz);
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            return null;
+                        }
+                    }).filter(item->item!=null).collect(Collectors.toList());
+                }
                 return (T)obj;
             } catch (Exception e) {
                 Logger.error("Parse " + pathQry + "error", e);
@@ -139,7 +187,7 @@ public class JSONPath {
      * @return  转换后的对象
      */
     public <T> T value(String pathQry, Class<T> clazz, T defaultValue) {
-        return TObject.nullDefault(value(pathQry,clazz), defaultValue);
+        return TObject.nullDefault(value(pathQry, clazz), defaultValue);
     }
 
     /**
@@ -187,30 +235,7 @@ public class JSONPath {
      * @return  转换后的对象
      */
     public <T> List<T> listObject(String pathQry, Class<T> elemClazz) {
-        List<T> resultList = new ArrayList<T>();
-        List<?> listObjects = value(pathQry, List.class, TObject.asList());
-
-        if(listObjects==null){
-            return null;
-        }
-
-        Map map = null;
-        for(Object value :listObjects){
-            if(value instanceof Map){
-                map = (Map)value;
-            }else{
-                map = TObject.asMap("", value);
-            }
-
-            try {
-                T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
-                resultList.add(obj);
-            } catch (Exception e) {
-                Logger.error("Parse " + pathQry + "error", e);
-            }
-        }
-
-        return resultList;
+        return (List<T>) value(pathQry, elemClazz);
     }
 
     /**
@@ -279,7 +304,7 @@ public class JSONPath {
      * @param <T>            范型指代对象
      * @return  转换后的对象
      */
-    public <T> List<T> mapToListObject(String pathQry,String keyFieldName,Class<?> elemClazz,List<T> defaultValue) {
+    public <T> List<T> mapToListObject(String pathQry,String keyFieldName,Class<?> elemClazz, List<T> defaultValue) {
         List<T> result = mapToListObject(pathQry,keyFieldName,elemClazz);
         if(result==null){
             return defaultValue;
@@ -296,4 +321,5 @@ public class JSONPath {
     public static JSONPath newInstance(String jsonStr){
         return new JSONPath(jsonStr);
     }
+
 }

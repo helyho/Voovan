@@ -17,8 +17,8 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpResponse extends Response {
-	private String	characterSet;
-	private IoSession socketSession;
+	private volatile String	characterSet;
+	private volatile IoSession socketSession;
 
 	/**
 	 * 构造 HTTP 响应对象
@@ -153,6 +153,9 @@ public class HttpResponse extends Response {
 	 * @throws IOException IO 异常
 	 */
 	public void send() throws IOException {
+		if(socketSession == null) {
+			throw new NullPointerException("Socket session is null, are you clear this object before?");
+		}
 		super.send(socketSession);
 	}
 

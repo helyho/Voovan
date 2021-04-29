@@ -18,8 +18,6 @@ import static org.voovan.tools.TString.TOKEN_SUFFIX;
  * Licence: Apache v2 License
  */
 public class LoggerStatic {
-	private static long		startTimeMillis	= System.currentTimeMillis();
-
 	public final static String LOG_LEVEL = "ALL";
 	public final static String LOG_FILE = "<WorkDir>/logs/sysout.<D>.log";
 	public final static String LOG_TYPE = "STDOUT";
@@ -46,14 +44,6 @@ public class LoggerStatic {
 	public static boolean HAS_THREAD 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "T" + TOKEN_SUFFIX_REGEX) > 0;
 	public static boolean HAS_RUNTIME 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "R" + TOKEN_SUFFIX_REGEX) > 0;
 	public static boolean JSON_FORMAT  	= Boolean.valueOf(getLogConfig("JsonFormat", "true"));
-
-	/**
-	 * 获取启动时间信息
-	 * @return 启动时间
-	 */
-	protected static long getStartTimeMillis() {
-		return startTimeMillis;
-	}
 
 	/**
 	 * 获取日志配置项信息

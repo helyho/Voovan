@@ -1,8 +1,10 @@
 package org.voovan.tools;
 
+import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.*;
 
@@ -68,6 +70,30 @@ public class TObject {
 		return map;
 	}
 
+
+	/**
+	 * List 按数量分组
+	 * @param src 待分组的源数组
+	 * @param size 分组大小
+	 * @param <T> 元素范型
+	 * @return 分组后的 List
+	 */
+	public static <T> List<List<T>> splitList(List<T> src, int size){
+		List<List<T>> result = new ArrayList<List<T>>();
+		int srcSize = src.size();
+		int grpCount = srcSize / size;
+		grpCount = srcSize % size > 0 ? grpCount+1 : grpCount;
+
+		for(int i=0;i<grpCount;i++){
+			int begin = i*size;
+			int end = (i+1)*size;
+			end = end > srcSize ? srcSize : end;
+
+			result.add(src.subList(begin, end));
+		}
+
+		return result;
+	}
 
 	/**
 	 * 初始化一个 Map, 并移除值为 null 或者 "" 的键值对
@@ -319,6 +345,61 @@ public class TObject {
 	public static <T> T clone(T obj) throws ReflectiveOperationException, ParseException {
 		Map dataMap = TReflect.getMapfromObject(obj);
 		return (T)TReflect.getObjectFromMap(obj.getClass(),dataMap, false);
+	}
+
+
+	/**
+	 * 将对象转换为其他类型的对象
+	 * 			传递名称相同类型相同的属相到新的对象
+	 * @param origin 源对象
+	 * @param type 目标对象的类型
+	 * @param <T> 范型
+	 * @return 克隆后的新对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
+	 */
+	public static <T> T convert(Object origin, Type type) throws ReflectiveOperationException, ParseException {
+		if(origin == null || type == null) {
+			return null;
+		}
+
+		GenericInfo genericInfo = TReflect.getGenericInfo(type);
+		Class clazz = genericInfo.getClazz();
+
+		if(origin.getClass().equals(clazz)){
+			return (T) origin;
+		}
+
+		if(TReflect.getPackageClass(origin.getClass()).equals(TReflect.getPackageClass(clazz))) {
+			return (T) origin;
+		}
+
+		Map dataMap = TReflect.getMapfromObject(origin);
+		return (T)TReflect.getObjectFromMap(type, dataMap, false);
+	}
+
+	/**
+	 * 复制对象属性到新的对象(浅复制)
+	 * 			传递名称相同类型相同的属相到新的对象
+	 * @param origin 源对象
+	 * @param target 目标对象
+	 * @throws ReflectiveOperationException 反射异常
+	 * @throws ParseException 解析异常
+	 */
+	public static void copyField(Object origin, Object target) throws ReflectiveOperationException, ParseException {
+		if(origin == null || target == null) {
+			return;
+		}
+
+		Map<String, Object> originMap = TReflect.getMapfromObject(origin);
+		Field[] targetFields = TReflect.getFields(target.getClass());
+
+		for(Field targetField : targetFields){
+			Object value = originMap.get(targetField.getName());
+			if(TReflect.getPackageClass(value.getClass()).equals(TReflect.getPackageClass(targetField.getType()))) {
+				TReflect.setFieldValue(target, targetField.getName(), value);
+			}
+		}
 	}
 
 }

@@ -7,10 +7,13 @@ import org.voovan.tools.TString;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.convert.Convert;
+import org.voovan.tools.reflect.exclude.Exclude;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,8 +28,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class JSONEncode {
-    public final static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
+    public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
     public final static IntKeyMap<String> JSON_ENCODE_CACHE = new IntKeyMap<String>(1024);
+
+    //<对象类型, 转换器>
+    public final static ConcurrentHashMap<Class, Class<? extends Convert>> JSON_CONVERT = new ConcurrentHashMap<Class, Class<? extends Convert>>();
 
     static {
         if(JSON_HASH) {
@@ -39,10 +45,44 @@ public class JSONEncode {
         }
     }
 
+
+    /**
+     * 新增转换器, 指定类型的对象转换为另一个类型的对象
+     * @param objClass 匹配目标对象类型
+     * @param convertClazz 转换器 Class
+     */
+    public static void addConvert(Class objClass, Class<? extends Convert> convertClazz) {
+        JSON_CONVERT.put(objClass, convertClazz);
+    }
+
+
+    /**
+     * 转换法方法
+     * @param fieldName 属性冥
+     * @param object 对象
+     * @param allField 是否处理所有属性
+     * @return 转换的结果
+     * @throws ReflectiveOperationException
+     */
+    private static String convert(String fieldName, Object object, boolean allField) throws ReflectiveOperationException {
+        if(object!=null && !allField) {
+            //查找转换器并转换
+            Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
+            if (convert != null) {
+                return fromObject(convert.convert(null, object), true);
+            } else {
+                return fromObject(object, allField);
+            }
+        } else {
+            return fromObject(object, allField);
+        }
+    }
+
     /**
      * 分析自定义对象为JSON字符串
      *
      * @param object 自定义对象
+     * @param allField 是否处理所有属性
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
@@ -53,7 +93,8 @@ public class JSONEncode {
     /**
      * 分析Map对象为JSON字符串
      *
-     * @param mapObject map对象b
+     * @param mapObject map对象
+     * @param allField 是否处理所有属性
      * @return JSON字符串
      * @throws ReflectiveOperationException
      */
@@ -62,13 +103,14 @@ public class JSONEncode {
 
         for (Object mapkey : mapObject.keySet()) {
             String key = fromObject(mapkey, allField);
-            String Value = fromObject(mapObject.get(mapkey), allField);
+            String value = convert(key, mapObject.get(mapkey), allField);
+
             String wrapQuote = key.startsWith(Global.STR_QUOTE) && key.endsWith(Global.STR_QUOTE) ? Global.EMPTY_STRING : Global.STR_QUOTE;
             contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(key);
             contentStringBuilder.append(wrapQuote);
             contentStringBuilder.append(Global.STR_COLON);
-            contentStringBuilder.append(Value);
+            contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
 
@@ -85,6 +127,7 @@ public class JSONEncode {
      * 分析Array对象为JSON字符串
      *
      * @param arrayObject Array对象
+     * @param allField 是否处理所有属性
      * @throws ReflectiveOperationException
      * @return JSON字符串
      */
@@ -92,8 +135,9 @@ public class JSONEncode {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : arrayObject) {
-            String Value = fromObject(object, allField);
-            contentStringBuilder.append(Value);
+            String value = convert(null, object, allField);
+
+            contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
 
@@ -109,6 +153,7 @@ public class JSONEncode {
      * 分析Collection对象为JSON字符串
      *
      * @param collectionObject Collection 对象
+     * @param allField 是否处理所有属性
      * @throws ReflectiveOperationException
      * @return JSON字符串
      */
@@ -116,8 +161,8 @@ public class JSONEncode {
         StringBuilder contentStringBuilder = new StringBuilder(Global.STR_LS_BRACES);
 
         for (Object object : collectionObject) {
-            String Value = fromObject(object, allField);
-            contentStringBuilder.append(Value);
+            String value = convert(null, object, allField);
+            contentStringBuilder.append(value);
             contentStringBuilder.append(Global.STR_COMMA);
         }
 
@@ -157,7 +202,7 @@ public class JSONEncode {
             return "null";
         }
 
-        Integer jsonHash = null;
+        int jsonHash = 0;
         if(JSON_HASH) {
             jsonHash = object.hashCode();
             jsonHash =  jsonHash + (allField ? 1 : 0);
@@ -201,7 +246,7 @@ public class JSONEncode {
             value = object.toString();
         } else if (object instanceof AtomicLong || object instanceof AtomicInteger ||
                 object instanceof AtomicBoolean) {
-            value = TReflect.invokeMethod(object, "get");
+            value = TReflect.invokeMethod(object, "get").toString();
         } else if (TReflect.isBasicType(object.getClass())) {
             //这里这么做的目的是方便 js 中通过 eval 方法产生 js 对象
             String strValue = object.toString();
@@ -213,7 +258,7 @@ public class JSONEncode {
             value = complexObject(object, allField);
         }
 
-        if(JSON_HASH && jsonHash!=null) {
+        if(JSON_HASH) {
             JSON_ENCODE_CACHE.put(jsonHash, value);
         }
 

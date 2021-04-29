@@ -1,5 +1,6 @@
 package org.voovan.http.message;
 
+import org.voovan.http.message.exception.BodyParseExecption;
 import org.voovan.http.message.packet.*;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.network.IoSession;
@@ -32,16 +33,16 @@ import java.util.Vector;
  */
 
 public class Request {
-    private RequestProtocol protocol;
-    private Header 			header;
-    private List<Cookie>	cookies;
-    private Body 			body;
-    private List<Part>		parts;
-    private String 			boundary;
-    private boolean         hasBody;
-    protected boolean       isSend = false;
-    private boolean         cookieParsed = false;
-    private Long            mark = 0l;
+    private RequestProtocol     protocol;
+    private Header 			    header;
+    private List<Cookie>	    cookies;
+    private Body 			    body;
+    private List<Part>		    parts;
+    private String 			    boundary;
+    private volatile boolean    hasBody;
+    protected volatile boolean  isSend = false;
+    private volatile boolean    cookieParsed = false;
+    private volatile Long       mark = 0l;
 
     private static final String CONTENT_TYPE = "Content-Type";
 
@@ -137,6 +138,27 @@ public class Request {
      */
     public Body body() {
         return body;
+    }
+
+    /**
+     * 使用 json 来解析 body
+     * @param clazz 目标对象类描述, list / map 支持范型
+     * @param <T> 响应对象类型
+     * @return json 解析后的对象
+     */
+    public <T> T bodyObject(Class clazz){
+        return bodyObject(null, clazz);
+    }
+
+    /**
+     * 使用 json 来解析 body
+     * @param path 解析的路径
+     * @param clazz 目标对象类描述, list / map 支持范型
+     * @param <T> 响应对象类型
+     * @return json 解析后的对象
+     */
+    public <T> T bodyObject(String path, Class clazz){
+        return body().getObject(path, clazz);
     }
 
     /**
@@ -306,13 +328,7 @@ public class Request {
 
         stringBuilder.append("\r\n");
 
-        try {
-            return ByteBuffer.wrap(stringBuilder.toString().getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            Logger.error("Response.readHead io error",e);
-            return null;
-        }
-
+        return ByteBuffer.wrap(TString.toAsciiBytes(stringBuilder.toString()));
     }
 
     /**
@@ -374,7 +390,7 @@ public class Request {
                     }
 
                     //发送结尾标识
-                    byteBuffer.put(TString.assembly("--" + boundary + "--").getBytes());
+                    byteBuffer.put(TString.toAsciiBytes(TString.assembly("--" + boundary + "--")));
                     byteBuffer.flip();
                     session.send(byteBuffer);
                     byteBuffer.clear();

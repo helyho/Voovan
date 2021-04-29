@@ -228,7 +228,7 @@ public class CollectionSearch<T> {
 
                                 if (collectionValue == null && stepValue == null) {
                                     isMatch = true;
-                                } else if (collectionValue.getClass().equals(stepValue.getClass())) {
+                                } else if (collectionValue!=null && stepValue!=null && collectionValue.getClass().equals(stepValue.getClass())) {
 
                                     //带有比较器
                                     if (stepValue instanceof Comparable) {

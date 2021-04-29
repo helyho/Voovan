@@ -8,6 +8,8 @@ import org.voovan.tools.reflect.TReflect;
 import sun.misc.Unsafe;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -59,9 +61,9 @@ public class TByteBuffer {
     }
 
     public static Map<String, Long> getByteBufferAnalysis() {
-       return TObject.asMap("Time", TDateTime.now(), "MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
-               "MallocCount", MALLOC_COUNT.longValue(),
-               "ByteBufferCount", BYTE_BUFFER_COUNT.longValue());
+        return TObject.asMap("Time", TDateTime.now(), "MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
+                "MallocCount", MALLOC_COUNT.longValue(),
+                "ByteBufferCount", BYTE_BUFFER_COUNT.longValue());
     }
 
     static {
@@ -83,24 +85,27 @@ public class TByteBuffer {
 
     public final static Class DIRECT_BYTE_BUFFER_CLASS = EMPTY_BYTE_BUFFER.getClass();
 
-    public final static Constructor DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
-    static {
-        DIRECT_BYTE_BUFFER_CONSTURCTOR.setAccessible(true);
-    }
+    public final static MethodHandle DIRECT_BYTE_BUFFER_CONSTURCTOR = getConsturctor();
 
-    public final static Field addressField = ByteBufferField("address");
-    public final static Long addressFieldOffset = TUnsafe.getFieldOffset(addressField);
-    public final static Field capacityField = ByteBufferField("capacity");
-    public final static Long capacityFieldOffset = TUnsafe.getFieldOffset(capacityField);
-    public final static Field attField = ByteBufferField("att");
-    public final static Long attFieldOffset = TUnsafe.getFieldOffset(attField);
+    public final static Field addressField          = ByteBufferField("address");
+    public final static Long addressFieldOffset     = TUnsafe.getFieldOffset(addressField);
+    public final static Field capacityField         = ByteBufferField("capacity");
+    public final static Long capacityFieldOffset    = TUnsafe.getFieldOffset(capacityField);
+    public final static Field attField              = ByteBufferField("att");
+    public final static Long attFieldOffset         = TUnsafe.getFieldOffset(attField);
 
-    private static Constructor getConsturctor(){
-        int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
-        Constructor[] constructor = TReflect.findConstructor(DIRECT_BYTE_BUFFER_CLASS, paramCount);
+    private static MethodHandle getConsturctor(){
+        try {
+            int paramCount = TEnv.JDK_VERSION >= 14 ? 4 : 3;
+            Constructor[] constructor = TReflect.findConstructor(DIRECT_BYTE_BUFFER_CLASS, paramCount);
 
-        constructor[0].setAccessible(true);
-        return constructor[0];
+            constructor[0].setAccessible(true);
+            return MethodHandles.lookup().unreflectConstructor(constructor[0]);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private static Field ByteBufferField(String fieldName){
@@ -119,13 +124,12 @@ public class TByteBuffer {
             long address = (UNSAFE.allocateMemory(capacity));
 
             Deallocator deallocator = new Deallocator(address, capacity);
-
             ByteBuffer byteBuffer = null;
-            if(DIRECT_BYTE_BUFFER_CONSTURCTOR.getParameterCount() == 3) {
-                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator);
+            if(TEnv.JDK_VERSION < 14) {
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.invoke(address, capacity, (Object)deallocator);
             } else {
                 //jdk 14 兼容
-                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.newInstance(address, capacity, deallocator, null);
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.invoke(address, capacity, (Object)deallocator, null);
             }
 
             Cleaner.create(byteBuffer, deallocator);
@@ -135,7 +139,7 @@ public class TByteBuffer {
 
             return byteBuffer;
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             Logger.error("Allocate ByteBuffer error. ", e);
             return null;
         }
@@ -236,7 +240,7 @@ public class TByteBuffer {
      */
     public static boolean move(ByteBuffer byteBuffer, int offset) {
         try {
-            if(byteBuffer.remaining() == 0) {
+            if(!byteBuffer.hasRemaining()) {
                 byteBuffer.position(0);
                 byteBuffer.limit(0);
                 return true;
@@ -353,6 +357,7 @@ public class TByteBuffer {
             if(THREAD_BYTE_BUFFER_POOL.getPool().avaliable() > 0 &&
                     byteBuffer.capacity() > DEFAULT_BYTE_BUFFER_SIZE){
                 reallocate(byteBuffer, DEFAULT_BYTE_BUFFER_SIZE);
+                return;
             }
 
             THREAD_BYTE_BUFFER_POOL.release(byteBuffer, (buffer)->{
@@ -362,11 +367,7 @@ public class TByteBuffer {
                     if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
                         if(address!=0) {
                             byteBuffer.clear();
-                            synchronized (byteBuffer) {
-                                //这里不使用传入的参数, 需要复用上面代码获得的地址
-                                byteBuffer.position(0);
-                                byteBuffer.limit(0);
-                                setCapacity(byteBuffer, 0);
+                            synchronized (buffer) {
                                 setAddress(byteBuffer, 0);
 
                                 UNSAFE.freeMemory(address);
@@ -515,7 +516,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Long getAddress(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-//        return (Long) addressField.get(byteBuffer);
         return UNSAFE.getLong(byteBuffer, addressFieldOffset);
     }
 
@@ -526,7 +526,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
-//        addressField.set(byteBuffer, address);
         UNSAFE.putLong(byteBuffer, addressFieldOffset, address);
         Object att = getAtt(byteBuffer);
         if(att!=null && att instanceof Deallocator){
@@ -541,7 +540,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Object getAtt(ByteBuffer byteBuffer) throws ReflectiveOperationException {
-//        return attField.get(byteBuffer);
         return UNSAFE.getObject(byteBuffer, attFieldOffset);
     }
 
@@ -552,7 +550,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setAttr(ByteBuffer byteBuffer, Object attr) throws ReflectiveOperationException {
-//        attField.set(byteBuffer, attr);
         UNSAFE.putObject(byteBuffer, attFieldOffset, attr);
     }
 
@@ -563,7 +560,6 @@ public class TByteBuffer {
      * @throws ReflectiveOperationException 反射异常
      */
     public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
-//        capacityField.set(byteBuffer, capacity);
         UNSAFE.putInt(byteBuffer, capacityFieldOffset, capacity);
         Object att = getAtt(byteBuffer);
         if(att!=null && att instanceof Deallocator){

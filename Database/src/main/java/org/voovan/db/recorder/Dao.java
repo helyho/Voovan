@@ -167,6 +167,8 @@ public class Dao<T extends Dao> {
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
         check();
         try {
+            andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
+
             boolean newTransaction = jdbcOperate.beginTransaction();
             Query query = Query.newInstance().data(dataFields).and(andFields);
             if (recorder.update((T) this, query) == effectRow || effectRow < 0) {
@@ -334,6 +336,8 @@ public class Dao<T extends Dao> {
     public List<T> query(String[] dataFields, String[] andFields, Integer pageNum, Integer pageSize) {
         check();
 
+        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
+
         Query query = Query.newInstance().data(dataFields).and(andFields);
         pageNum = pageNum == null ? -1 : pageNum;
         pageSize = pageSize == null ? -1 : pageSize;
@@ -385,11 +389,42 @@ public class Dao<T extends Dao> {
      * @return 查询的结果集
      */
     public List<T> query() {
-        if(snapshot !=null) {
-            return query(null, getModifyField(), null, null);
-        } else {
-            return query(null, null, null, null);
+        return query(null, null, null, null);
+    }
+
+
+    /**
+     * 使用自定义查询数据多条数据
+     * @param dataSql select 和 from 之间的 sql 语句
+     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param clazz 查询返回的对象类型
+     * @param <R> 范型
+     * @return 查询的结果
+     */
+    public <R> List<R> customQuery(String dataSql, String[] andFields, Class<R> clazz) {
+        check();
+
+        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
+
+        Query query = Query.newInstance().and(andFields);
+        try {
+            List<R> ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            return ret;
+        } catch (Exception e) {
+            Logger.error("Dao.customQuery failed", e);
+            return null;
         }
+    }
+
+    /**
+     * 使用自定义查询数据多条数据
+     * @param dataSql select 和 from 之间的 sql 语句
+     * @param clazz 查询返回的对象类型
+     * @param <R> 范型
+     * @return 查询的结果
+     */
+    public <R> List<R> customQuery(String dataSql, Class<R> clazz) {
+        return customQuery(dataSql, null, clazz);
     }
 
     /**
@@ -400,6 +435,8 @@ public class Dao<T extends Dao> {
      */
     public T queryOne(String[] dataFields, String[] andFields) {
         check();
+
+        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
 
         Query query = Query.newInstance().data(dataFields).and(andFields);
         try {
@@ -438,11 +475,7 @@ public class Dao<T extends Dao> {
      * @return 查询的结果集
      */
     public T queryOne() {
-        if(snapshot !=null) {
-            return queryOne(null, getModifyField());
-        } else {
-            return queryOne(null, null);
-        }
+        return queryOne(null, null);
     }
 
     /**
@@ -453,12 +486,14 @@ public class Dao<T extends Dao> {
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> R customQuery(String dataSql, String[] andFields, Class<R> clazz) {
+    public <R> R customQueryOne(String dataSql, String[] andFields, Class<R> clazz) {
         check();
+
+        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
 
         Query query = Query.newInstance().and(andFields);
         try {
-            R ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            R ret = recorder.customQueryOne(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
             return ret;
         } catch (Exception e) {
             Logger.error("Dao.customQuery failed", e);
@@ -473,12 +508,8 @@ public class Dao<T extends Dao> {
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> R customQuery(String dataSql, Class<R> clazz) {
-        if(snapshot !=null) {
-            return customQuery(dataSql, getModifyField(), clazz);
-        } else {
-            return customQuery(dataSql, null, clazz);
-        }
+    public <R> R customQueryOne(String dataSql, Class<R> clazz) {
+        return customQueryOne(dataSql, null, clazz);
     }
 
     /**
@@ -489,6 +520,8 @@ public class Dao<T extends Dao> {
      */
     public boolean delete(String[] andFields, int effectRow) {
         check();
+
+        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
 
         Query query = Query.newInstance().and(andFields);
 
@@ -542,11 +575,6 @@ public class Dao<T extends Dao> {
      */
     public boolean delete() {
         check();
-
-        if(snapshot !=null) {
-            return delete(getModifyField());
-        } else {
-            return delete(null);
-        }
+        return delete(null);
     }
 }

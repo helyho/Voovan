@@ -441,7 +441,9 @@ public class DynamicFunction {
      * @throws Exception 反射异常
      */
     public <T> T call(Object... args) throws Exception {
-        compileCode();
+        if (this.clazz == null) {
+            compileCode();
+        }
         return (T)objectForCall.execute(args);
     }
 

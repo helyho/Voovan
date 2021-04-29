@@ -3,9 +3,9 @@ package org.voovan.tools;
 import org.voovan.Global;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 public class TString {
 
-	private static Map<Integer, Pattern> regexPattern = new ConcurrentHashMap<Integer, Pattern>();
+	private static Map<Integer, Pattern> REGEX_PATTERN = new ConcurrentHashMap<Integer, Pattern>();
 
 	/**
 	 * 单词首字母大写
@@ -179,10 +179,10 @@ public class TString {
 	private static Pattern getCachedPattern(String regex, Integer flags) {
 		Pattern pattern = null;
 		flags = flags == null ? 0 : flags;
-		pattern = regexPattern.get(regex.hashCode());
+		pattern = REGEX_PATTERN.get(regex.hashCode());
 		if (pattern==null) {
 			pattern = Pattern.compile(regex, flags);
-			regexPattern.put(regex.hashCode(), pattern);
+			REGEX_PATTERN.put(regex.hashCode(), pattern);
 		}
 		return pattern;
 	}
@@ -303,11 +303,24 @@ public class TString {
 
 	/**
 	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0, quoteReplacement = true
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceAll(String source, String regex, String replacement, int flags) {
+		return fastReplaceAll(source, regex, replacement, flags, true);
+	}
+
+	/**
+	 * 快速字符串替换算法
 	 * 		默认正在 flag = 0
 	 * @param source      源字符串
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement, boolean quoteReplacement) {
@@ -321,7 +334,7 @@ public class TString {
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
 	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceAll(String source, String regex, String replacement, Integer flags, boolean quoteReplacement) {
@@ -347,11 +360,24 @@ public class TString {
 
 	/**
 	 * 快速字符串替换算法
+	 * 		默认正在 flag = 0, quoteReplacement = true
+	 * @param source      源字符串
+	 * @param regex       正则字符串
+	 * @param replacement 替换字符串
+	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
+	 * @return 替换后的字符串
+	 */
+	public static String fastReplaceFirst(String source, String regex, String replacement, int flags) {
+		return fastReplaceFirst(source, regex, replacement, flags, true);
+	}
+
+	/**
+	 * 快速字符串替换算法
 	 * 		默认正在 flag = 0
 	 * @param source      源字符串
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceFirst(String source, String regex, String replacement, boolean quoteReplacement) {
@@ -365,7 +391,7 @@ public class TString {
 	 * @param regex       正则字符串
 	 * @param replacement 替换字符串
 	 * @param flags  	  正则匹配标记 CASE_INSENSITIVE, MULTILINE, DOTALL, UNICODE_CASE, CANON_EQ, UNIX_LINES, LITERAL, UNICODE_CHARACTER_CLASS, COMMENTS
-	 * @param quoteReplacement 对 replacement 是否进行转移
+	 * @param quoteReplacement 对 replacement 是否进行转义
 	 * @return 替换后的字符串
 	 */
 	public static String fastReplaceFirst(String source, String regex, String replacement, Integer flags, boolean quoteReplacement) {
@@ -528,7 +554,7 @@ public class TString {
 				indent.append(" ");
 			}
 			source = indent.toString() + source;
-			source = org.voovan.tools.TString.fastReplaceAll(source, "\n", "\n" + indent.toString());
+			source = fastReplaceAll(source, "\n", "\n" + indent.toString());
 		}
 		return source;
 	}
@@ -672,25 +698,15 @@ public class TString {
 		if(value==null || type==null) {
 			return null;
 		}
-
-		Class<?> clazz = null;
-		if (type instanceof ParameterizedType) {
-			ParameterizedType parameterizedType = (ParameterizedType) type;
-			clazz = (Class<T>) parameterizedType.getRawType();
-		} else if (type instanceof Class) {
-			clazz = (Class<T>) type;
-		} else {
-			return (T) value;
-		}
-
-
+		GenericInfo genericInfo = TReflect.getGenericInfo(type);
+		Class<?> clazz = genericInfo.getClazz();
 
 		if (value == null && !clazz.isPrimitive()) {
 			return null;
 		}
 
 		if(value.equals("null") && !clazz.isPrimitive()){
-			value = null;
+			return null;
 		}
 
 		if (clazz == int.class || clazz == Integer.class) {
@@ -717,7 +733,7 @@ public class TString {
 		} else if (clazz == char.class || clazz == Character.class) {
 			Object tmpValue = value != null ? value.charAt(0) : null;
 			return (T) tmpValue;
-		} else if (clazz == Date.class || TReflect.isExtendsByClass(clazz,  Date.class)) {
+		} else if (clazz == Date.class || TReflect.isExtends(clazz,  Date.class)) {
 			try {
 				SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
 				return (T) (value != null ? TReflect.newInstance(clazz, dateFormat.parse(value).getTime()): null);
@@ -725,10 +741,10 @@ public class TString {
 				Logger.error("TString.toObject error: ", e);
 				return null;
 			}
-		} else if ((TReflect.isImpByInterface(clazz, Collection.class) || clazz.isArray()) &&
+		} else if ((TReflect.isImp(clazz, Collection.class) || clazz.isArray()) &&
 				JSON.isJSONList(value)) {
 			return JSON.toObject(value, type, ignoreCase);
-		} else if (TReflect.isImpByInterface(clazz, Map.class) && JSON.isJSONMap(value)) {
+		} else if (TReflect.isImp(clazz, Map.class) && JSON.isJSONMap(value)) {
 			return JSON.toObject(value, type, ignoreCase);
 		} else if (JSON.isJSON(value) && !TReflect.isSystemType(clazz)) {
 			return JSON.toObject(value, type, ignoreCase);
@@ -910,8 +926,8 @@ public class TString {
 			sign = Global.FRAMEWORK_NAME;
 		}
 
-		if(obj==null){
-			obj = random.nextInt(obj.hashCode());
+		if(obj==null) {
+			obj = random.nextInt();
 		}
 
 		long currentTime = TDateTime.currentTimeNanos();
@@ -920,7 +936,7 @@ public class TString {
 		long randomMark = currentTime ^random.nextLong();
 
 		long id = obj.hashCode()^Runtime.getRuntime().freeMemory()^mark^(new Random(randomMark).nextLong())^Long.valueOf(sign, 36);
-		return org.voovan.tools.TString.radixConvert(id, 62);
+		return radixConvert(id, 62);
 	}
 
 

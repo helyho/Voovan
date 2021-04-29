@@ -19,8 +19,8 @@ import java.util.TimerTask;
 public class Cleaner extends PhantomReference<Object> {
     private static final ReferenceQueue<Object> dummyQueue = new ReferenceQueue();
     private static Cleaner first = null;
-    private Cleaner next = null;
-    private Cleaner prev = null;
+    private Cleaner c_next = null;
+    private Cleaner c_prev = null;
     private final Runnable thunk;
     private static final Timer timer;
 
@@ -48,8 +48,8 @@ public class Cleaner extends PhantomReference<Object> {
 
     private static synchronized Cleaner add(Cleaner cleaner) {
         if (first != null) {
-            cleaner.next = first;
-            first.prev = cleaner;
+            cleaner.c_next = first;
+            first.c_prev = cleaner;
         }
 
         first = cleaner;
@@ -57,27 +57,27 @@ public class Cleaner extends PhantomReference<Object> {
     }
 
     private static synchronized boolean remove(Cleaner cleaner) {
-        if (cleaner.next == cleaner) {
+        if (cleaner.c_next == cleaner) {
             return false;
         } else {
             if (first == cleaner) {
-                if (cleaner.next != null) {
-                    first = cleaner.next;
+                if (cleaner.c_next != null) {
+                    first = cleaner.c_next;
                 } else {
-                    first = cleaner.prev;
+                    first = cleaner.c_prev;
                 }
             }
 
-            if (cleaner.next != null) {
-                cleaner.next.prev = cleaner.prev;
+            if (cleaner.c_next != null) {
+                cleaner.c_next.c_prev = cleaner.c_prev;
             }
 
-            if (cleaner.prev != null) {
-                cleaner.prev.next = cleaner.next;
+            if (cleaner.c_prev != null) {
+                cleaner.c_prev.c_next = cleaner.c_next;
             }
 
-            cleaner.next = cleaner;
-            cleaner.prev = cleaner;
+            cleaner.c_next = cleaner;
+            cleaner.c_prev = cleaner;
             return true;
         }
     }

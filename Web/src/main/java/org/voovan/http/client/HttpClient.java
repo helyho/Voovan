@@ -24,8 +24,10 @@ import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.tcp.TcpSocket;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
@@ -37,7 +39,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -60,6 +62,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	private Map<String, Object> parameters;
 	private String charset="UTF-8";
 	private String urlString;
+	private String initLocation;
 	private boolean isSSL = false;
 	private boolean isWebSocket = false;
 	private WebSocketRouter webSocketRouter;
@@ -127,7 +130,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param urlString     主机地址
 	 * @param timeout  超时时间
 	 */
-	private void init(String urlString,int timeout){
+	private void init(String urlString, int timeout){
 		try {
 
 			isSSL = trySSL(urlString);
@@ -145,13 +148,18 @@ public class HttpClient extends PooledObject implements Closeable{
 				port = url.getPort();
 			}
 
+			int parhStart = urlString.indexOf("/", 8);
+			if(parhStart > 8) {
+				this.initLocation = urlString.substring(parhStart);
+			}
+
 			if(port==-1 && !isSSL){
 				port = 80;
 			}else if(port==-1 && isSSL){
 				port = 443;
 			}
 
-			parameters = new HashMap<String, Object>();
+			parameters = new LinkedHashMap<String, Object>();
 
 			socket = new TcpSocket(hostString, port==-1?80:port, timeout*1000);
 			socket.filterChain().add(new HttpClientFilter(this));
@@ -178,14 +186,17 @@ public class HttpClient extends PooledObject implements Closeable{
 
 			//初始化 Session.attachment
 			//[0] HttpSessionState
-			//[1] HttpFilter
+			//[1] SocketFilterChain
 			//[2] WebSocketFilter
-			Object[] attachment = new Object[3];
+			//[3] Response
+			Object[] attachment = new Object[4];
+			attachment[0] = new HttpSessionState();
+			attachment[3] = new Response();
 			socket.getSession().setAttachment(attachment);
 
 		} catch (IOException e) {
 			Logger.error("HttpClient init failed",e);
-			throw new HttpClientException("HttpClient init failed:", e);
+			throw new HttpClientException("HttpClient init failed, on connect to " + urlString, e);
 		}
 	}
 
@@ -275,7 +286,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @return    HttpClient 对象
 	 */
 	public HttpClient setMethod(String method){
-		httpRequest.protocol().setMethod(method);
+		httpRequest.protocol().setMethod(method.toUpperCase());
 		return this;
 	}
 
@@ -439,7 +450,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 *  @param charset 参数的字符集
 	 * @return 请求字符串
 	 */
-	public static String buildQueryString(Map<String,Object> parameters,String charset){
+	public static String buildQueryString(Map<String,Object> parameters, String charset){
 		String queryString = "";
 		StringBuilder queryStringBuilder = new StringBuilder();
 		try {
@@ -553,35 +564,36 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	private synchronized Response commonSend(String location, Consumer<Response> async) throws SendMessageException, ReadMessageException {
 
+		IoSession session = socket.getSession();
+
 		if (isWebSocket) {
 			throw new SendMessageException("The WebSocket is connect, you can't send an http request.");
 		}
 
-		if(asyncHandler.isRunning()) {
-			throw new SendMessageException("The asyn is running, you can't send other http request. please wait a moment");
+		if(!TEnv.wait(socket.getReadTimeout(), false, ()->asyncHandler.isRunning())) {
+			throw new SendMessageException("asyncHandler failed by timeout, the lastest isn't resposne, Socket will be disconnect");
 		}
 
 		//构造 Request 对象
-		buildRequest(TString.isNullOrEmpty(location) ? "/" : location);
+		buildRequest(TString.isNullOrEmpty(location) ? initLocation : location);
 
-		socket.getSession().getReadByteBufferChannel().clear();
-		socket.getSession().getSendByteBufferChannel().clear();
-		synchronousHandler.clearResponse();
+		session.getReadByteBufferChannel().clear();
+		session.getSendByteBufferChannel().clear();
+		synchronousHandler.reset();
 
 		//异步模式更新 handler
 		if(async != null) {
 			asyncHandler.setAsync(async);
 			socket.handler(asyncHandler);
 		} else {
-			socket.getSession().socketContext().handler(synchronousHandler);
+			session.socketContext().handler(synchronousHandler);
 		}
 
 		//发送报文
 		try {
-			httpRequest.send(socket.getSession());
-			socket.getSession().flush();
+			session.syncSend(httpRequest);
 		} catch (Exception e) {
-			throw new SendMessageException("HttpClient writeToChannel error", e);
+			throw new SendMessageException("HttpClient send to socket error", e);
 		}
 
 		Response response = null;
@@ -592,7 +604,9 @@ public class HttpClient extends PooledObject implements Closeable{
 				Object readObject = socket.syncRead();
 
 				//如果是异常则抛出异常
-				if (readObject instanceof Exception) {
+				if (readObject instanceof ReadMessageException) {
+					throw (ReadMessageException)readObject;
+				} else if (readObject instanceof Exception) {
 					throw new ReadMessageException((Exception) readObject);
 				} else {
 					response = (Response) readObject;
@@ -605,7 +619,7 @@ public class HttpClient extends PooledObject implements Closeable{
 				}
 			} finally {
 				//结束操作
-				finished(response);
+				reset(response);
 			}
 		}
 
@@ -638,15 +652,16 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @return 发送的字节数
 	 * @throws IOException IO 异常
 	 */
-	public int send(ByteBuffer buffer) throws IOException {
+	public int sendBinary(ByteBuffer buffer) throws IOException {
 		return this.httpRequest.send(buffer);
 	}
 
 	/**
-	 * 请求完成
+	 * 重置
+	 * 		自动保留响应 cookie 到 request 中
 	 * @param response 请求对象
 	 */
-	protected void finished(Response response){
+	protected void reset(Response response){
 		//传递 cookie 到 Request 对象
 		if(response!=null
 				&& response.cookies()!=null
@@ -654,16 +669,26 @@ public class HttpClient extends PooledObject implements Closeable{
 			httpRequest.cookies().addAll(response.cookies());
 		}
 
+		reset();
+	}
+
+
+	/**
+	 * 重置
+	 */
+	public void reset(){
 		httpRequest.body().changeToBytes();
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
 		List<Cookie> cookies = httpRequest.cookies();
-		httpRequest.clear();
+		httpRequest.clear();  							//socketSession will be null
 		httpRequest.cookies().addAll(cookies);
 
 		//重新初始化 Header
 		initHeader();
+
+		asyncHandler.reset();
 	}
 
 	/**
@@ -674,6 +699,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @throws ReadMessageException 读取消息异常
 	 */
 	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
+		socket.setReadTimeout(-1);
 		IoSession session = socket.getSession();
 
 		httpRequest.header().put("Host", hostString);
@@ -683,7 +709,12 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Origin", this.urlString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
-		Response response =send(location);
+		asyncSend(location, response -> {
+			if(response.protocol().getStatus() == 101){
+				//初始化 WebSocket
+				initWebSocket();
+			}
+		});
 	}
 
 	/**
@@ -694,10 +725,21 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @throws ReadMessageException  读取异常
 	 */
 	public void webSocket(String location, WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		location = location == null ? initLocation : location;
 		this.webSocketRouter = webSocketRouter;
 
 		//处理升级后的消息
 		doWebSocketUpgrade(location);
+	}
+
+	/**
+	 * 连接 Websocket
+	 * @param webSocketRouter WebSocker的路由
+	 * @throws SendMessageException  发送异常
+	 * @throws ReadMessageException  读取异常
+	 */
+	public void webSocket(WebSocketRouter webSocketRouter) throws SendMessageException, ReadMessageException {
+		webSocket(null, webSocketRouter);
 	}
 
 	/**
@@ -716,7 +758,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//先注册Socket业务处理句柄,再打开消息分割器中 WebSocket 开关
 		socket.handler(webSocketHandler);
-		HttpSessionState httpSessionState = WebServerHandler.getAttachment(session);
+		HttpSessionState httpSessionState = WebServerHandler.getSessionState(session);
 		httpSessionState.setType(HttpRequestType.WEBSOCKET);
 
 		Object result = null;
@@ -731,6 +773,19 @@ public class HttpClient extends PooledObject implements Closeable{
 				buffer = (ByteBuffer) WebSocketDispatcher.filterEncoder(webSocketSession, result);
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
 				sendWebSocketData(webSocketFrame);
+
+				Global.getHashWheelTimer().addTask(new HashWheelTask() {
+					@Override
+					public void run() {
+						try {
+							sendWebSocketData(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+						} catch (SendMessageException e) {
+							e.printStackTrace();
+						} finally {
+							this.cancel();
+						}
+					}
+				}, socket.getReadTimeout() / 1000, true);
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
 			} catch (SendMessageException e) {
@@ -754,6 +809,8 @@ public class HttpClient extends PooledObject implements Closeable{
 	@Override
 	public void close(){
 		if(socket!=null) {
+			Response response = ((Response) ((Object[])socket.getSession().getAttachment())[3]);
+			response.release();
 			socket.close();
 		}
 	}

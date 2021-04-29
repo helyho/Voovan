@@ -1,5 +1,7 @@
 package org.voovan.tools.security;
 
+import org.voovan.tools.log.Logger;
+
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
@@ -111,12 +113,12 @@ public class Cipher {
     public SecretKey loadSymmetryKey(byte[] keyBytes) {
         // 判断Key是否正确
         if (keyBytes == null) {
-            System.out.print("Key is null");
+            Logger.warn("Key is null");
             return null;
         }
         // 判断Key是否为16位
         if (keyBytes.length != 16) {
-            System.out.print("Key length isn't 16");
+            Logger.warn("Key length isn't 16");
             return null;
         }
 

@@ -6,12 +6,10 @@ import org.voovan.http.server.*;
 import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
-import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -19,7 +17,6 @@ import org.voovan.tools.reflect.TReflect;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +45,7 @@ public class AnnotationRouter implements HttpRouter {
     private Router classRouter;
     private Router methodRoute;
     private AnnotationModule annotationModule;
+    private DynamicFunction methodDynamicFunction;
 
     /**
      * 构造函数
@@ -80,6 +78,8 @@ public class AnnotationRouter implements HttpRouter {
                 Logger.error("New a singleton object error", e);
             }
         }
+
+        methodDynamicFunction = TReflect.getMethodInvoker(clazz, method, true);
     }
 
     public String getUrlPath() {
@@ -114,206 +114,172 @@ public class AnnotationRouter implements HttpRouter {
         return annotationModule;
     }
 
-    /**
-     * 扫描包含Router注解的类
-     *
-     * @param annotationModule   AnnotationModule对象用于注册路由
-     */
-    public static void scanRouterClassAndRegister(AnnotationModule annotationModule) {
-        int routeMethodNum = 0;
 
+    public static void routerRegister(AnnotationModule annotationModule, Class routerClass) {
+        WebServer webServer = annotationModule.getWebServer();
         String modulePath = annotationModule.getModuleConfig().getPath();
         modulePath = HttpDispatcher.fixRoutePath(modulePath);
 
-        WebServer webServer = annotationModule.getWebServer();
-        try {
-            //查找包含 Router 注解的类
-            String[] scanRouterPackageArr = annotationModule.getScanRouterPackage().split(";");
-            for(String scanRouterPackage : scanRouterPackageArr) {
-                scanRouterPackage = scanRouterPackage.trim();
+        Method[] methods = routerClass.getMethods();
+        Router[] annonClassRouters = (Router[]) routerClass.getAnnotationsByType(Router.class);
 
-                List<Class> routerClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{Router.class});
-                for (Class routerClass : routerClasses) {
-                    Method[] methods = routerClass.getMethods();
-                    Router[] annonClassRouters = (Router[]) routerClass.getAnnotationsByType(Router.class);
+        //多个 Router 注解的迭代
+        for (Router annonClassRouter : annonClassRouters) {
+            String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+            String[] classRouterMethods = annonClassRouter.method();
 
-                    //多个 Router 注解的迭代
-                    for (Router annonClassRouter : annonClassRouters) {
-                        String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
-                        String[] classRouterMethods = annonClassRouter.method();
+            //多个请求方法的迭代
+            for (String classRouterMethod : classRouterMethods) {
 
-                        //多个请求方法的迭代
-                        for (String classRouterMethod : classRouterMethods) {
+                //使用类名指定默认路径
+                if (classRouterPath.isEmpty()) {
+                    //使用类名指定默认路径
+                    classRouterPath = routerClass.getSimpleName();
+                }
 
-                            //使用类名指定默认路径
-                            if (classRouterPath.isEmpty()) {
-                                //使用类名指定默认路径
-                                classRouterPath = routerClass.getSimpleName();
-                            }
+                classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
 
-                            classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
+                //扫描包含 Router 注解的方法
+                for (Method method : methods) {
+                    Router[] annonMethodRouters = (Router[]) method.getAnnotationsByType(Router.class);
+                    if (annonMethodRouters != null) {
 
-                            //注册以采用静态方法低啊用
-//                        if(methods.length > 0) {
-//                            TReflect.register(routerClass);
-//                        }
+                        //多个 Router 注解的迭代, 一个方法支持多个路由
+                        for (Router annonMethodRouter : annonMethodRouters) {
+                            String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();
+                            String[] methodRouterMethods = annonMethodRouter.method();
 
-                            //扫描包含 Router 注解的方法
-                            for (Method method : methods) {
-                                Router[] annonMethodRouters = (Router[]) method.getAnnotationsByType(Router.class);
-                                if (annonMethodRouters != null) {
+                            //多个请求方法的迭代,  一个路由支持多个 Http mehtod
+                            for (String methodRouterMethod : methodRouterMethods) {
 
-                                    //多个 Router 注解的迭代, 一个方法支持多个路由
-                                    for (Router annonMethodRouter : annonMethodRouters) {
-                                        String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();
-                                        String[] methodRouterMethods = annonMethodRouter.method();
+                                //使用方法名指定默认路径
+                                if (methodRouterPath.isEmpty()) {
+                                    //如果方法名为: index 则为默认路由
+                                    if (method.getName().equals("index")) {
+                                        methodRouterPath = "/";
+                                    } else {
+                                        methodRouterPath = method.getName();
+                                    }
+                                }
 
-                                        //多个请求方法的迭代,  一个路由支持多个 Http mehtod
-                                        for (String methodRouterMethod : methodRouterMethods) {
+                                //拼装方法路径
+                                methodRouterPath = HttpDispatcher.fixRoutePath(methodRouterPath);
 
-                                            //使用方法名指定默认路径
-                                            if (methodRouterPath.isEmpty()) {
-                                                //如果方法名为: index 则为默认路由
-                                                if (method.getName().equals("index")) {
-                                                    methodRouterPath = "/";
-                                                } else {
-                                                    methodRouterPath = method.getName();
-                                                }
-                                            }
+                                //拼装 (类+方法) 路径
+                                String routePath = classRouterPath + methodRouterPath;
 
-                                            //拼装方法路径
-                                            methodRouterPath = HttpDispatcher.fixRoutePath(methodRouterPath);
+                                //如果方法上的注解指定了 Method 则使用方法上的注解指定的,否则使用类上的注解指定的
+                                String routeMethod = methodRouterMethod.isEmpty() ? classRouterMethod : methodRouterMethod;
 
-                                            //拼装 (类+方法) 路径
-                                            String routePath = classRouterPath + methodRouterPath;
+                                //为方法的参数准备带参数的路径
+                                String paramPath = "";
+                                Annotation[][] paramAnnotationsArrary = method.getParameterAnnotations();
+                                Class[] paramTypes = method.getParameterTypes();
+                                for (int i = 0; i < paramAnnotationsArrary.length; i++) {
+                                    Annotation[] paramAnnotations = paramAnnotationsArrary[i];
 
-                                            //如果方法上的注解指定了 Method 则使用方法上的注解指定的,否则使用类上的注解指定的
-                                            String routeMethod = methodRouterMethod.isEmpty() ? classRouterMethod : methodRouterMethod;
+                                    if (paramAnnotations.length == 0 &&
+                                            paramTypes[i] != HttpRequest.class &&
+                                            paramTypes[i] != HttpResponse.class &&
+                                            paramTypes[i] != HttpSession.class) {
+                                        paramPath = paramPath + "/:param" + (i + 1);
+                                        continue;
+                                    }
 
-                                            //为方法的参数准备带参数的路径
-                                            String paramPath = "";
-                                            Annotation[][] paramAnnotationsArrary = method.getParameterAnnotations();
-                                            Class[] paramTypes = method.getParameterTypes();
-                                            for (int i = 0; i < paramAnnotationsArrary.length; i++) {
-                                                Annotation[] paramAnnotations = paramAnnotationsArrary[i];
+                                    for (Annotation paramAnnotation : paramAnnotations) {
+                                        if (paramAnnotation instanceof Param) {
+                                            paramPath = TString.assembly(paramPath, "/:", ((Param) paramAnnotation).value());
+                                        }
 
-                                                if (paramAnnotations.length == 0 &&
-                                                        paramTypes[i] != HttpRequest.class &&
-                                                        paramTypes[i] != HttpResponse.class &&
-                                                        paramTypes[i] != HttpSession.class) {
-                                                    paramPath = paramPath + "/:param" + (i + 1);
-                                                    continue;
-                                                }
-
-                                                for (Annotation paramAnnotation : paramAnnotations) {
-                                                    if (paramAnnotation instanceof Param) {
-                                                        paramPath = TString.assembly(paramPath, "/:", ((Param) paramAnnotation).value());
-                                                    }
-
-                                                    //如果没有指定方法, 参数包含 BodyParam 注解则指定请求方法为 POST
-                                                    if ((paramAnnotation instanceof BodyParam || paramAnnotation instanceof Body) && routeMethod.equals(HttpStatic.GET_STRING)) {
-                                                        routeMethod = HttpStatic.POST_STRING;
-                                                    }
-                                                }
-                                            }
-
-                                           /**
-                                             * 注册路由部分代码在下面
-                                             */
-                                            if (webServer.getHttpRouters().get(routeMethod) == null) {
-                                                webServer.getHttpDispatcher().addRouteMethod(routeMethod);
-                                            }
-
-                                            //生成完整的路由,用来检查路由是否存在
-                                            routePath = HttpDispatcher.fixRoutePath(routePath);
-
-                                            //这里这么做是为了处理 TreeMap 的 containsKey 方法的 bug
-                                            Map routerMaps = new HashMap();
-                                            routerMaps.putAll(webServer.getHttpRouters().get(routeMethod));
-
-                                            ROUTER_INFO_LIST.add(new RouterInfo(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
-
-                                            //构造注解路由器
-                                            AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
-                                                    annonClassRouter, annonMethodRouter, routePath, paramPath);
-
-                                            String routeLog = null;
-
-                                            //1.注册路由, 处理不带参数的路由
-                                            routePath = HttpDispatcher.fixRoutePath(routePath);
-                                            String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
-                                            //判断路由是否注册过
-                                            if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                //注册路由,不带路径参数的路由
-                                                annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
-                                                routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
-                                                        "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                        moduleRoutePath;
-                                                routeMethodNum++;
-                                            }
-
-                                            //2.注册路由,带路径参数的路由
-                                            if(!paramPath.isEmpty()) {
-                                                String routeParamPath = null;
-                                                routeParamPath = routePath + paramPath;
-                                                routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
-                                                String moduleRouteParamPath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
-
-                                                if (!routerMaps.containsKey(moduleRoutePath)) {
-                                                    annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
-
-                                                    routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
-                                                            "] add Router: " + TString.rightPad(routeMethod, 8, ' ') +
-                                                            moduleRouteParamPath;
-                                                }
-                                            }
-
-                                            if(routeLog!=null) {
-                                                Logger.simple(routeLog);
-                                            }
+                                        //如果没有指定方法, 参数包含 BodyParam 注解则指定请求方法为 POST
+                                        if ((paramAnnotation instanceof BodyParam || paramAnnotation instanceof Body) && routeMethod.equals(HttpStatic.GET_STRING)) {
+                                            routeMethod = HttpStatic.POST_STRING;
                                         }
                                     }
+                                }
+
+                                /**
+                                 * 注册路由部分代码在下面
+                                 */
+                                if (webServer.getHttpRouters().get(routeMethod) == null) {
+                                    webServer.getHttpDispatcher().addRouteMethod(routeMethod);
+                                }
+
+                                //生成完整的路由,用来检查路由是否存在
+                                routePath = HttpDispatcher.fixRoutePath(routePath);
+
+                                ROUTER_INFO_LIST.add(new RouterInfo(routePath + paramPath, routeMethod, annonClassRouter, routerClass, annonMethodRouter, method));
+
+                                String routeLog = null;
+
+                                routePath = HttpDispatcher.fixRoutePath(routePath);
+                                String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + routePath);
+
+                                if (!webServer.getHttpRouters().get(routeMethod).containsKey(moduleRoutePath)) {
+                                    //构造注解路由器
+                                    AnnotationRouter annotationRouter = new AnnotationRouter(annotationModule, routerClass, method,
+                                            annonClassRouter, annonMethodRouter, routePath, paramPath);
+
+                                    //1.注册路由,不带路径参数的路由
+                                    annotationModule.otherMethod(routeMethod, routePath, annotationRouter);
+                                    routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
+                                            "] Router: \t" + TString.rightPad(routeMethod, 8, ' ') +
+                                            moduleRoutePath;
+
+                                    //2.注册路由,带路径参数的路由
+                                    if(!paramPath.isEmpty()) {
+                                        String routeParamPath = null;
+                                        routeParamPath = routePath + paramPath;
+                                        routeParamPath = HttpDispatcher.fixRoutePath(routeParamPath);
+                                        String moduleRouteParamPath = HttpDispatcher.fixRoutePath(modulePath + routeParamPath);
+
+                                        annotationModule.otherMethod(routeMethod, routeParamPath, annotationRouter);
+
+                                        routeLog = "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
+                                                "] Router: \t" + TString.rightPad(routeMethod, 8, ' ') +
+                                                moduleRouteParamPath;
+                                    }
+                                }
+
+                                if(routeLog!=null) {
+                                    Logger.simple(routeLog);
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
 
-                //查找包含 WebSocket 注解的类
-                List<Class> webSocketClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{WebSocket.class});
-                for (Class webSocketClass : webSocketClasses) {
-                    if (TReflect.isExtendsByClass(webSocketClass, WebSocketRouter.class)) {
-                        WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
-                        WebSocket annonClassRouter = annonClassRouters[0];
-                        String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+    public static void webSocketRegister(AnnotationModule annotationModule, Class webSocketClass) {
+        WebServer webServer = annotationModule.getWebServer();
+        String modulePath = annotationModule.getModuleConfig().getPath();
+        modulePath = HttpDispatcher.fixRoutePath(modulePath);
 
-                        //使用类名指定默认路径
-                        if (classRouterPath.isEmpty()) {
-                            //使用类名指定默认路径
-                            classRouterPath = webSocketClass.getSimpleName();
-                        }
+        if (TReflect.isExtends(webSocketClass, WebSocketRouter.class)) {
+            WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
+            WebSocket annonClassRouter = annonClassRouters[0];
+            String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
 
-                        classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
-                        String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + classRouterPath);
-
-                        if (!webServer.getWebSocketRouters().containsKey(moduleRoutePath)) {
-                            annotationModule.socket(classRouterPath, (WebSocketRouter) TReflect.newInstance(webSocketClass));
-                            Logger.simple("[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
-                                    "] add WebSocket: " + TString.leftPad(moduleRoutePath, 11, ' '));
-                            routeMethodNum++;
-                        }
-                    }
-                }
-
-                if(routeMethodNum>0) {
-                    Logger.simple(TFile.getLineSeparator() + "[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
-                            "] Scan some class [" + scanRouterPackage + "] annotation by Router: " + routerClasses.size() +
-                            ". Register Router method annotation by route: " + routeMethodNum + ".");
-                }
+            //使用类名指定默认路径
+            if (classRouterPath.isEmpty()) {
+                //使用类名指定默认路径
+                classRouterPath = webSocketClass.getSimpleName();
             }
 
-        } catch (Exception e){
-            Logger.error("Scan router class error.", e);
+            classRouterPath = HttpDispatcher.fixRoutePath(classRouterPath);
+            String moduleRoutePath = HttpDispatcher.fixRoutePath(modulePath + classRouterPath);
+
+            if (!webServer.getWebSocketRouters().containsKey(moduleRoutePath)) {
+                try {
+                    annotationModule.socket(classRouterPath, (WebSocketRouter) TReflect.newInstance(webSocketClass));
+                    Logger.simple("[HTTP] Module [" + annotationModule.getModuleConfig().getName() +
+                            "] Router:\tWS " + TString.leftPad(moduleRoutePath, 8, ' '));
+                } catch (ReflectiveOperationException e) {
+                    Logger.error(e);
+                }
+            }
         }
     }
 
@@ -611,10 +577,10 @@ public class AnnotationRouter implements HttpRouter {
 
         try {
             //调用方法
-            return TReflect.invokeMethod(annotationObj, method, params);
+//             return TReflect.invokeMethod(annotationObj, method.getName(), params);
+            return methodDynamicFunction.call(annotationObj, params);
         } catch (IllegalArgumentException e) {
-            throw new AnnotationRouterException("Router method [" + method + "] has some null parameter, " +
-                    "if you want accpect null parameter, you should change the parameter's class to it's Object type, like int -> Integer.", e);
+            throw new AnnotationRouterException("Router method failed: \r\n [" + method + "]\r\n params" + JSON.toJSON(params), e);
         }
     }
 
@@ -637,7 +603,7 @@ public class AnnotationRouter implements HttpRouter {
             //null: 执行请求路由方法
             //非 null: 作为 http 请求的响应直接返回
             if(fliterResult == null) {
-                responseObj = invokeRouterMethod(request, response, clazz, method);
+                    responseObj = invokeRouterMethod(request, response, clazz, method);
             } else {
                 responseObj = fliterResult;
             }

@@ -176,7 +176,7 @@ public class Part {
 		ByteBuffer byteBuffer = TByteBuffer.allocateDirect();
 
 		//发送分段开始
-		byteBuffer.put(TString.assembly("--", boundary, "\r\n").getBytes());
+		byteBuffer.put(TString.toAsciiBytes(TString.assembly("--", boundary, "\r\n")));
 		byteBuffer.flip();
 		session.send(byteBuffer);
 		byteBuffer.clear();

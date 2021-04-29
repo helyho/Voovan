@@ -27,14 +27,15 @@ import java.util.concurrent.locks.ReentrantLock;
  * Licence: Apache v2 License
  */
 public class ByteBufferChannel {
-    private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*2);
-    private volatile long address = 0;
+    private static int BYTEBUFFERCHANNEL_MAX_SIZE = TProperties.getInt("framework", "ByteBufferChannelMaxSize", 1024*1024*10);
+
     private Unsafe unsafe = TUnsafe.getUnsafe();
-    private ByteBuffer byteBuffer;
+
+    private volatile ByteBuffer byteBuffer;
+    private volatile long address = 0;
     private volatile int capacity;
     private volatile int size;
     private ReentrantLock lock;
-    private AtomicBoolean borrowed = new AtomicBoolean(false);
 
     private int maxSize = BYTEBUFFERCHANNEL_MAX_SIZE;
 
@@ -247,12 +248,7 @@ public class ByteBufferChannel {
             return -1;
         }
 
-        lock();
-        try {
-            return byteBuffer.capacity() - size;
-        }finally {
-            unlock();
-        }
+        return byteBuffer.capacity() - size;
     }
 
     /**
@@ -264,12 +260,7 @@ public class ByteBufferChannel {
             return -1;
         }
 
-        lock();
-        try {
-            return byteBuffer.capacity();
-        }finally {
-            unlock();
-        }
+        return byteBuffer.capacity();
     }
 
     /**
@@ -451,9 +442,9 @@ public class ByteBufferChannel {
         try {
             checkRelease();
 
-            borrowed.compareAndSet(false, true);
             return byteBuffer;
         } catch (Exception e) {
+            unlock();
             return null;
         }
     }
@@ -467,21 +458,16 @@ public class ByteBufferChannel {
      * @return 是否compact成功,true:成功, false:失败
      */
     public boolean compact(){
-        if(isReleased()){
-            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)) {
-                unlock();
-            }
-            return false;
-        }
-
-        if(size()==0 && !byteBuffer.hasRemaining()){
-            if(lock.isHeldByCurrentThread() && borrowed.compareAndSet(true, false)){
-                unlock();
-            }
-            return true;
-        }
+        boolean isHoldByCurrentThread = lock.isHeldByCurrentThread();
 
         try{
+            if(isReleased()){
+                return false;
+            }
+
+            if(size()==0 && !byteBuffer.hasRemaining()){
+                return true;
+            }
 
             if(byteBuffer.position() == 0){
                 this.size = byteBuffer.limit();
@@ -491,17 +477,15 @@ public class ByteBufferChannel {
             int position = byteBuffer.position();
             int limit = byteBuffer.limit();
             boolean result = false;
-            if(TByteBuffer.move(byteBuffer, position*-1)) {
-                byteBuffer.position(0);
-                size = limit - position;
-                byteBuffer.limit(size);
 
+            if(TByteBuffer.move(byteBuffer, position*-1)) {
+                size = limit - position;
                 result = true;
             }
             return result;
 
         } finally {
-            if(borrowed.compareAndSet(true, false)) {
+            if(isHoldByCurrentThread) {
                 unlock();
             }
         }
@@ -1281,7 +1265,9 @@ public class ByteBufferChannel {
         } catch (IOException e) {
             throw e;
         } finally {
-            randomAccessFile.close();
+            if(randomAccessFile!=null) {
+                randomAccessFile.close();
+            }
         }
 
     }

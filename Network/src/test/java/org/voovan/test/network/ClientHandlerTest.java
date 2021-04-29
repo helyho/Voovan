@@ -1,8 +1,13 @@
 package org.voovan.test.network;
 
 import org.voovan.network.*;
+import org.voovan.network.udp.UdpSocket;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
+
+import java.io.IOException;
+import java.util.List;
 
 public class ClientHandlerTest implements IoHandler {
 
@@ -12,7 +17,7 @@ public class ClientHandlerTest implements IoHandler {
 	public Object onConnect(IoSession session) {
 		reciveCount = 0;
 		System.out.println("onConnect");
-		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.localPort());
+		System.out.println("Connect from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
 		session.setAttribute("key", "attribute value");
 		String msg = new String("test message\r\n");
 
@@ -34,14 +39,14 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.localPort());
+		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.loaclPort());
 		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(2000);
+		TEnv.sleep(1000);
 		reciveCount ++;
 
-		if(reciveCount >= 5) {
+		if(reciveCount >= 15) {
 			session.close();
 		}
 		return "some data\r\n";
@@ -63,7 +68,7 @@ public class ClientHandlerTest implements IoHandler {
 			HeartBeat heartBeat = session.getHeartBeat();
 
 			//心跳一次, 返回 true:本次心跳成功, false: 本次心跳失败
-            System.out.println("HB==>" + heartBeat.beat(session));
+            System.out.println(TDateTime.now() + " ===============> HB==>" + heartBeat.beat(session));
 			if (heartBeat.getFailedCount() > 5) {
 				session.close();
 			}

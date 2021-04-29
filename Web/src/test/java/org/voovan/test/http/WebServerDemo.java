@@ -22,6 +22,7 @@ import org.voovan.tools.TFile;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -29,7 +30,7 @@ public class WebServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");
 
 	public static void main(String[] args) {
-		WebServer webServer = WebServer.newInstance();
+		WebServer webServer = WebServer.newInstance(args);
 		webServer.getWebServerConfig().setCache(true);
 		//性能测试请求
 		webServer.get("/test", new HttpRouter() {
@@ -198,9 +199,10 @@ public class WebServerDemo {
 
 				//调用发送函数发送
 				try {
-					webSocketSession.send("Send by persistent Object's writeToChannel method in onOpen");
-					webSocketSession.send("Send by writeToChannel method in onOpen");
-				} catch (SendMessageException | WebSocketFilterException e) {
+
+					String mm= new String(TFile.loadFile(new File("/Users/helyho/Work/ex_trx.py")));
+					webSocketSession.send(mm);
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 

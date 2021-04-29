@@ -189,12 +189,13 @@ public class THash {
 	 * @param data 数组
 	 * @param offset 数据偏移量
 	 * @param length 长度
+	 * @param seed 上次 hash 的种子
 	 * @return int值
 	 */
-	public static int HashFNV1(byte[] data, int offset, int length)
+	public static int HashFNV1(byte[] data, int offset, int length, int seed)
 	{
 		final int p = 16777619;
-		int hash = (int)2166136261L;
+		int hash = seed;
 		for (int i = offset; i < length; i++) {
 			byte b = data[i];
 			hash = (hash ^ b) * p;
@@ -211,6 +212,18 @@ public class THash {
 
 	/**
 	 * 改进的32位FNV算法1
+	 * @param data 数组
+	 * @param offset 数据偏移量
+	 * @param length 长度
+	 * @return int值
+	 */
+	public static int HashFNV1(byte[] data, int offset, int length)
+	{
+		return HashFNV1(data, offset, length, -2128831035);
+	}
+
+	/**
+	 * 改进的32位FNV算法1
 	 * @param byteBuffer  字节数据
 	 * @param offset 字节数据偏移量
 	 * @param length 长度
@@ -219,7 +232,7 @@ public class THash {
 	public static int HashFNV1(ByteBuffer byteBuffer, int offset, int length)
 	{
 		final int p = 16777619;
-		int hash = (int)2166136261L;
+		int hash = -2128831035;
 		for (int i = offset; i < length; i++) {
 			byte b = byteBuffer.get(i);
 			hash = (hash ^ b) * p;
@@ -266,7 +279,7 @@ public class THash {
 	 * @return int值
 	 */
 	public static int HashFNV1(String str, int offset, int length) {
-		return HashFNV1(str, offset, length, (int)2166136261L);
+		return HashFNV1(str, offset, length, -2128831035);
 	}
 
 
@@ -276,7 +289,7 @@ public class THash {
 	 * @return int值
 	 */
 	public static int HashFNV1(String str) {
-		return HashFNV1(str, 0, str.length(), (int)2166136261L);
+		return HashFNV1(str, 0, str.length(), -2128831035);
 	}
 
 	/**
@@ -285,11 +298,23 @@ public class THash {
 	 * @return 加密结果
 	 */
 	public static int HashFNV1(String ... strs) {
-		int hash = (int)2166136261L;
+		int hash = -2128831035;
 		for(int i=0;i<strs.length;i++){
 			String val = strs[i];
 			if(val !=null){
 				hash = hash + HashFNV1(val, 0, val.length(), hash);
+			}
+		}
+
+		return hash;
+	}
+
+	public static int HashFNV1(byte[] ... bytes) {
+		int hash = -2128831035;
+		for(int i=0;i<bytes.length;i++){
+			byte[] val = bytes[i];
+			if(val !=null){
+				hash = hash + HashFNV1(val, 0, val.length, hash);
 			}
 		}
 

@@ -2,12 +2,14 @@ package org.voovan.network;
 
 import org.voovan.Global;
 import org.voovan.network.tcp.TcpServerSocket;
+import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
-import org.voovan.network.tcp.TcpSocket;
 import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.*;
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventTask;
@@ -16,7 +18,12 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.Closeable;
+import java.io.FileDescriptor;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -24,6 +31,7 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * 选择器
@@ -43,6 +51,8 @@ public class SocketSelector implements Closeable {
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 	private boolean useSelectNow = false;
 
+	private Runnable ioEvent;
+
 	/**
 	 * 构造方法
 	 * @param eventRunner 事件执行器
@@ -54,14 +64,18 @@ public class SocketSelector implements Closeable {
 		this.eventRunner = eventRunner;
 		this.isCheckTimeout = isCheckTimeout;
 
-		try {
-			TReflect.setFieldValue(selector, NioUtil.selectedKeysField, selectedKeys);
-			TReflect.setFieldValue(selector, NioUtil.publicSelectedKeysField, selectedKeys);
-		} catch (ReflectiveOperationException e) {
-			Logger.error(e);
-		}
+		NioUtil.transformSelector(selector, selectedKeys);
 
-		addIoEvent();
+		ioEvent = ()->{
+			try{
+				select();
+				eventRunner.addEvent(4, ioEvent);
+			} catch (Exception e) {
+				Logger.error("addChoseEvent error:", e);
+			}
+		};
+
+		eventRunner.addEvent(4, ioEvent);
 
 		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
@@ -92,6 +106,7 @@ public class SocketSelector implements Closeable {
 		return eventRunner;
 	}
 
+
 	/**
 	 * 注册一个 SocketContext 到选择器
 	 * @param socketContext SocketContext 对象
@@ -116,7 +131,7 @@ public class SocketSelector implements Closeable {
 						if (!session.isSSLMode()) {
 							EventTrigger.fireConnect(session);
 						} else {
-							//客户端模式主动发起 SSL 握手的第一个请求
+							//客户端模式主动发起 SSL 握手
 							if (socketContext.connectModel == ConnectModel.CLIENT) {
 								session.getSSLParser().doHandShake();
 							}
@@ -168,13 +183,8 @@ public class SocketSelector implements Closeable {
 			socketContext.setRegister(false);
 			selectionKey.attach(null);
 
-			socketContext.getSession().getReadByteBufferChannel().release();
-			socketContext.getSession().getSendByteBufferChannel().release();
-			if (socketContext.getSession().isSSLMode()) {
-				socketContext.getSession().getSSLParser().release();
-			}
-
 			EventTrigger.fireDisconnect(socketContext.getSession());
+			socketContext.setFileDescriptor(null);
 		}
 	}
 
@@ -188,17 +198,7 @@ public class SocketSelector implements Closeable {
 
 	/**
 	 * 向执行器中增加一个选择事件
-	 */
-	public void addIoEvent(){
-		eventRunner.addEvent(4, () -> {
-			select();
-			addIoEvent();
-		});
-	}
-
-	/**
-	 * 向执行器中增加一个选择事件
-	 * @param priority 指定的事件优先级, 越小优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册/注销事件, 7-10 预留事件等级
+	 *  @param priority 指定的事件优先级, 越大优先级越高, 1-3 预留事件等级, 4:IO 事件, 5:EventProcess 事件, 6: Socket 注册事件, 7-10 预留事件等级
 	 * @param runnable 在事件选择前执行的方法
 	 */
 	public void addEvent(int priority, Runnable runnable){
@@ -207,13 +207,7 @@ public class SocketSelector implements Closeable {
 		}
 
 		if(selector.isOpen()) {
-			eventRunner.addEvent(priority, () -> {
-				try {
-					runnable.run();
-				} catch (Exception e) {
-					Logger.error("addChoseEvent error:", e);
-				}
-			});
+			eventRunner.addEvent(priority, runnable);
 		}
 	}
 
@@ -252,18 +246,18 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异常
 	 */
 	private void processSelect() throws IOException {
-		if(useSelectNow){
-			selector.selectNow();
-		} else {
-			try {
-				//检查超时
-				checkReadTimeout();
-				selecting.compareAndSet(false, true);
-				selector.select(SocketContext.SELECT_INTERVAL);
-				selecting.compareAndSet(true, false);
-			} catch (IOException e) {
-				Logger.error(e);
+		try {
+			if(useSelectNow){
+				NioUtil.select(selector, 0L);
+			} else {
+					//检查超时
+					checkReadTimeout();
+					selecting.compareAndSet(false, true);
+					NioUtil.select(selector, SocketContext.SELECT_INTERVAL);
+					selecting.compareAndSet(true, false);
 			}
+		} catch (Throwable e) {
+			Logger.error(e);
 		}
 	}
 
@@ -277,7 +271,7 @@ public class SocketSelector implements Closeable {
 				if (socketContext!=null && socketContext.connectModel != ConnectModel.LISTENER) {
 
 					//缓冲区是否有数据
-					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty() && socketContext.getSession().getSendByteBufferChannel().isEmpty();
+					boolean bufferDataEmpty = socketContext.getSession().getReadByteBufferChannel().isEmpty();
 
 					if(socketContext.isTimeOut() && bufferDataEmpty) {
 						socketContext.close();
@@ -315,7 +309,6 @@ public class SocketSelector implements Closeable {
 
 					// 有数据读取
 					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
-						socketContext.updateLastTime();
 						readFromChannel(socketContext, channel);
 					}
 				}
@@ -367,9 +360,6 @@ public class SocketSelector implements Closeable {
 	 */
 	public int writeToChannel(SocketContext socketContext, ByteBuffer buffer){
 		try {
-
-			socketContext.updateLastTime();
-
 			if (socketContext.getConnectType() == ConnectType.TCP) {
 				return tcpWriteToChannel((TcpSocket) socketContext, buffer);
 			} else if (socketContext.getConnectType() == ConnectType.UDP) {
@@ -409,24 +399,34 @@ public class SocketSelector implements Closeable {
 								: session.getReadByteBufferChannel();
 
 		//自动扩容
-		if(byteBufferChannel.available() == 0) {
-			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-		}
+
 
 		int readSize = -1;
 
 		if(!byteBufferChannel.isReleased()) {
-
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-			//如果有历史数据则从历史数据尾部开始写入
-			byteBuffer.position(byteBuffer.limit());
-			byteBuffer.limit(byteBuffer.capacity());
+			if(byteBufferChannel.available() == 0) {
+				try {
+					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+				} catch (Exception e) {
+					Logger.error("SocketSelector.tcpReadFromChannel reallocate buffer failed " + this, e);
+				}
+			}
 
-			readSize = socketChannel.read(byteBuffer);
+			try {
+				//如果有历史数据则从历史数据尾部开始写入
+				byteBuffer.position(byteBuffer.limit());
+				byteBuffer.limit(byteBuffer.capacity());
 
-			byteBuffer.flip();
-			byteBufferChannel.compact();
+				readSize = NioUtil.read(socketContext, byteBuffer);
+
+				byteBuffer.flip();
+			} catch (Throwable e) {
+				throw new IOException("SocketSelector.tcpReadFromChannel error: " + e.getMessage(), e);
+			}finally {
+				byteBufferChannel.compact();
+			}
 		}
 
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
@@ -442,14 +442,17 @@ public class SocketSelector implements Closeable {
 	 */
 	public int tcpWriteToChannel(TcpSocket socketContext, ByteBuffer buffer) throws IOException {
 		int totalSendByte = 0;
+		int sendSize = - 1;
+
 		long start = System.currentTimeMillis();
 		if (buffer != null) {
 			//循环发送直到全部内容发送完毕
 			try {
 				while (buffer.remaining() != 0) {
-					int sendSize = socketContext.socketChannel().write(buffer);
+					sendSize = NioUtil.write(socketContext,buffer);
+
 					if (sendSize == 0) {
-						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						if (socketContext.getSendTimeout() >0 && System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
 							Logger.error("SocketSelector tcpWriteToChannel timeout", new TimeoutException());
 							socketContext.close();
 							return -1;
@@ -465,6 +468,8 @@ public class SocketSelector implements Closeable {
 			} catch (NotYetConnectedException | ClosedChannelException e) {
 				socketContext.close();
 				return -1;
+			} catch (Throwable e) {
+				throw new IOException("SocketSelector.tcpWriteToChannel error: " + e.getMessage(), e);
 			}
 		}
 		return totalSendByte;
@@ -501,31 +506,38 @@ public class SocketSelector implements Closeable {
 		UdpSession session = socketContext.getSession();
 
 		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
-		ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-
-		//自动扩容
-		if(byteBufferChannel.available() == 0) {
-			byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-		}
 
 		int readSize = -1;
 
 		if(!byteBufferChannel.isReleased()) {
+			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-			//如果有历史数据则从历史数据尾部开始写入
-			byteBuffer.position(byteBuffer.limit());
-			byteBuffer.limit(byteBuffer.capacity());
-
-			if (!datagramChannel.isConnected()) {
-				SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
-				session.setInetSocketAddress((InetSocketAddress) socketAddress);
-				readSize = byteBuffer.position();
-			} else {
-				readSize = datagramChannel.read(byteBuffer);
+			//自动扩容
+			if(byteBufferChannel.available() == 0) {
+				try {
+					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
+				} catch (Exception e) {
+					Logger.error("SocketSelector.udpReadFromChannel reallocate buffer failed " + this, e);
+				}
 			}
 
-			byteBuffer.flip();
-			byteBufferChannel.compact();
+			try {
+				//如果有历史数据则从历史数据尾部开始写入
+				byteBuffer.position(byteBuffer.limit());
+				byteBuffer.limit(byteBuffer.capacity());
+
+				if (!datagramChannel.isConnected()) {
+					SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
+					session.setInetSocketAddress((InetSocketAddress) socketAddress);
+					readSize = byteBuffer.position();
+				} else {
+					readSize = datagramChannel.read(byteBuffer);
+				}
+
+				byteBuffer.flip();
+			} finally {
+				byteBufferChannel.compact();
+			}
 		}
 
 		readSize = loadAndPrepare(socketContext.getSession(), readSize);
@@ -558,8 +570,7 @@ public class SocketSelector implements Closeable {
 					}
 
 					if (sendSize == 0) {
-						TEnv.sleep(1);
-						if (System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
+						if (socketContext.getSendTimeout() >0 && System.currentTimeMillis() - start >= socketContext.getSendTimeout()) {
 							Logger.error("SocketSelector udpWriteToChannel timeout, Socket will be close");
 							socketContext.close();
 							return -1;
@@ -590,11 +601,13 @@ public class SocketSelector implements Closeable {
 	public int loadAndPrepare(IoSession session, int readSize) throws IOException {
 
 		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-		if (MessageLoader.isStreamEnd(readSize) || !session.isConnected()) {
+		if (MessageLoader.isStreamEnd(readSize) || !session.isOpen()) {
 			session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
 			session.close();
 			return -1;
 		} else {
+			session.socketContext().updateLastTime();
+
 			ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 			if (readSize > 0) {
@@ -610,11 +623,7 @@ public class SocketSelector implements Closeable {
 
 				if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
 					// 触发 onReceive 事件
-					if(SocketContext.ASYNC_RECIVE) {
-						EventTrigger.fireReceiveAsync(session);
-					} else {
-						EventTrigger.fireReceive(session);
-					}
+					EventTrigger.fireReceive(session);
 				}
 			}
 
@@ -634,13 +643,13 @@ public class SocketSelector implements Closeable {
 	 * @return 永远返回 -1
 	 */
 	public int dealException(SocketContext socketContext, Exception e) {
-		if(BROKEN_PIPE.equals(e.getMessage()) || CONNECTION_RESET.equals(e.getMessage())){
+		if(e.getMessage()!=null && (e.getMessage().endsWith(CONNECTION_RESET) || e.getMessage().endsWith(BROKEN_PIPE))){
 			socketContext.close();
 			return -1;
 		}
 
 		//兼容 windows 的 "java.io.IOException: 指定的网络名不再可用" 错误
-		if(e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
+		if(TEnv.OS_NAME.startsWith("WINDOWS") && e.getStackTrace()[0].getClassName().contains("sun.tcp.ch")){
 			return -1;
 		}
 

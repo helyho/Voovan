@@ -6,7 +6,6 @@ import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.server.context.HttpRouterConfig;
 import org.voovan.http.server.context.WebContext;
 import org.voovan.http.server.context.WebServerConfig;
-import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.SocketContext;
@@ -71,7 +70,7 @@ public class WebServer {
 		//热加载
 		if(config.getHotSwapInterval() > 0) {
 			try {
-				Hotswaper hotSwaper = new Hotswaper();
+				Hotswaper hotSwaper = Hotswaper.get();
 				hotSwaper.autoReload(config.getHotSwapInterval());
 			} catch (Exception e) {
 				Logger.error("Init hotswap failed: " + e.getMessage());
@@ -417,7 +416,7 @@ public class WebServer {
 		initModule();
 
 		//初始化管理路由
-		InitManagerRouter();
+        WebServerCli.registerRouter(this);
 
 		initSocketServer(this.config);
 
@@ -426,19 +425,19 @@ public class WebServer {
 
 		//保存 PID
 		Long pid = TEnv.getCurrentPID();
-		System.out.println("  Pid: \t"+ pid.toString());
-		File pidFile = new File("logs/.pid");
-		try {
-			TFile.writeFile(pidFile, false, pid.toString().getBytes());
-		} catch (IOException e) {
-			Logger.error("Write pid to file: " + pidFile.getPath() + " error", e);
-		}
 
+		File pidFile = new File("logs" + File.separator + ".pid");
+		TFile.mkdir(pidFile.getPath());
+		TFile.writeFile(pidFile, false, pid.toString().getBytes());
+
+		System.out.println("  Pid: \t\t"+ pid.toString());
 		String serviceUrl = "http" + (config.isHttps()?"s":"") + "://"
 				+ (config.getHost().equals("0.0.0.0") ? "127.0.0.1" : config.getHost())
 				+ ":"+config.getPort();
-		Logger.simple("  Listen: " + serviceUrl);
-		Logger.simple("  Time: \t" + TDateTime.now());
+		Logger.simplef("  Listen: \t{}", serviceUrl);
+		Logger.simplef("  Time: \t{}", TDateTime.now());
+		Logger.simplef("  Elapsed: \t{} ms", TPerformance.getRuningTime());
+		Logger.simple("==================================================================================================================================================");
 
 	}
 
@@ -448,27 +447,32 @@ public class WebServer {
 	 */
 	public void reload(String reloadInfoJson){
 
+		if(reloadInfoJson!=null) {
+			WebServerConfig config = this.config;
+
+			Map<String, Object> reloadInfo = (Map<String, Object>) JSON.parse(reloadInfoJson);
+			if ("FILE".equals(reloadInfo.get("Type"))) {
+				config = WebContext.buildConfigFromFile(reloadInfo.get("Content").toString());
+			}
+
+			if ("HTTP".equals(reloadInfo.get("Type"))) {
+				config = WebContext.buildConfigFromRemote(reloadInfo.get("Content").toString());
+			}
+
+			if ("JSON".equals(reloadInfo.get("Type"))) {
+				config = WebContext.buildConfigFromJSON(reloadInfo.get("Content").toString());
+			}
+
+			this.config = config;
+		}
+
 		WebContext.PAUSE = true;
+
+
+		TEnv.sleep(1000);
 
 		//卸载模块
 		unInitModule();
-
-		WebServerConfig config = null;
-
-		Map<String, Object> reloadInfo = (Map<String, Object>)JSON.parse(reloadInfoJson);
-		if("FILE".equals(reloadInfo.get("Type"))) {
-			config = WebContext.buildConfigFromFile(reloadInfo.get("Content").toString());
-		}
-
-		if("HTTP".equals(reloadInfo.get("Type"))) {
-			config = WebContext.buildConfigFromRemote(reloadInfo.get("Content").toString());
-		}
-
-		if("JSON".equals(reloadInfo.get("Type"))) {
-			config = WebContext.buildConfigFromJSON(reloadInfo.get("Content").toString());
-		}
-
-		this.config = config;
 
 		//构造新的请求派发器创建
 		this.httpDispatcher = new HttpDispatcher(config,sessionManager);
@@ -490,7 +494,7 @@ public class WebServer {
 		initModule();
 
 		//初始化管理路由
-		InitManagerRouter();
+		WebServerCli.registerRouter(this);
 
 		WebContext.PAUSE = false;
 	}
@@ -514,7 +518,7 @@ public class WebServer {
 
 		try {
 			Class clazz = Class.forName(lifeCycleClass);
-			if(TReflect.isImpByInterface(clazz, WebServerLifeCycle.class)){
+			if(TReflect.isImp(clazz, WebServerLifeCycle.class)){
 				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
 				webServerLifeCycle.init(webServer);
 
@@ -538,134 +542,6 @@ public class WebServer {
 				Logger.error("Initialize WebServer destory lifeCycle error: ", e);
 			}
 		}
-	}
-
-
-	/**
-	 * 是否具备管理权限
-	 *      这里控制必须是 127.0.0.1的 ip 地址, 并且需要提供 authToken
-	 * @param request http请求对象
-	 * @return true: 具备管理权限, false: 不具备管理权限
-	 */
-	public static boolean hasAdminRight(HttpRequest request){
-		if(!TPerformance.getLocalIpAddrs().contains(request.getSession().getSocketSession().remoteAddress())){
-			request.getSession().close();
-		}
-
-		String authToken = request.header().get("AUTH-TOKEN");
-		if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * 初始化服务管理相关的路由
-	 */
-	public void InitManagerRouter(){
-		final WebServer innerWebServer = this;
-
-		otherMethod("ADMIN", "/voovan/admin/status", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				String status = "RUNNING";
-				if(hasAdminRight(request)) {
-					if(WebContext.PAUSE){
-						status = "PAUSE";
-					}
-					response.write(status);
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/shutdown", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					request.getSocketSession().close();
-					innerWebServer.stop();
-					Logger.info("WebServer is stoped");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/pause", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					WebContext.PAUSE = true;
-					response.write("OK");
-					Logger.info("WebServer is paused");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/unpause", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					WebContext.PAUSE = false;
-					response.write("OK");
-					Logger.info("WebServer is running");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/pid", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/reload", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-
-				if(hasAdminRight(request)) {
-					reload(request.body().getBodyString());
-					response.write("OK");
-				}else{
-					request.getSession().close();
-				}
-			}
-		});
-
-		otherMethod("ADMIN", "/voovan/admin/authtoken", new HttpRouter() {
-			@Override
-			public void process(HttpRequest request, HttpResponse response) throws Exception {
-				if(hasAdminRight(request)) {
-					if(!request.body().getBodyString().isEmpty()){
-						//重置 AUTH_TOKEN
-						WebContext.AUTH_TOKEN = request.body().getBodyString();
-						response.write("OK");
-					} else {
-						response.write("NOTHING");
-					}
-				} else {
-					request.getSession().close();
-				}
-			}
-		});
-
-		this.options("/voovan/admin/*", new OptionsRouter("ADMIN", "*", "auth-token"));
 	}
 
 	/**
@@ -794,6 +670,10 @@ public class WebServer {
 				}
 
 
+				//服务监听地址
+				if(args[i].equals("--cli")){
+					WebServerCli.remoteCli(args, i);
+				}
 
 				//服务监听地址
 				if(args[i].equals("-h")){
@@ -894,24 +774,24 @@ public class WebServer {
 					Logger.simple("Start voovan webserver");
 					Logger.simple("");
 					Logger.simple("Options:");
-					Logger.simple(TString.rightPad("  -h ",35,' ')+"Webserver bind host ip address");
-					Logger.simple(TString.rightPad("  -p ",35,' ')+"Webserver bind port number");
-					Logger.simple(TString.rightPad("  --env ",35,' ') + "Webserver environment name");
-					Logger.simple(TString.rightPad("  -rto ",35,' ')+"Socket readFromChannel timeout");
-					Logger.simple(TString.rightPad("  -sto ",35,' ')+"Socket writeToChannel timeout");
-					Logger.simple(TString.rightPad("  -r ",35,' ')+"Context root path, contain webserver static file");
-					Logger.simple(TString.rightPad("  -i ",35,' ')+"index file for client access to webserver");
-					Logger.simple(TString.rightPad("  -mri ",35,' ')+"Match route ignore case");
-					Logger.simple(TString.rightPad("  --config ",35,' ')+" Webserver config file");
-					Logger.simple(TString.rightPad("  --remoteConfig ",35,' ')+" Remote Webserver config with a HTTP URL address");
-					Logger.simple(TString.rightPad("  --charset ",35,' ')+"set default charset");
-					Logger.simple(TString.rightPad("  --noGzip ",35,' ')+"Do not use gzip for client");
-					Logger.simple(TString.rightPad("  --noAccessLog ",35,' ')+"Do not write access log to access.log");
-					Logger.simple(TString.rightPad("  --https.CertificateFile ",35,' ')+" Certificate file for https");
-					Logger.simple(TString.rightPad("  --https.CertificatePassword ",35,' ')+" Certificate passwork for https");
-					Logger.simple(TString.rightPad("  --https.KeyPassword ",35,' ')+"Certificate key for https");
-					Logger.simple(TString.rightPad("  --help, -?",35,' ')+"how to use this command");
-					Logger.simple(TString.rightPad("  -v ",35,' ')+"Show the version information");
+					Logger.simple(TString.rightPad("  -h", 35, ' ')							+ "Webserver bind host ip address");
+					Logger.simple(TString.rightPad("  -p", 35, ' ')							+ "Webserver bind port number");
+					Logger.simple(TString.rightPad("  --env", 35, ' ') 						+ "Webserver environment name");
+					Logger.simple(TString.rightPad("  -rto", 35, ' ')						+ "Socket readFromChannel timeout");
+					Logger.simple(TString.rightPad("  -sto", 35, ' ')						+ "Socket writeToChannel timeout");
+					Logger.simple(TString.rightPad("  -r", 35, ' ')							+ "Context root path, contain webserver static file");
+					Logger.simple(TString.rightPad("  -i", 35, ' ')							+ "index file for client access to webserver");
+					Logger.simple(TString.rightPad("  -mri", 35, ' ')						+ "Match route ignore case");
+					Logger.simple(TString.rightPad("  --config", 35, ' ')					+ "Webserver config file");
+					Logger.simple(TString.rightPad("  --remoteConfig", 35, ' ')				+ "Remote Webserver config with a HTTP URL address");
+					Logger.simple(TString.rightPad("  --charset", 35, ' ')					+ "set default charset");
+					Logger.simple(TString.rightPad("  --noGzip", 35, ' ')					+ "Do not use gzip for client");
+					Logger.simple(TString.rightPad("  --noAccessLog", 35, ' ')				+ "Do not write access log to access.log");
+					Logger.simple(TString.rightPad("  --https.CertificateFile", 35, ' ')	+ "Certificate file for https");
+					Logger.simple(TString.rightPad("  --https.CertificatePassword", 35, ' ')+ "Certificate passwork for https");
+					Logger.simple(TString.rightPad("  --https.KeyPassword", 35, ' ')		+ "Certificate key for https");
+					Logger.simple(TString.rightPad("  --help, -?", 35, ' ')					+ "how to use this command");
+					Logger.simple(TString.rightPad("  -v", 35, ' ')							+ "Show the version information");
 					Logger.simple("");
 
 					Logger.simple("This WebServer based on VoovanFramework.");
@@ -919,6 +799,8 @@ public class WebServer {
 					Logger.simple("Author: helyho");
 					Logger.simple("E-mail: helyho@gmail.com");
 					Logger.simple("");
+
+					System.exit(1);
 
 					return null;
 				}
@@ -949,15 +831,10 @@ public class WebServer {
 			System.out.println("=============================================================================================");
 			System.out.println("[" + TDateTime.now() + "] Try to stop WebServer....");
 
-			unInitModule();
-			this.WebServerDestory(this);
-
 			if(serverSocket!=null) {
 				serverSocket.close();
 			}
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
-
-			SocketContext.gracefulShutdown();
 
 			if(serverSocket.getAcceptEventRunnerGroup()!=null) {
 				ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
@@ -966,9 +843,16 @@ public class WebServer {
 				ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
 			}
 
+			SocketContext.gracefulShutdown();
+
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
 
+
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
+
+			//LifeCycle.destory
+			unInitModule();
+			this.WebServerDestory(this);
 
 			System.out.println("[" + TDateTime.now() + "] Now webServer is fully stoped.");
 			TEnv.sleep(1000);

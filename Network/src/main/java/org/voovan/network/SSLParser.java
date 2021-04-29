@@ -159,13 +159,13 @@ public class SSLParser {
 	public synchronized SSLEngineResult unwarpData(ByteBuffer netBuffer, ByteBuffer appBuffer) throws SSLException {
 		if (session.isConnected()) {
 			SSLEngineResult engineResult = null;
-			synchronized (appBuffer) {
-				if(!TByteBuffer.isReleased(appBuffer)) {
-					engineResult = engine.unwrap(netBuffer, appBuffer);
-				} else {
-					return null;
-				}
+
+			if(!TByteBuffer.isReleased(appBuffer)) {
+				engineResult = engine.unwrap(netBuffer, appBuffer);
+			} else {
+				return null;
 			}
+
 			return engineResult;
 		} else {
 			return null;
@@ -278,14 +278,14 @@ public class SSLParser {
 					case NOT_HANDSHAKING:
 						handShakeDone = true;
 
-//                        //对于连续数据的处理
-//						if(sslByteBufferChannel.size() > 0){
-//							try {
-//								unWarpByteBufferChannel(sslByteBufferChannel.getByteBuffer());
-//							} finally {
-//								sslByteBufferChannel.compact();
-//							}
-//						}
+                        //对于粘包数据的处理
+						if(sslByteBufferChannel.size() > 0){
+							try {
+								unWarpByteBufferChannel();
+							} finally {
+								sslByteBufferChannel.compact();
+							}
+						}
 
 						//触发 onConnect 时间
 						EventTrigger.fireConnect(session);

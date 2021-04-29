@@ -1,7 +1,6 @@
 package org.voovan.network;
 
 import org.voovan.network.messagesplitter.TransferSplitter;
-import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
@@ -150,8 +149,8 @@ public class MessageLoader {
 						if (messageSplitter instanceof TransferSplitter) {
 							splitLength = dataByteBuffer.limit();
 						} else {
-							//拦截心跳
-							while(HeartBeat.interceptHeartBeat(session)){
+							//拦截心跳, 可能有多个连续的心跳
+							while(HeartBeat.intercept(session)){
 
 							}
 							splitLength = messageSplitter.canSplite(session, dataByteBuffer);

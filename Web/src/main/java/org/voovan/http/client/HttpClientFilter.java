@@ -9,7 +9,6 @@ import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.network.IoFilter;
 import org.voovan.network.IoSession;
 import org.voovan.network.exception.IoFilterException;
-import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
@@ -26,8 +25,6 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class HttpClientFilter implements IoFilter {
-	private static FastThreadLocal<Response> THREAD_RESPONSE = FastThreadLocal.withInitial(()->new Response());
-
 	private HttpClient httpClient;
 
 	public HttpClientFilter(HttpClient httpClient){
@@ -42,7 +39,7 @@ public class HttpClientFilter implements IoFilter {
 		if(object instanceof HttpRequest){
 			HttpRequest httpRequest = (HttpRequest)object;
 			try {
-				httpRequest.send();
+				httpRequest.send(session);
 			} catch (IOException e) {
 				Logger.error(e);
 			}
@@ -59,16 +56,11 @@ public class HttpClientFilter implements IoFilter {
 			if(object instanceof ByteBuffer){
 				ByteBuffer byteBuffer = (ByteBuffer)object;
 
-				if(WebServerHandler.getAttachment(session).isWebSocket()){
+				if(WebServerHandler.getSessionState(session).isWebSocket()){
 					return WebSocketFrame.parse((ByteBuffer)object);
 				}else {
-					Response response = HttpParser.parseResponse(THREAD_RESPONSE.get(), session, byteBufferChannel, session.socketContext().getReadTimeout());
-
-
-					if(response.protocol().getStatus() == 101){
-						//初始化 WebSocket
-						httpClient.initWebSocket();
-					}
+					Response response = (Response) ((Object[])session.getAttachment())[3];
+					response = HttpParser.parseResponse(response, session, byteBufferChannel, session.socketContext().getReadTimeout());
 
 					return response;
 				}

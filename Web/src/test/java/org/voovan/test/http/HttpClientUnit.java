@@ -45,7 +45,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://www.voovan.org","GB2312", 60);
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080/","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 			.putParameters("name", "测试Get")
 			.putParameters("age", "32").send();
@@ -73,10 +73,11 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testPost() throws Exception {
-		HttpClient postClient = new HttpClient("http://47.104.237.122:9001",60);
+		HttpClient postClient = new HttpClient("http://127.0.0.1:28080/test",60);
 		Response response = postClient.setMethod("POST")
-				.setData("{\"marketId\":\"100\",\"userId\":\"1066\",\"pageNum\":1,\"pageSize\":50}")
-				.send("/Order/getUserOrders");
+				.putParameters("name", "测试Get")
+				.putParameters("age", "32")
+				.send();
 		new Response().copyFrom(response);
 		System.out.println(response.body().getBodyString());
 		assertTrue(response.protocol().getStatus() != 500);
@@ -106,7 +107,7 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.oschina.net/","UTF-8", 6000);
+		HttpClient httpClient = new HttpClient("https://www.oschina.net","UTF-8", 6000);
 		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
@@ -125,13 +126,17 @@ public class HttpClientUnit extends TestCase {
 		httpClient.close();
 	}
 
+	public static  WebSocketSession session ;
+
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://webserver.voovan.org/websocket","GBK2312",60);
+		HttpClient httpClient = new HttpClient("wss://api.huobiasia.vip/ws","GBK2312",60);
+
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
 			@Override
 			public Object onOpen(WebSocketSession webSocketSession) {
 				System.out.println("WebSocket open");
+				HttpClientUnit.session = webSocketSession;
 				return "OPEN_MSG";
 			}
 
@@ -145,9 +150,9 @@ public class HttpClientUnit extends TestCase {
 					return "RECIVE_MSG";
 				}
 
-				if(((String)message).contains("RECIVE_MSG")){
-					webSocketSession.close();
-				}
+//				if(((String)message).contains("RECIVE_MSG")){
+//					webSocketSession.close();
+//				}
 
 				return null;
 			}
@@ -162,6 +167,10 @@ public class HttpClientUnit extends TestCase {
 				System.out.println("WebSocket close");
 			}
 		}.addFilterChain(new StringFilter()));
+
+		TEnv.sleep(100000);
+
+		HttpClientUnit.session.close();
 
 		TEnv.sleep(3000);
 	}
@@ -190,5 +199,4 @@ public class HttpClientUnit extends TestCase {
 		}
 		getClient.close();
 	}
-
 }

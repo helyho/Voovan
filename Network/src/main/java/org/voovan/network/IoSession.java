@@ -127,9 +127,9 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
 		sendByteBufferChannel = new ByteBufferChannel(socketContext.getSendBufferSize());
+		readByteBufferChannel.setThreadSafe(SocketContext.ASYNC_RECIVE);
 		sendByteBufferChannel.setThreadSafe(SocketContext.ASYNC_SEND);
 		messageLoader = new MessageLoader(this);
-		checkIdle();
 	}
 
 	public Object getAttachment() {
@@ -209,55 +209,23 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	public void checkIdle(){
 		if(socketContext.getIdleInterval() > 0) {
-
 			if(checkIdleTask == null){
 				final IoSession session = this;
 
 				checkIdleTask = new HashWheelTask() {
 					public void run() {
-						//触发空闲事件
-						long timeDiff = System.currentTimeMillis() - lastIdleTime;
-						if (timeDiff >= socketContext.getIdleInterval() * 1000) {
-							boolean isConnect = false;
-
-							//初始化状态
-							if(session.state.isInit() ||
-									session.state.isConnect()) {
-								return;
-							}
-
-							//检测会话状态
-							if(session.state.isClose()){
-								session.cancelIdle();
-								return;
-							}
-
-							//获取连接状态
-							isConnect = session.isConnected();
-
-							if(!isConnect){
-								session.cancelIdle();
-								session.close();
-								this.cancel();
-								return;
-							}
-
-
-							//检查空间时间
-							if(socketContext.getIdleInterval() < 1){
-								return;
-							}
-
-							EventTrigger.fireIdle(session);
-							lastIdleTime = System.currentTimeMillis();
+						//检测会话状态
+						if(session.state.isClose()){
+							session.cancelIdle();
+							return;
 						}
 
+						EventTrigger.fireIdle(session);
+						lastIdleTime = System.currentTimeMillis();
 					}
 				};
 
-				checkIdleTask.run();
-
-				getIdleWheelTimer().addTask(checkIdleTask, 1, true);
+				getIdleWheelTimer().addTask(checkIdleTask, socketContext.getIdleInterval(), true);
 			}
 		}
 	}
@@ -397,12 +365,12 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		return readSize;
 	}
 
-	/**
-	 * 同步读取消息
-	 * 			消息会经过 filter 的 decoder 函数处理后再返回
-	 * @return 读取出的对象
-	 * @throws ReadMessageException  读取消息异常
-	 */
+		/**
+         * 同步读取消息
+         * 			消息会经过 filter 的 decoder 函数处理后再返回
+         * @return 读取出的对象
+         * @throws ReadMessageException  读取消息异常
+         */
 	public Object syncRead() throws ReadMessageException {
 
 		Object readObject = null;
@@ -423,7 +391,10 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 			if(readObject == null) {
 				if(isConnected()) {
-					throw new ReadMessageException("syncRead failed, resposne is null");
+					readObject = synchronousHandler.getResponse(socketContext.getReadTimeout());
+					if(readObject == null) {
+						throw new ReadMessageException("syncRead failed, resposne is null");
+					}
 				} else {
 					throw new ReadMessageException("syncRead failed, Socket is disconnected");
 				}
@@ -440,8 +411,16 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		} catch (ReadMessageException re) {
 			throw re;
 		} catch (TimeoutException te) {
-			socketContext.close();
-			throw new ReadMessageException("syncRead failed, socket is timeout", te);
+			try {
+				//区分连接状态
+				if (isConnected()) {
+					throw new ReadMessageException("syncRead failed, socket is timeout", te);
+				} else {
+					throw new ReadMessageException("syncRead failed by timeout, Socket already disconnect", te);
+				}
+			} finally {
+				socketContext.close();
+			}
 		} catch (Exception e) {
 			throw new ReadMessageException("syncRead failed", e);
 		}
@@ -469,11 +448,22 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	protected int sendToBuffer(ByteBuffer buffer) {
 		try {
-			socketContext.updateLastTime();
-			return sendByteBufferChannel.writeEnd(buffer);
+			//如果大于缓冲区,则现发送一次
+			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
+				flush();
+			}
+
+			int size = sendByteBufferChannel.writeEnd(buffer);
+
+			//强行每次发送都进行 flush
+			if(SocketContext.FORCE_FLUSH) {
+				flush();
+			}
+
+			return size;
 		} catch (Exception e) {
 			if (socketContext.isConnected()) {
-				Logger.error("IoSession.sendByBuffer buffer failed", e);
+				Logger.error("Socket will be close, IoSession.sendByBuffer buffer failed " + this, e);
 			} else {
 				close();
 			}
@@ -491,7 +481,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		try {
-			state.setFlush(true);
 			if(sslParser!=null) {
 				TEnv.waitThrow(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
 			}
@@ -508,8 +497,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		} catch (TimeoutException e) {
 			throw new SendMessageException("Method syncSend error! Error by "+
 					e.getClass().getSimpleName() + ".",e);
-		} finally {
-			state.setFlush(false);
 		}
 	}
 
@@ -521,22 +508,23 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	public int send(ByteBuffer buffer){
 		try {
-			//如果大于缓冲区,则现发送一次
-			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
-				flush();
-			}
-
 			if(sslParser!=null && sslParser.isHandShakeDone()) {
 				//warpData 内置调用 session.sendByBuffer 将数据送至发送缓冲区
 				sslParser.warpData(buffer);
 				return buffer.limit();
 			} else {
-
 				return sendToBuffer(buffer);
 			}
 		} catch (IOException e) {
 			Logger.error("IoSession.writeToChannel data failed" ,e);
 		}
+
+//		finally {
+//			//同步模式自动 flush
+//			if(socketContext.handler instanceof SynchronousHandler) {
+//				flush();
+//			}
+//		}
 
 		return -1;
 	}
@@ -546,6 +534,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 */
 	public void flush() {
 		if(sendByteBufferChannel.size()>0) {
+			state.setFlush(true);
 			ByteBuffer byteBuffer = sendByteBufferChannel.getByteBuffer();
 			try {
 				int size = send0(byteBuffer);
@@ -560,6 +549,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 				}
 			} finally {
 				sendByteBufferChannel.compact();
+				state.setFlush(false);
 			}
 		}
 	}
@@ -599,10 +589,15 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public void release() {
 		if(socketContext.isRegister() && socketSelector!=null) {
 			socketSelector.unRegister(selectionKey);
-		} else {
-			readByteBufferChannel.release();
-			sendByteBufferChannel.release();
 		}
+
+		readByteBufferChannel.release();
+		sendByteBufferChannel.release();
+		if (isSSLMode()) {
+			sslParser.release();
+		}
+
+		cancelIdle();
 	}
 
 	@Override

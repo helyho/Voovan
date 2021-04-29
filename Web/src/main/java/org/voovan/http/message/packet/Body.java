@@ -1,10 +1,14 @@
 package org.voovan.http.message.packet;
 
+import org.voovan.http.message.exception.BodyParseExecption;
+import org.voovan.http.message.exception.HttpParserException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
 import org.voovan.tools.TZip;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.json.JSONPath;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
@@ -23,11 +27,14 @@ import java.nio.ByteBuffer;
  * Licence: Apache v2 License
  */
 public class Body {
+	private final static String TMP_RESPONSE = TFile.assemblyPath(TFile.getTemporaryPath(), "voovan", "webserver", "response");
+
 	private ByteBufferChannel byteBufferChannel;
 	private BodyType type;
 	private File bodyFile;
 	private long position;
 	private int mark = 0;
+	private JSONPath jsonPath;
 
 	/**
 	 * Body 类型枚举
@@ -199,6 +206,36 @@ public class Body {
 	}
 
 	/**
+	 * 使用 json 来解析 body
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T getBodyObject(Class clazz){
+		return getObject("/", clazz);
+	}
+
+	/**
+	 * 使用 json 来解析 body
+	 * @param path 解析的路径
+	 * @param clazz 目标对象类描述, list / map 支持范型
+	 * @param <T> 响应对象类型
+	 * @return json 解析后的对象
+	 */
+	public <T> T getObject(String path, Class clazz){
+		path = path == null ? "/" : path;
+		String body = getBodyString();
+		try {
+			if(jsonPath == null) {
+				jsonPath = JSONPath.newInstance(getBodyString());
+			}
+			return (T) jsonPath.value(path, clazz);
+		} catch (Exception e) {
+			throw new BodyParseExecption(-400, getBodyString(),  "response parse error");
+		}
+	}
+
+	/**
 	 * 读取 Body 中的内容
 	 * @param byteBuffer ByteBuffer 对象
 	 * @return  读出的字节长度
@@ -246,18 +283,29 @@ public class Body {
 	 * @param length  写入长度
 	 */
 	public void write(byte[] body,int offset,int length){
-		try {
-			if(type == BodyType.BYTES) {
-				int hash = THash.HashFNV1(body, offset, length);
-				mark = mark==0 ? hash : mark + hash;
-				if(!byteBufferChannel.isReleased()) {
+		if(type == BodyType.BYTES) {
+			int hash = THash.HashFNV1(body, offset, length);
+			mark = mark==0 ? hash : mark + hash;
+			if(!byteBufferChannel.isReleased()) {
+				if(byteBufferChannel.size() + length <= byteBufferChannel.getMaxSize()) {
 					byteBufferChannel.writeEnd(body, offset, length);
 				}
-			}else{
-				TFile.writeFile(bodyFile,true, body, offset, length);
+				//超过缓冲区大小使用文件作为缓冲
+				else {
+					File tmpFile = new File(TMP_RESPONSE  + File.separator + TString.generateId() + ".tmp");
+					try {
+						TFile.writeFile(tmpFile, true, byteBufferChannel.array(), 0, byteBufferChannel.size());
+						TFile.writeFile(tmpFile, true, body, offset, length);
+						byteBufferChannel.clear();
+						changeToFile(tmpFile.getAbsolutePath());
+					} catch (Exception e) {
+						TFile.deleteFile(tmpFile);
+						Logger.error("Body large buffer change to file failed : " + tmpFile.getAbsolutePath(), e);
+					}
+				}
 			}
-		} catch (IOException e) {
-			Logger.error("Wirte byte array faild by OutputStream",e);
+		}else{
+			TFile.writeFile(bodyFile,true, body, offset, length);
 		}
 	}
 
@@ -321,6 +369,8 @@ public class Body {
 			changeToBytes();
 		}
 
+		jsonPath = null;
+
 		mark = 0;
 	}
 
@@ -331,22 +381,6 @@ public class Body {
 
 		if(type == BodyType.FILE) {
 			TFile.moveFile(bodyFile, destFile);
-		}
-	}
-
-	@Override
-	public String toString(){
-		byte[] bodyBytes = getBodyBytes();
-		try {
-			if(type == BodyType.FILE) {
-				return bodyFile.getPath();
-			}else{
-				return new String(bodyBytes, "UTF-8");
-
-			}
-		} catch (UnsupportedEncodingException e) {
-			Logger.error(e);
-			return null;
 		}
 	}
 
@@ -396,5 +430,7 @@ public class Body {
 				bodyFile.delete();
 			}
 		}
+
+		jsonPath = null;
 	}
 }

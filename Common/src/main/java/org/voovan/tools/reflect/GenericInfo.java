@@ -13,49 +13,30 @@ import java.lang.reflect.Type;
  */
 public class GenericInfo {
     private Class clazz;
-    private Type type;
+    private ParameterizedType type;
+    private Class[] genericClasses;
 
-    public GenericInfo(Class clazz) {
-        this.clazz = clazz;
-        this.type = (Type)clazz;
-        this.type = type instanceof ParameterizedType ? (ParameterizedType)type : type;
-    }
-
-    public GenericInfo(Class clazz, Type type) {
-        this.clazz = clazz;
-        this.type = type;
+    public GenericInfo(Type type) {
+        if(type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            this.clazz = (Class) parameterizedType.getRawType();
+            this.type = parameterizedType;
+            this.genericClasses = TReflect.getGenericClass(this.type);
+        } else {
+            this.clazz = (Class) type;
+            this.genericClasses = new Class[0];
+        }
     }
 
     public Class getClazz() {
         return clazz;
     }
 
-    public void setClazz(Class clazz) {
-        this.clazz = clazz;
-    }
-
-    public Type getType() {
+    public ParameterizedType getType() {
         return type;
     }
 
-    public void setType(Type type) {
-        this.type = type;
-    }
-
     public Class[] getGenericClass() {
-        return TReflect.getGenericClass(this.type);
-    }
-
-    public static Class[] toClassArray(GenericInfo[] genericInfos) {
-        if(genericInfos==null || genericInfos.length == 0) {
-            return null;
-        }
-
-        Class[] genericClazzs = new Class[genericInfos.length];
-        for(int i=0;i<genericInfos.length - 1; i++) {
-            genericClazzs[i] = genericInfos[i].getClazz();
-        }
-
-        return genericClazzs;
+        return genericClasses;
     }
 }

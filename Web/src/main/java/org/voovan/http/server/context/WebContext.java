@@ -54,13 +54,13 @@ public class WebContext {
 	private static final String SESSION_NAME = Global.FRAMEWORK_NAME.toLowerCase() + "_SESSIONID";
 
 	//通用 Header
-	public static byte[] RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n").getBytes();
+	public static byte[] RESPONSE_COMMON_HEADER = TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 
 	static{
 		Global.getHashWheelTimer().addTask(new HashWheelTask() {
 			@Override
 			public void run() {
-				RESPONSE_COMMON_HEADER = ("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n").getBytes();
+				RESPONSE_COMMON_HEADER =  TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 			}
 		}, 1);
 	}
@@ -132,15 +132,18 @@ public class WebContext {
 	 */
 	public static void loadWebConfig(){
 		synchronized (WEB_CONFIG) {
-			WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath("/conf/web.json")));
+			String confWeb = TFile.assemblyPath("conf", "web.json");
+			WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath(confWeb)));
 		}
 
 		synchronized (MIME_TYPES) {
-			MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath("/conf/mime.json")));
+			String confMime = TFile.assemblyPath("conf", "mime.json");
+			MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath(confMime)));
 		}
 
 		synchronized (ERROR_DEFINE) {
-			ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath("/conf/error.json")));
+			String confError = TFile.assemblyPath("conf", "error.json");
+			ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath(confError)));
 		}
 	}
 
@@ -364,10 +367,10 @@ public class WebContext {
 
 		System.out.println("==================================================================================================================================================");
 		System.out.println("  This WebServer based on VoovanFramework.");
-		System.out.println("  Version: " + VERSION);
-		System.out.println("  WebSite: http://www.voovan.org");
-		System.out.println("  Author: helyho");
-		System.out.println("  E-mail: helyho@gmail.com");
+		System.out.println("  Version: \t" + VERSION);
+		System.out.println("  WebSite: \thttp://www.voovan.org");
+		System.out.println("  Author: \thelyho");
+		System.out.println("  E-mail: \thelyho@gmail.com");
 		System.out.println("==================================================================================================================================================");
 	}
 
@@ -377,16 +380,13 @@ public class WebContext {
 	 */
 	public static void getAuthToken(){
 		//保存 Token
-		File tokenFile = new File(".token");
+		File tokenFile = new File("logs" + File.separator + ".token");
+		TFile.mkdir(tokenFile.getPath());
 
 		if(tokenFile.exists()){
 			WebContext.AUTH_TOKEN = new String(TFile.loadFile(tokenFile));
 		} else {
-			try {
-				TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
-			} catch (IOException e) {
-				Logger.error("Write token to file: " + tokenFile.getPath() + " error", e);
-			}
+			TFile.writeFile(tokenFile, false, WebContext.AUTH_TOKEN.getBytes());
 		}
 	}
 
