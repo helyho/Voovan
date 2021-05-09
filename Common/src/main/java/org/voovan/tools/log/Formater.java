@@ -34,6 +34,7 @@ import java.util.*;
  * Licence: Apache v2 License
  */
 public class Formater {
+    public static int ALL;
     public static int INFO;
     public static int FRAMEWORK;
     public static int SQL;
@@ -46,17 +47,23 @@ public class Formater {
 
     private static String DATE = TDateTime.now("yyyyMMdd");
 
+    public static List<String> LOG_LEVEL = getLogLevels();
+
     static {
-        ArrayList<String> logLevel = getLogLevels();
-        INFO        = logLevel.indexOf("INFO");
-        FRAMEWORK   = logLevel.indexOf("FRAMEWORK");
-        SQL         = logLevel.indexOf("SQL");
-        DEBUG       = logLevel.indexOf("DEBUG");
-        TRACE       = logLevel.indexOf("TRACE");
-        WARN        = logLevel.indexOf("WARN");
-        ERROR       = logLevel.indexOf("ERROR");
-        FATAL       = logLevel.indexOf("FATAL");
-        SIMPLE      = logLevel.indexOf("SIMPLE");
+        if(LOG_LEVEL.contains("ALL")) {
+            LOG_LEVEL = TObject.asList("ALL", "INFO", "FRAMEWORK", "SQL", "DEBUG", "TRACE", "WARN", "ERROR", "FATAL", "SIMPLE");
+        }
+
+        ALL         = LOG_LEVEL.indexOf("ALL");
+        INFO        = LOG_LEVEL.indexOf("INFO");
+        FRAMEWORK   = LOG_LEVEL.indexOf("FRAMEWORK");
+        SQL         = LOG_LEVEL.indexOf("SQL");
+        DEBUG       = LOG_LEVEL.indexOf("DEBUG");
+        TRACE       = LOG_LEVEL.indexOf("TRACE");
+        WARN        = LOG_LEVEL.indexOf("WARN");
+        ERROR       = LOG_LEVEL.indexOf("ERROR");
+        FATAL       = LOG_LEVEL.indexOf("FATAL");
+        SIMPLE      = LOG_LEVEL.indexOf("SIMPLE");
 
         Global.getHashWheelTimer().addTask(new HashWheelTask() {
             @Override
@@ -66,7 +73,7 @@ public class Formater {
         }, 1);
     }
 
-    public static FastThreadLocal<ArrayList<String>>  THREAD_LOG_LEVEL = FastThreadLocal.withInitial(()-> {
+    public static FastThreadLocal<List<String>>  THREAD_LOG_LEVEL = FastThreadLocal.withInitial(()-> {
         return getLogLevels();
     });
 
@@ -78,12 +85,11 @@ public class Formater {
     private String lineTail;
 
 
-
-
-    public static ArrayList<String> getLogLevels() {
-        ArrayList<String> logLevel = new ArrayList<>();
-        logLevel.addAll(TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(",")));
-        return logLevel;
+    public static List<String> getLogLevels() {
+        if(LOG_LEVEL==null) {
+            LOG_LEVEL = TObject.asList(LoggerStatic.getLogConfig("LogLevel", LoggerStatic.LOG_LEVEL).split(","));
+        }
+        return LOG_LEVEL;
     }
 
     protected String getDateStamp() {

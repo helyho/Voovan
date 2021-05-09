@@ -44,7 +44,7 @@ public class Logger {
 	 * @return true: 包含, false: 不包含
 	 */
 	public static boolean hasLevel(String logLevel){
-		if(formater.getLogLevel().contains("ALL")){
+		if(Formater.ALL==0){
 			return true;
 		}
 
