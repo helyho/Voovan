@@ -214,6 +214,10 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 				checkIdleTask = new HashWheelTask() {
 					public void run() {
+						if(session.state.isConnect()) {
+							return;
+						}
+
 						//检测会话状态
 						if(session.state.isClose()){
 							session.cancelIdle();

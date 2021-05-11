@@ -47,6 +47,25 @@ public class EventProcess {
     }
 
     /**
+     * 连接预备事件
+     *
+     * @param event 事件对象
+     * @throws IOException IO 异常
+     *
+     */
+    public static void prepare(Event event) throws IOException {
+        IoSession session = event.getSession();
+
+        //客户端模式主动发起 SSL 握手
+        if (session.isSSLMode() &&
+                !session.getSSLParser().isHandShakeDone() &&
+                session.socketContext().connectModel == ConnectModel.CLIENT) {
+            session.getSSLParser().doHandShake();
+            return;
+        }
+    }
+
+    /**
      * 连接成功事件 建立连接完成后出发
      *
      * @param event 事件对象
@@ -55,14 +74,6 @@ public class EventProcess {
      */
     public static void onConnect(Event event) throws IOException {
         IoSession session = event.getSession();
-
-        //客户端模式主动发起 SSL 握手, 由握手完成后再发起下一次 onConnect
-        if (session.isSSLMode() &&
-                !session.getSSLParser().isHandShakeDone() &&
-                session.socketContext().connectModel == ConnectModel.CLIENT) {
-            session.getSSLParser().doHandShake();
-            return;
-        }
 
         try {
             //设置连接状态
@@ -404,6 +415,8 @@ public class EventProcess {
         try {
             if (eventName == EventName.ON_ACCEPTED) {
                 EventProcess.onAccepted(event);
+            } else if (eventName == EventName.ON_PREPARE) {
+                EventProcess.prepare(event);
             } else if (eventName == EventName.ON_CONNECT) {
                 EventProcess.onConnect(event);
             } else if (eventName == EventName.ON_DISCONNECT) {

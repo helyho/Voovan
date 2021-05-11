@@ -155,7 +155,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 
         bindToSocketSelector(SelectionKey.OP_READ);
 
-        waitConnect();
+        hold();
     }
 
     @Override

@@ -122,23 +122,21 @@ public class SocketSelector implements Closeable {
 				try {
 					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
 
-					if (socketContext.connectModel != ConnectModel.LISTENER) {
-						IoSession session = socketContext.getSession();
+					IoSession session = socketContext.getSession();
 
+					if (socketContext.connectModel != ConnectModel.LISTENER) {
 						session.setSelectionKey(selectionKey);
 						session.setSocketSelector(this);
-
-						if (!session.isSSLMode()) {
-							EventTrigger.fireConnect(session);
-						} else {
-							//客户端模式主动发起 SSL 握手
-							if (socketContext.connectModel == ConnectModel.CLIENT) {
-								session.getSSLParser().doHandShake();
-							}
+						if(session.isSSLMode()) {
+							EventTrigger.firePrepare(session);
 						}
 					}
 
 					socketContext.setRegister(true);
+
+					if(session!=null && !session.isSSLMode()) {
+						socketContext.unhold();
+					}
 				} catch (ClosedChannelException e) {
 					Logger.error("Register " + socketContext + " to selector error", e);
 				}
