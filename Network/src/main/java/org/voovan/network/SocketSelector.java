@@ -338,13 +338,16 @@ public class SocketSelector implements Closeable {
 	 */
 	public int readFromChannel(SocketContext socketContext, SelectableChannel selectableChannel){
 		try {
+			int readSize = -1;
+
 			if (selectableChannel instanceof SocketChannel) {
-				return tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel) selectableChannel);
+				readSize = tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel) selectableChannel);
 			} else if (selectableChannel instanceof DatagramChannel) {
-				return udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) selectableChannel);
-			} else {
-				return -1;
+				readSize = udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) selectableChannel);
 			}
+
+			readSize = loadAndPrepare(socketContext.getSession(), readSize);
+			return readSize;
 		} catch(Exception e){
 			return dealException(socketContext, e);
 		}
@@ -427,7 +430,7 @@ public class SocketSelector implements Closeable {
 			}
 		}
 
-		readSize = loadAndPrepare(socketContext.getSession(), readSize);
+
 		return readSize;
 	}
 
@@ -537,8 +540,6 @@ public class SocketSelector implements Closeable {
 				byteBufferChannel.compact();
 			}
 		}
-
-		readSize = loadAndPrepare(socketContext.getSession(), readSize);
 
 		return readSize;
 	}

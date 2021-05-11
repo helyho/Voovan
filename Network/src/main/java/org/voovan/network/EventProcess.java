@@ -91,6 +91,13 @@ public class EventProcess {
                     session.flush();
                 }
             }
+
+            //如果有未处理的数据
+            int size = session.getReadByteBufferChannel().size();
+            if(size > 0) {
+                session.getSocketSelector().loadAndPrepare(session, size);
+            }
+
         } finally {
             //设置空闲状态
             session.getState().setConnect(false);

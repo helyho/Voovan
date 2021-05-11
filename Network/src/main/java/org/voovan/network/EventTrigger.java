@@ -26,6 +26,9 @@ public class EventTrigger {
 	}
 
 	public static void fireReceiveAsync(IoSession session) {
+		if(session.getState().isInit() || session.getState().isConnect()) {
+			return;
+		}
 		fireEventAsync(session, Event.EventName.ON_RECEIVE, null);
 	}
 
@@ -65,6 +68,9 @@ public class EventTrigger {
 	}
 
 	public static void fireReceive(IoSession session){
+		if(session.getState().isInit() || session.getState().isConnect()) {
+			return;
+		}
 		fire(session, Event.EventName.ON_RECEIVE, null);
 	}
 
