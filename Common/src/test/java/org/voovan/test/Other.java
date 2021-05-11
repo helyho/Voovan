@@ -7,6 +7,9 @@ import org.voovan.tools.cmd.annotation.Option;
 import org.voovan.tools.json.JSON;
 
 import java.math.BigDecimal;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.List;
 
@@ -20,11 +23,9 @@ import java.util.List;
  */
 public class Other {
     public static void main(String[] args) throws Exception {
-       BigDecimal b = new BigDecimal("1.00");
-        BigDecimal c = new BigDecimal("1.00000");
-        System.out.println(b.compareTo(c));
-
-        System.out.println(b);
+        Socket socket = new Socket( new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", 1080)));
+        socket.connect(new InetSocketAddress("loaclhost",28080));
+        System.out.println(socket);
     }
 
 
