@@ -527,8 +527,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		synchronized (wait) {
 			try {
 				wait.wait();
-
-				EventTrigger.fireConnect(getSession());
 			}catch(Exception e){
 				Logger.error(e);
 				close();
@@ -538,6 +536,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	protected void unhold() {
 		synchronized (wait) {
+			EventTrigger.fireConnect(getSession());
 			wait.notifyAll();
 		}
 	}
