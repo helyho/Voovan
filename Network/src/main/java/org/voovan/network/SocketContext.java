@@ -556,10 +556,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 		//绑定 FileDescriptor
 		NioUtil.bindFileDescriptor(this);
-
-		if(connectModel != ConnectModel.LISTENER) {
-			EventTrigger.fireConnect(getSession());
-		}
 	}
 
     /**

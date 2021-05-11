@@ -32,6 +32,10 @@ public class ObjectPool<T extends IPooledObject> {
 
     public static HashWheelTimer OBJECT_POOL_HASH_WHEEL = new HashWheelTimer("WHEELTIMER-OBJECT-POOL", 60, 1000);
 
+    static{
+        OBJECT_POOL_HASH_WHEEL.rotate();
+    }
+
     //<ID, 缓存的对象>
     private ConcurrentHashMap<Long, InnerObject<T>> objects = new ConcurrentHashMap<Long, InnerObject<T>>();
     //未解出的对象 ID
