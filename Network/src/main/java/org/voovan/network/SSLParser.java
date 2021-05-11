@@ -444,28 +444,4 @@ public class SSLParser {
 			sslByteBufferChannel.compact();
 		}
 	}
-
-
-	/**
-	 * 等待握手完成
-	 */
-	public void waitHandShakeDone(){
-		try {
-			TEnv.wait(session.socketContext().getReadTimeout(), ()-> {
-				if(session.isSSLMode() && session.getSSLParser().isHandShakeDone()) {
-					return false;
-				} else if(!session.isConnected()) {
-					Logger.error("Socket is disconnected");
-					return false;
-				} else {
-					return true;
-				}
-			});
-		}catch(Exception e){
-			Logger.error(e);
-			session.close();
-		}
-	}
-
-
 }
