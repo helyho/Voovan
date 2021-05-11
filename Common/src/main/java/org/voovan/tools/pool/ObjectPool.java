@@ -481,7 +481,6 @@ public class ObjectPool<T extends IPooledObject> {
                 @Override
                 public void run() {
                     try {
-                        System.out.println("pool task...");
                         Iterator<InnerObject<T>> iterator = objects.values().iterator();
                         int totalSize = objects.size();
 
