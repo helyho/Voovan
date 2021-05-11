@@ -287,8 +287,7 @@ public class SSLParser {
 							}
 						}
 
-						//触发 onConnect 时间
-						EventTrigger.fireConnect(session);
+						session.socketContext().unhold();
 						break;
 					default:
 						break;

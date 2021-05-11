@@ -146,6 +146,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	private FileDescriptor fileDescriptor;
 
+	private Object wait = new Object();
+
 	/**
 	 * 构造函数
 	 * 		默认不会出发空闲事件, 默认发超时时间: 1s
@@ -293,6 +295,10 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		} else {
 			return false;
 		}
+	}
+
+	Object getWait() {
+		return wait;
 	}
 
 	/**
@@ -517,18 +523,22 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	/**
 	 * 等待连接完成, 包含事件注册和 SSL 握手, 用于在同步调用的方法中同步
 	 */
-	public void waitConnect() {
-		try {
-			//等待注册完成
-			TEnv.wait(readTimeout, ()->!isRegister);
+	protected void hold() {
+		synchronized (wait) {
+			try {
+				wait.wait();
 
-			//等待 SSL 握手完成
-			if(getSession().isSSLMode()) {
-				getSession().getSSLParser().waitHandShakeDone();
+				EventTrigger.fireConnect(getSession());
+			}catch(Exception e){
+				Logger.error(e);
+				close();
 			}
-		}catch(Exception e){
-			Logger.error(e);
-			close();
+		}
+	}
+
+	protected void unhold() {
+		synchronized (wait) {
+			wait.notifyAll();
 		}
 	}
 

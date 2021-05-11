@@ -162,23 +162,17 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 * 		非阻塞方法
 	 */
 	public void syncStart() throws IOException {
-		initSSL(session);
-
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
 		socketChannel.configureBlocking(false);
+		initSSL(session);
 		bindToSocketSelector(SelectionKey.OP_READ);
-
-		waitConnect();
+		hold();
     }
 
 	protected void acceptStart() throws IOException {
-		try {
-			initSSL(session);
-
-			bindToSocketSelector(SelectionKey.OP_READ);
-		}catch(IOException e){
-			Logger.error(e);
-		}
+		initSSL(session);
+		bindToSocketSelector(SelectionKey.OP_READ);
+		hold();
 	}
 
 	@Override
