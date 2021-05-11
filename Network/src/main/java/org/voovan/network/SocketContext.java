@@ -526,7 +526,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected void hold() {
 		synchronized (wait) {
 			try {
-				wait.wait();
+				wait.wait(readTimeout);
 			}catch(Exception e){
 				Logger.error(e);
 				close();
