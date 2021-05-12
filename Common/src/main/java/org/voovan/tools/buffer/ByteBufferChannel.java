@@ -444,7 +444,6 @@ public class ByteBufferChannel {
 
             return byteBuffer;
         } catch (Exception e) {
-            unlock();
             return null;
         }
     }
