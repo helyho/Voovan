@@ -133,6 +133,6 @@ public class UdpSession extends IoSession<UdpSocket> {
 
 	@Override
 	public String toString() {
-		return "[" + this.localAddress() + ":" + this.localPort() + "] -> [" + this.remoteAddress() + ":" + this.remotePort() + "]";
+		return "L:[" + this.localAddress() + ":" + this.localPort() + "] <" + (isOpen()?"--":"-X-") + "> R:[" + this.remoteAddress() + ":" + this.remotePort() + "]";
 	}
 }

@@ -127,9 +127,7 @@ public class SocketSelector implements Closeable {
 					if (socketContext.connectModel != ConnectModel.LISTENER) {
 						session.setSelectionKey(selectionKey);
 						session.setSocketSelector(this);
-						if(session.isSSLMode()) {
-							EventTrigger.firePrepare(session);
-						}
+						EventTrigger.firePrepare(session);
 					}
 
 					socketContext.setRegister(true);
