@@ -115,10 +115,13 @@ public class Formater {
                 if(Logger.isEnable()) {
                     //压缩历史日志文件
                     packLogFile();
+                    if(finalFormater==null || finalFormater.loggerThread == null){
+                        cancel();
+                    }
 
                     //如果日志发生变化则产生新的文件
                     if (!finalFormater.getDateStamp().equals(DATE)) {
-                        loggerThread.setOutputStreams(getOutputStreams());
+                        finalFormater.loggerThread.setOutputStreams(getOutputStreams());
                         finalFormater.setDateStamp(DATE);
                     }
                 }
