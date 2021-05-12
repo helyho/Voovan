@@ -1026,7 +1026,7 @@ public class ByteBufferChannel {
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
     public boolean waitData(int length,int timeout, Runnable supplier){
-        return TEnv.wait(timeout, ()->{
+        return TEnv.wait(timeout, false, ()->{
             checkRelease();
 
             if(size() >= length){
@@ -1047,9 +1047,9 @@ public class ByteBufferChannel {
      * @return true: 具备期望长度的数据, false: 等待数据超时
      */
     public boolean waitData(byte[] mark, int timeout, Runnable supplier){
-
-        return TEnv.wait(timeout, ()->{
+        return TEnv.wait(timeout, false, ()->{
             checkRelease();
+
             if(indexOf(mark) != -1) {
                 return false;
             } else {
@@ -1057,7 +1057,6 @@ public class ByteBufferChannel {
                 return indexOf(mark) == -1;
             }
         });
-
     }
 
     /**
