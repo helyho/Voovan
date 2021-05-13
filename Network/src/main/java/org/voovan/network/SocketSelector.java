@@ -117,12 +117,11 @@ public class SocketSelector implements Closeable {
 					if (socketContext.connectModel != ConnectModel.LISTENER) {
 						session.setSelectionKey(selectionKey);
 						session.setSocketSelector(this);
-						EventTrigger.firePrepare(session);
 					}
 
 					socketContext.setRegister(true);
 
-					if(session!=null && !session.isSSLMode()) {
+					if (socketContext.connectModel != ConnectModel.LISTENER) {
 						socketContext.unhold();
 					}
 				} catch (ClosedChannelException e) {
@@ -130,7 +129,7 @@ public class SocketSelector implements Closeable {
 				}
 			});
 
-			//正在 select 则唤醒
+     		//正在 select 则唤醒
 			if (selecting.get()) {
 				selector.wakeup();
 			}
@@ -230,11 +229,11 @@ public class SocketSelector implements Closeable {
 	 */
 	private void processSelect() throws IOException {
 		try {
-			//检查超时
-			checkReadTimeout();
-			selecting.compareAndSet(false, true);
-			NioUtil.select(selector, SocketContext.SELECT_INTERVAL);
-			selecting.compareAndSet(true, false);
+				//检查超时
+				checkReadTimeout();
+				selecting.compareAndSet(false, true);
+				NioUtil.select(selector, SocketContext.SELECT_INTERVAL);
+				selecting.compareAndSet(true, false);
 		} catch (Throwable e) {
 			Logger.error(e);
 		}
@@ -327,7 +326,10 @@ public class SocketSelector implements Closeable {
 				readSize = udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) selectableChannel);
 			}
 
-			readSize = loadAndPrepare(socketContext.getSession(), readSize);
+			IoSession session = socketContext.getSession();
+			if(!session.getState().isInit()) {
+				readSize = loadAndPrepare(socketContext.getSession(), readSize);
+			}
 			return readSize;
 		} catch(Exception e){
 			return dealException(socketContext, e);
@@ -590,13 +592,7 @@ public class SocketSelector implements Closeable {
 
 			if (readSize > 0) {
 				if(session.isSSLMode()) {
-					//如果在没有 SSL 支持 和 握手没有完成的情况下,直接写入
-					if (!SSLParser.isHandShakeDone(session)) {
-						session.getSSLParser().doHandShake();
-						return readSize;
-					} else {
-						session.getSSLParser().unwarpByteBufferChannel();
-					}
+					session.getSSLParser().unwarpByteBufferChannel();
 				}
 
 				if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {

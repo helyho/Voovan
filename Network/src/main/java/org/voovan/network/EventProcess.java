@@ -57,11 +57,18 @@ public class EventProcess {
         IoSession session = event.getSession();
 
         //客户端模式主动发起 SSL 握手
-        if (session.isSSLMode() &&
-                !session.getSSLParser().isHandShakeDone() &&
-                session.socketContext().connectModel == ConnectModel.CLIENT) {
-            session.getSSLParser().doHandShake();
-            return;
+        if (session.isSSLMode() && !session.getSSLParser().isHandShakeDone()){
+            if(session.socketContext().connectModel == ConnectModel.CLIENT) {
+                session.getSSLParser().doHandShake();
+            }
+
+            while(!session.getSSLParser().isHandShakeDone()) {
+                session.getSocketSelector().select();
+
+                if(session.getSSLParser().getSSlByteBufferChannel().size()>0) {
+                    session.getSSLParser().doHandShake();
+                }
+            }
         }
     }
 
