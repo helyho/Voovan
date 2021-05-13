@@ -49,7 +49,6 @@ public class SocketSelector implements Closeable {
 
 	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(65536);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
-	private boolean useSelectNow = false;
 
 	private Runnable ioEvent;
 
@@ -225,9 +224,6 @@ public class SocketSelector implements Closeable {
 				//如果有待处理的操作则下次调用 selectNow, 如果没有待处理的操作则调用带有阻赛的 select
 				if (!selectedKeys.isEmpty()) {
 					ret = processSelectionKeys();
-					useSelectNow = true;
-				} else {
-					useSelectNow = false;
 				}
 			}
 		} catch (IOException e){
@@ -243,15 +239,11 @@ public class SocketSelector implements Closeable {
 	 */
 	private void processSelect() throws IOException {
 		try {
-			if(useSelectNow){
-				NioUtil.select(selector, 0L);
-			} else {
-					//检查超时
-					checkReadTimeout();
-					selecting.compareAndSet(false, true);
-					NioUtil.select(selector, SocketContext.SELECT_INTERVAL);
-					selecting.compareAndSet(true, false);
-			}
+			//检查超时
+			checkReadTimeout();
+			selecting.compareAndSet(false, true);
+			NioUtil.select(selector, SocketContext.SELECT_INTERVAL);
+			selecting.compareAndSet(true, false);
 		} catch (Throwable e) {
 			Logger.error(e);
 		}
