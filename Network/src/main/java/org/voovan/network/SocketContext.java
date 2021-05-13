@@ -138,8 +138,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected int idleInterval = 0;
 	protected long lastReadTime = System.currentTimeMillis();
 
-	private boolean isRegister = false;
-	protected boolean isSynchronous = true;
+	private volatile boolean isRegister = false;
+	protected volatile boolean isSynchronous = true;
 
 	private EventRunnerGroup acceptEventRunnerGroup;
 	private EventRunnerGroup ioEventRunnerGroup;
@@ -524,13 +524,17 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 * 等待连接完成, 包含事件注册和 SSL 握手, 用于在同步调用的方法中同步
 	 */
 	protected void hold() {
-		synchronized (wait) {
-			try {
-				wait.wait(readTimeout);
-			}catch(Exception e){
-				Logger.error(e);
-				close();
+		if(!isRegister) {
+			synchronized (wait) {
+				try {
+					wait.wait(readTimeout);
+				} catch (Exception e) {
+					Logger.error(e);
+					close();
+				}
 			}
+		} else {
+			System.out.println("not need hold");
 		}
 	}
 
