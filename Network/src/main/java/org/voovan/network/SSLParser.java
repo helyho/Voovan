@@ -317,16 +317,15 @@ public class SSLParser {
 			SSLEngineResult engineResult = null;
 
 			try {
-				ByteBuffer appData = appByteBufferChannel.getByteBuffer();
+				ByteBuffer appByteBuffer = appByteBufferChannel.getByteBuffer();
 				try {
-					appData.limit(appData.capacity());
+					appByteBuffer.limit(appByteBuffer.capacity());
 					while (true) {
 
 						ByteBuffer sslByteBuffer = sslByteBufferChannel.getByteBuffer();
-						;
 
 						try {
-							engineResult = unwarp(sslByteBuffer, appData);
+							engineResult = unwarp(sslByteBuffer, appByteBuffer);
 						} finally {
 							sslByteBufferChannel.compact();
 						}
@@ -335,21 +334,13 @@ public class SSLParser {
 							throw new SSLException("unWarpByteBufferChannel: Socket is disconnect");
 						}
 
-						if (engineResult != null &&
-								engineResult.getStatus() == Status.OK &&
-								sslByteBuffer.remaining() == 0) {
+						if (engineResult.getStatus() == Status.OK) {
 							break;
-						}
-
-						if (engineResult != null &&
-								(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
-										engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
-										engineResult.getStatus() == Status.CLOSED)
-						) {
-							break;
+						} else {
+							throw new SSLException("unWarpByteBufferChannel: " + engineResult.getStatus());
 						}
 					}
-					appData.flip();
+					appByteBuffer.flip();
 				} finally {
 					appByteBufferChannel.compact();
 				}
