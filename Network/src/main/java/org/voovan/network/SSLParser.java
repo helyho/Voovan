@@ -323,7 +323,6 @@ public class SSLParser {
 					while (true) {
 
 						ByteBuffer sslByteBuffer = sslByteBufferChannel.getByteBuffer();
-						;
 
 						try {
 							engineResult = unwarp(sslByteBuffer, appData);
