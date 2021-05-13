@@ -268,7 +268,7 @@ public class SSLParser {
 							handshakeStatus = doHandShakeUnwarp();
 						} else {
 							//如果不可解包, 则直接返回, 等待下一次数据接收
-							return false;
+							handShakeDone = false;
 						}
 						break;
 					case FINISHED:
