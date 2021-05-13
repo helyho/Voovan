@@ -23,9 +23,9 @@ import java.util.List;
  */
 public class Other {
     public static void main(String[] args) throws Exception {
-        Socket socket = new Socket( new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", 1080)));
-        socket.connect(new InetSocketAddress("loaclhost",28080));
-        System.out.println(socket);
+        double x = Math.random();
+        int y = (int)(x *2);
+        System.out.println(x + " " + y);
     }
 
 
