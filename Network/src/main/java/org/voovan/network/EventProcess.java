@@ -56,7 +56,7 @@ public class EventProcess {
                 session.getSSLParser().doHandShake();
             }
 
-            while(!session.getSSLParser().isHandShakeDone()) {
+            while(session.isConnected() && !session.getSSLParser().isHandShakeDone()) {
                 session.socketSelector().select();
 
                 if(session.getSSLParser().getSSlByteBufferChannel().size()>0) {
