@@ -262,7 +262,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		IoSession session = socket.getSession();
 
 		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getReadBufferSize());
-		session.getSocketSelector().select();
+		session.socketSelector().select();
 
 		int readSize = session.read(tmpBuffer);
 
