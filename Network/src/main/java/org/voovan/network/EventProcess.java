@@ -2,19 +2,13 @@ package org.voovan.network;
 
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
-import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.FastThreadLocal;
-import org.voovan.tools.TObject;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 事件的实际逻辑处理
@@ -53,7 +47,7 @@ public class EventProcess {
      * @throws IOException IO 异常
      *
      */
-    public static void prepare(Event event) throws IOException {
+    public static void init(Event event) throws IOException {
         IoSession session = event.getSession();
 
         //客户端模式主动发起 SSL 握手
@@ -429,8 +423,8 @@ public class EventProcess {
         try {
             if (eventName == EventName.ON_ACCEPTED) {
                 EventProcess.onAccepted(event);
-            } else if (eventName == EventName.ON_PREPARE) {
-                EventProcess.prepare(event);
+            } else if (eventName == EventName.ON_INIT) {
+                EventProcess.init(event);
             } else if (eventName == EventName.ON_CONNECT) {
                 EventProcess.onConnect(event);
             } else if (eventName == EventName.ON_DISCONNECT) {
