@@ -57,7 +57,7 @@ public class EventProcess {
             }
 
             while(!session.getSSLParser().isHandShakeDone()) {
-                session.getSocketSelector().select();
+                session.socketSelector().select();
 
                 if(session.getSSLParser().getSSlByteBufferChannel().size()>0) {
                     session.getSSLParser().doHandShake();
@@ -96,7 +96,7 @@ public class EventProcess {
             //如果有未处理的数据
             int size = session.getReadByteBufferChannel().size();
             if(size > 0) {
-                session.getSocketSelector().loadAndPrepare(session, size);
+                session.socketSelector().loadAndPrepare(session, size);
             }
 
         } finally {

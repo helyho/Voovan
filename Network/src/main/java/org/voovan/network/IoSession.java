@@ -144,7 +144,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * 获取 Socket 选择器
 	 * @return Socket 选择器
 	 */
-	public SocketSelector getSocketSelector() {
+	public SocketSelector socketSelector() {
 		return socketSelector;
 	}
 
