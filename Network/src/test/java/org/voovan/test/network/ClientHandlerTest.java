@@ -44,10 +44,10 @@ public class ClientHandlerTest implements IoHandler {
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
 		System.out.println("==============================================================================");
-		TEnv.sleep(910);
+		TEnv.sleep(100);
 		reciveCount ++;
 
-		if(reciveCount >= 30) {
+		if(reciveCount >= 300) {
 			session.close();
 		}
 		return "some data\r\n";
