@@ -538,7 +538,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	protected void unhold() {
 		synchronized (wait) {
-			EventTrigger.firePrepare(getSession());
+			EventTrigger.fireInit(getSession());
 			EventTrigger.fireConnect(getSession());
 			wait.notifyAll();
 		}
