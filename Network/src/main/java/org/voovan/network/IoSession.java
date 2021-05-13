@@ -514,7 +514,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		try {
 			if(sslParser!=null && sslParser.isHandShakeDone()) {
 				//warpData 内置调用 session.sendByBuffer 将数据送至发送缓冲区
-				sslParser.warpData(buffer);
+				sslParser.warp(buffer);
 				return buffer.limit();
 			} else {
 				return sendToBuffer(buffer);
