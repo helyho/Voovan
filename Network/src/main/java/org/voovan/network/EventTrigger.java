@@ -18,7 +18,7 @@ public class EventTrigger {
 	}
 
 	public static void firePrepareAsync(IoSession session){
-		fireEventAsync(session, Event.EventName.ON_PREPARE,null);
+		fireEventAsync(session, Event.EventName.ON_INIT,null);
 	}
 
 	public static void fireConnectAsync(IoSession session){
@@ -60,7 +60,7 @@ public class EventTrigger {
 	}
 
 	public static void firePrepare(IoSession session){
-		fire(session, Event.EventName.ON_PREPARE,null);
+		fire(session, Event.EventName.ON_INIT,null);
 	}
 
 	public static void fireConnect(IoSession session){

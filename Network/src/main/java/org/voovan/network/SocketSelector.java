@@ -327,8 +327,9 @@ public class SocketSelector implements Closeable {
 			}
 
 			IoSession session = socketContext.getSession();
+			//初始化状态不出发 loadAndPrepare
 			if(!session.getState().isInit()) {
-				readSize = loadAndPrepare(socketContext.getSession(), readSize);
+				readSize = loadAndPrepare(session, readSize);
 			}
 			return readSize;
 		} catch(Exception e){
