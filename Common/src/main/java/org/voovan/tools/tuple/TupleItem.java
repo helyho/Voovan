@@ -9,26 +9,26 @@ package org.voovan.tools.tuple;
  * Licence: Apache v2 License
  */
 public class TupleItem {
-    private String name;
+    private Object name;
     private Class clazz;
     private Object value;
 
-    public TupleItem(String name, Class clazz) {
+    public TupleItem(Object name, Class clazz) {
         this.name = name;
         this.clazz = clazz;
     }
 
-    public TupleItem(String name, Class clazz, Object value) {
+    public TupleItem(Object name, Class clazz, Object value) {
         this.name = name;
         this.clazz = clazz;
         this.value = value;
     }
 
-    public String getName() {
+    public Object getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(Object name) {
         this.name = name;
     }
 
