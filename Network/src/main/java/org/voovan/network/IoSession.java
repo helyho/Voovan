@@ -485,9 +485,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public void syncSend(Object obj) throws SendMessageException{
 		//等待 ssl 握手完成
 		try {
-			if(sslParser!=null) {
-				TEnv.waitThrow(socketContext.getReadTimeout(), ()->!sslParser.handShakeDone);
-			}
+			TEnv.waitThrow(socketContext.getReadTimeout(), ()->state.isInit());
 
 			if (obj != null) {
 				try {
@@ -543,8 +541,8 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			try {
 				int size = send0(byteBuffer);
 				if(size >= 0) {
-					//ssl 握手完成后才触发 flush 事件
-				    if(!sslMode || sslParser.isHandShakeDone()) {
+					//初始化完成才出发 flush 事件
+					if(!state.isInit()) {
 						//触发发送事件
 						EventTrigger.fireFlush(this);
 					}
