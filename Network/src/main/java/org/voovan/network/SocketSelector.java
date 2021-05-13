@@ -7,23 +7,15 @@ import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TUnsafe;
 import org.voovan.tools.buffer.ByteBufferChannel;
-import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
 
 import java.io.Closeable;
-import java.io.FileDescriptor;
 import java.io.IOException;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -31,7 +23,6 @@ import java.nio.channels.*;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 /**
  * 选择器
@@ -50,7 +41,7 @@ public class SocketSelector implements Closeable {
 	protected ArraySet<SelectionKey> selectedKeys = new ArraySet<SelectionKey>(65536);
 	protected AtomicBoolean selecting = new AtomicBoolean(false);
 
-	private Runnable ioEvent;
+	private Runnable selectEvent;
 
 	/**
 	 * 构造方法
@@ -65,16 +56,16 @@ public class SocketSelector implements Closeable {
 
 		NioUtil.transformSelector(selector, selectedKeys);
 
-		ioEvent = ()->{
+		selectEvent = ()->{
 			try{
 				select();
-				eventRunner.addEvent(4, ioEvent);
+				eventRunner.addEvent(4, selectEvent);
 			} catch (Exception e) {
 				Logger.error("addChoseEvent error:", e);
 			}
 		};
 
-		eventRunner.addEvent(4, ioEvent);
+		eventRunner.addEvent(4, selectEvent);
 
 		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
@@ -389,14 +380,12 @@ public class SocketSelector implements Closeable {
 								? session.getSSLParser().getSSlByteBufferChannel()
 								: session.getReadByteBufferChannel();
 
-		//自动扩容
-
-
 		int readSize = -1;
 
 		if(!byteBufferChannel.isReleased()) {
 			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
+			//自动扩容
 			if(byteBufferChannel.available() == 0) {
 				try {
 					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
