@@ -39,8 +39,6 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.localPort());
-		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
 		System.out.println("==============================================================================");
