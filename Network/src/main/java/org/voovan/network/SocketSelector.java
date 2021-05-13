@@ -614,7 +614,7 @@ public class SocketSelector implements Closeable {
 						session.getSSLParser().doHandShake();
 						return readSize;
 					} else {
-						session.getSSLParser().unWarpByteBufferChannel();
+						session.getSSLParser().unwarpByteBufferChannel();
 					}
 				}
 
