@@ -274,7 +274,6 @@ public class SSLParser {
 					case FINISHED:
 						handshakeStatus = engine.getHandshakeStatus();
 						handShakeDone = true;
-						session.socketContext().unhold();
 						break;
 					case NOT_HANDSHAKING:
                         //对于粘包数据的处理
@@ -287,7 +286,6 @@ public class SSLParser {
 						}
 
 						handShakeDone = true;
-						session.socketContext().unhold();
 						break;
 					default:
 						break;
