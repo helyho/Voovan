@@ -202,10 +202,7 @@ public class SSLManager {
 		SSLEngine engine = createSSLEngine(protocol, session.socketContext().getHost(), session.socketContext().getPort());
 		engine.setUseClientMode(true);
 
-		SSLParser sslParser = new SSLParser(engine, session);
-		session.setSSLParser(sslParser);
-
-		return sslParser;
+		return new SSLParser(engine, session);
 	}
 
 	/**
@@ -219,10 +216,7 @@ public class SSLManager {
 		engine.setUseClientMode(false);
 		engine.setNeedClientAuth(needClientAuth);
 
-		SSLParser sslParser = new SSLParser(engine, session);
-		session.setSSLParser(sslParser);
-
-		return sslParser;
+		return new SSLParser(engine, session);
 	}
 
 	private static class DefaultTrustManager implements X509TrustManager {

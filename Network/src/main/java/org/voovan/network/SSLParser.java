@@ -365,18 +365,6 @@ public class SSLParser {
 	}
 
 
-	/**
-	 * 判断给定的会话握手是否完成
-	 * @param session IoSession 对象
-	 * @return true:握手完成或不需要握手, false:握手未完成
-	 */
-	public static boolean isHandShakeDone(IoSession session){
-		if(session==null || !session.isSSLMode()){
-			return true;
-		}else{
-			return session.getSSLParser().isHandShakeDone();
-		}
-	}
 
 	/**
 	 <pre>

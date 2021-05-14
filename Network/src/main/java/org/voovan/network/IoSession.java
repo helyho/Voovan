@@ -41,10 +41,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		return SOCKET_IDLE_WHEEL_TIME;
 	}
 
-	private boolean sslMode = false;
-	private SSLParser sslParser;
-
-
 	private MessageLoader messageLoader;
 	protected ByteBufferChannel readByteBufferChannel;
 	protected ByteBufferChannel sendByteBufferChannel;
@@ -284,29 +280,6 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	}
 
 	/**
-	 * 获取 SSLParser
-	 * @return SSLParser对象
-	 */
-	public SSLParser getSSLParser() {
-		return sslParser;
-	}
-
-	/**
-	 * 获取 SSLParser
-	 * @param sslParser SSL解析对象
-	 */
-	protected void setSSLParser(SSLParser sslParser) {
-		if(this.sslParser == null && sslParser!=null){
-			this.sslParser = sslParser;
-			sslMode = true;
-		}
-	}
-
-	public boolean isSSLMode() {
-		return sslMode;
-	}
-
-	/**
 	 * 获取本地 IP 地址
 	 * @return	本地 IP 地址
 	 */
@@ -353,7 +326,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * @return  读取的字节数
 	 * @throws IOException IO异常
 	 * */
-	public int read(ByteBuffer byteBuffer) throws IOException {
+	public int readFromChannel(ByteBuffer byteBuffer) throws IOException {
 
 		int readSize = -1;
 
@@ -450,8 +423,12 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * @param buffer 发送到缓冲区的 ByteBuffer 对象
 	 * @return 添加至缓冲区的字节数
 	 */
-	protected int sendToBuffer(ByteBuffer buffer) {
+	public int sendToBuffer(ByteBuffer buffer) {
 		try {
+			if(buffer==null || !buffer.hasRemaining()) {
+				return -1;
+			}
+
 			//如果大于缓冲区,则现发送一次
 			if(buffer.limit() + sendByteBufferChannel.size() > sendByteBufferChannel.getMaxSize()){
 				flush();
@@ -509,26 +486,16 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * 	@return 发送的数据大小
 	 */
 	public int send(ByteBuffer buffer){
-		try {
-			if(sslParser!=null && sslParser.isHandShakeDone()) {
-				//warpData 内置调用 session.sendByBuffer 将数据送至发送缓冲区
-				sslParser.warp(buffer);
-				return buffer.limit();
-			} else {
-				return sendToBuffer(buffer);
-			}
-		} catch (IOException e) {
-			Logger.error("IoSession.writeToChannel data failed" ,e);
-		}
-
+//		try {
+			int position = buffer.position();
+			IoPlugin.warpChain(socketContext, buffer);
+			return buffer.position() - position;
 //		finally {
 //			//同步模式自动 flush
 //			if(socketContext.handler instanceof SynchronousHandler) {
 //				flush();
 //			}
 //		}
-
-		return -1;
 	}
 
 	/**
@@ -595,9 +562,8 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 		readByteBufferChannel.release();
 		sendByteBufferChannel.release();
-		if (isSSLMode()) {
-			sslParser.release();
-		}
+
+		IoPlugin.releaseChain(socketContext);
 
 		cancelIdle();
 	}

@@ -23,6 +23,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.network.plugin.SSLPlugin;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
@@ -168,7 +169,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			if(isSSL){
 				try {
 					SSLManager sslManager = new SSLManager("TLS");
-					socket.setSSLManager(sslManager);
+					socket.getPluginChain().add(new SSLPlugin(sslManager));
 				} catch (NoSuchAlgorithmException e) {
 					Logger.error(e);
 					throw new HttpClientException("HttpClient init SSL failed:", e);
@@ -264,7 +265,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getReadBufferSize());
 		session.socketSelector().select();
 
-		int readSize = session.read(tmpBuffer);
+		int readSize = session.readFromChannel(tmpBuffer);
 
 		if(session.getAttribute("SocketException") instanceof Exception){
 			session.close();

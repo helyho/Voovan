@@ -3,7 +3,6 @@ package org.voovan.network.tcp;
 import org.voovan.network.*;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
-import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -164,13 +163,13 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	public void syncStart() throws IOException {
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
 		socketChannel.configureBlocking(false);
-		initSSL(session);
+		IoPlugin.initChain(this);
 		bindToSocketSelector(SelectionKey.OP_READ);
 		hold();
     }
 
 	protected void acceptStart() throws IOException {
-		initSSL(session);
+	 	IoPlugin.initChain(this);
 		bindToSocketSelector(SelectionKey.OP_READ);
 		hold();
 	}
