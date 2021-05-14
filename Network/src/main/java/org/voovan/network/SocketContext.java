@@ -439,7 +439,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		return sendFilterChain;
 	}
 
-	public Chain<IoPlugin> getPluginChain() {
+	public Chain<IoPlugin> pluginChain() {
 		return ioPluginChain;
 	}
 

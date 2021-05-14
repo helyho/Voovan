@@ -40,7 +40,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(String host, int port, int readTimeout) throws IOException{
 		super(host, port, readTimeout);
-		init();
 	}
 
 	/**
@@ -54,7 +53,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
-		init();
 	}
 
 	/**
@@ -68,7 +66,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public TcpSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, sendTimeout, idleInterval);
-		init();
 	}
 
 	private void init() throws IOException {
@@ -79,6 +76,8 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 		this.session = new TcpSession(this);
 		this.connectModel = ConnectModel.CLIENT;
 		this.connectType = ConnectType.TCP;
+
+		waitObj = new Object();
 	}
 
 	/**
@@ -146,7 +145,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 */
 	public void start() throws IOException  {
 		syncStart();
-		waitObj = new Object();
 		synchronized (waitObj){
 			try {
 				waitObj.wait();
@@ -161,6 +159,7 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	 * 		非阻塞方法
 	 */
 	public void syncStart() throws IOException {
+		init();
 		socketChannel.connect(new InetSocketAddress(this.host, this.port));
 		socketChannel.configureBlocking(false);
 		IoPlugin.initChain(this);

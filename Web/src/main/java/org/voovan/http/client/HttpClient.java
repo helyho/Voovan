@@ -169,7 +169,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			if(isSSL){
 				try {
 					SSLManager sslManager = new SSLManager("TLS");
-					socket.getPluginChain().add(new SSLPlugin(sslManager));
+					socket.pluginChain().add(new SSLPlugin(sslManager));
 				} catch (NoSuchAlgorithmException e) {
 					Logger.error(e);
 					throw new HttpClientException("HttpClient init SSL failed:", e);

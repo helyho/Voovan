@@ -6,7 +6,6 @@ import org.voovan.network.messagesplitter.LineMessageSplitter;
 import org.voovan.network.plugin.SSLPlugin;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.test.network.ClientHandlerTest;
-import org.voovan.tools.log.Logger;
 
 public class NioSSLClient {
 	
@@ -18,7 +17,7 @@ public class NioSSLClient {
 		sslManager.loadTrustKey(serverTrustFile, "123456");
 
 		TcpSocket socket = new TcpSocket("127.0.0.1",2031,1000000,1);
-		socket.getPluginChain().add(new SSLPlugin(sslManager));
+		socket.pluginChain().add(new SSLPlugin(sslManager));
 		socket.handler(new ClientHandlerTest());
 		socket.filterChain().add(new StringFilter());
 		socket.messageSplitter(new LineMessageSplitter());
