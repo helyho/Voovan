@@ -706,7 +706,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
 		httpRequest.header().put("Pragma","no-collection");
-		httpRequest.header().put("Origin", this.urlString);
+		httpRequest.header().put("Origin", "http"+(isSSL?"s://":"//")+hostString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		asyncSend(location, response -> {
