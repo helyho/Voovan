@@ -118,7 +118,7 @@ public class WebServer {
 			SSLManager sslManager = new SSLManager("TLS", false);
 			sslManager.loadKey(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
 					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
-			serverSocket.getPluginChain().add(new SSLPlugin(sslManager));
+			serverSocket.pluginChain().add(new SSLPlugin(sslManager));
 		}
 
 		serverSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));

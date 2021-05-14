@@ -17,7 +17,7 @@ public class NioSSLServer  {
 		sslManager.loadTrustKey(clientTrustFile, "123456");
 		
 		TcpServerSocket serverSocket = new TcpServerSocket("127.0.0.1",2031,1000000,1);
-		serverSocket.getPluginChain().add(new SSLPlugin(sslManager));
+		serverSocket.pluginChain().add(new SSLPlugin(sslManager));
 		serverSocket.handler(new ServerHandlerTest());
 		serverSocket.filterChain().add(new StringFilter());
 		serverSocket.messageSplitter(new LineMessageSplitter());

@@ -54,7 +54,7 @@ public interface IoPlugin {
     public void release(IoSession session);
 
     public static void initChain(SocketContext socketContext) {
-        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.getPluginChain().clone();
+        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.pluginChain().clone();
         pluginChain.rewind();
         while (pluginChain.hasNext()) {
             IoPlugin plugin = pluginChain.next();
@@ -63,7 +63,7 @@ public interface IoPlugin {
     }
 
     public static void prepareChain(SocketContext socketContext) {
-        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.getPluginChain().clone();
+        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.pluginChain().clone();
         pluginChain.rewind();
         while (pluginChain.hasNext()) {
             IoPlugin plugin = pluginChain.next();
@@ -72,7 +72,7 @@ public interface IoPlugin {
     }
 
     public static ByteBufferChannel getReadBufferChannelChain(SocketContext socketContext) {
-        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.getPluginChain().clone();
+        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.pluginChain().clone();
         pluginChain.rewind();
         ByteBufferChannel byteBufferChannel = null;
         while (pluginChain.hasNext()) {
@@ -87,7 +87,7 @@ public interface IoPlugin {
     }
 
     public static void warpChain(SocketContext socketContext, ByteBuffer byteBuffer) {
-        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.getPluginChain().clone();
+        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.pluginChain().clone();
         pluginChain.rewind();
         while (pluginChain.hasPrevious()) {
             IoPlugin plugin = pluginChain.previous();
@@ -96,7 +96,7 @@ public interface IoPlugin {
     }
 
     public static void unwarpChain(SocketContext socketContext) {
-        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.getPluginChain().clone();
+        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.pluginChain().clone();
         pluginChain.rewind();
         while (pluginChain.hasNext()) {
             IoPlugin plugin = pluginChain.next();
@@ -105,7 +105,7 @@ public interface IoPlugin {
     }
 
     public static void releaseChain(SocketContext socketContext) {
-        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.getPluginChain().clone();
+        Chain<IoPlugin> pluginChain = (Chain<IoPlugin>) socketContext.pluginChain().clone();
         pluginChain.rewind();
         while (pluginChain.hasPrevious()) {
             IoPlugin plugin = pluginChain.previous();

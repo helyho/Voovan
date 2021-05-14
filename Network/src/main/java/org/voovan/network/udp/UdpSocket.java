@@ -29,7 +29,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     private UdpSession session;
 
     //用来阻塞当前Socket
-    private Object waitObj = new Object();
+    private Object waitObj;
 
 
     /**
@@ -79,6 +79,8 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
         session = new UdpSession(this, address);
         connectModel = ConnectModel.CLIENT;
         this.connectType = ConnectType.UDP;
+
+        waitObj = new Object();
     }
 
     /**
@@ -134,7 +136,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     @Override
     public void start() throws IOException {
         syncStart();
-
         synchronized (waitObj){
             try {
                 waitObj.wait();
@@ -149,18 +150,16 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
      */
     public void syncStart() throws IOException {
 	    init();
-
         datagramChannel.connect(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
-
         bindToSocketSelector(SelectionKey.OP_READ);
-
         hold();
     }
 
     @Override
     public void acceptStart() throws IOException {
 		bindToSocketSelector(0);
+        hold();
     }
 
     /**

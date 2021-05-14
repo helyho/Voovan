@@ -105,9 +105,17 @@ public class SocketSelector implements Closeable {
 	 */
 	public boolean register(SocketContext socketContext, int ops){
 		if(ops==0) {
+			//udp
 			IoSession session = socketContext.getSession();
 			session.setSocketSelector(this);
+
+			socketContext.setRegister(true);
+
+			if (socketContext.connectModel != ConnectModel.LISTENER) {
+				socketContext.unhold();
+			}
 		} else {
+			//tcp
 			addEvent(6, () -> {
 				try {
 					SelectionKey selectionKey = socketContext.socketChannel().register(selector, ops, socketContext);
@@ -323,6 +331,13 @@ public class SocketSelector implements Closeable {
 			if (selectableChannel instanceof SocketChannel) {
 				readSize = tcpReadFromChannel((TcpSocket) socketContext, (SocketChannel) selectableChannel);
 			} else if (selectableChannel instanceof DatagramChannel) {
+				DatagramChannel datagramChannel = (DatagramChannel) selectableChannel;
+
+				//udp accept new connection
+				if (socketContext.getConnectModel() == ConnectModel.LISTENER && !datagramChannel.isConnected()) {
+					socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel);
+				}
+
 				readSize = udpReadFromChannel((SocketContext<DatagramChannel, UdpSession>) socketContext, (DatagramChannel) selectableChannel);
 			}
 
@@ -464,8 +479,8 @@ public class SocketSelector implements Closeable {
 	 * @return 接受收到的 UdpSocket 对象
 	 * @throws IOException IO异常
 	 */
-	public UdpSocket udpAccept(UdpServerSocket socketContext, DatagramChannel datagramChannel, SocketAddress address) throws IOException {
-		UdpSocket udpSocket = new UdpSocket(socketContext, datagramChannel, (InetSocketAddress) address);
+	public UdpSocket udpAccept(UdpServerSocket socketContext, DatagramChannel datagramChannel) throws IOException {
+		UdpSocket udpSocket = new UdpSocket(socketContext, datagramChannel, null);
 		udpSocket.acceptStart();
 		return udpSocket;
 	}
@@ -478,12 +493,6 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异
 	 */
 	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws IOException {
-
-
-		if (!datagramChannel.isConnected()) {
-			socketContext = (UdpSocket) udpAccept((UdpServerSocket) socketContext, datagramChannel, null);
-		}
-
 		UdpSession session = socketContext.getSession();
 
 		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
