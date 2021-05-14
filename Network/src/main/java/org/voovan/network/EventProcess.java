@@ -50,20 +50,7 @@ public class EventProcess {
     public static void init(Event event) throws IOException {
         IoSession session = event.getSession();
 
-        //客户端模式主动发起 SSL 握手
-        if (session.isSSLMode() && !session.getSSLParser().isHandShakeDone()){
-            if(session.socketContext().connectModel == ConnectModel.CLIENT) {
-                session.getSSLParser().doHandShake();
-            }
-
-            while(session.isConnected() && !session.getSSLParser().isHandShakeDone()) {
-                session.socketSelector().select();
-
-                if(session.getSSLParser().getSSlByteBufferChannel().size()>0) {
-                    session.getSSLParser().doHandShake();
-                }
-            }
-        }
+        IoPlugin.prepareChain(session.socketContext());
     }
 
     /**

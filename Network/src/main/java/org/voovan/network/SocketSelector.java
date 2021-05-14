@@ -379,9 +379,7 @@ public class SocketSelector implements Closeable {
 	public int tcpReadFromChannel(TcpSocket socketContext, SocketChannel socketChannel) throws IOException {
 		IoSession session = socketContext.getSession();
 
-		ByteBufferChannel byteBufferChannel = session.isSSLMode()
-								? session.getSSLParser().getSSlByteBufferChannel()
-								: session.getReadByteBufferChannel();
+		ByteBufferChannel byteBufferChannel = IoPlugin.getReadBufferChannelChain(socketContext);
 
 		int readSize = -1;
 
@@ -592,9 +590,7 @@ public class SocketSelector implements Closeable {
 			ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 			if (readSize > 0) {
-				if(session.isSSLMode()) {
-					session.getSSLParser().unwarpByteBufferChannel();
-				}
+				IoPlugin.unwarpChain(session.socketContext());
 
 				if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
 					// 触发 onReceive 事件

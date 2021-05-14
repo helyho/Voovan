@@ -2,6 +2,7 @@ package org.voovan.network;
 
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
+import org.voovan.network.plugin.DefaultPlugin;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.TUnsafe;
 import org.voovan.tools.collection.Chain;
@@ -128,8 +129,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected Chain<IoFilter> filterChain;
 	protected Chain<IoFilter> reciveFilterChain;
 	protected Chain<IoFilter> sendFilterChain;
+	protected Chain<IoPlugin> ioPluginChain;
 	protected MessageSplitter messageSplitter;
-	protected SSLManager sslManager;
 	protected ConnectModel connectModel;
 	protected ConnectType connectType;
 	protected int readBufferSize = TByteBuffer.DEFAULT_BYTE_BUFFER_SIZE;
@@ -184,17 +185,18 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	private void init(String host,int port,int readTimeout, int sendTimeout, int idleInterval){
-		this.host = host;
-		this.port = port;
-		this.readTimeout = readTimeout;
-		this.sendTimeout = sendTimeout;
-		this.idleInterval = idleInterval;
-		connectModel = null;
-		filterChain = new Chain<IoFilter>();
-		this.reciveFilterChain = (Chain<IoFilter>) filterChain.clone();
-		this.sendFilterChain = (Chain<IoFilter>) filterChain.clone();
-		this.messageSplitter = new TransferSplitter();
-		this.handler = new SynchronousHandler();
+		this.host 				= host;
+		this.port 				= port;
+		this.readTimeout 		= readTimeout;
+		this.sendTimeout 		= sendTimeout;
+		this.idleInterval 		= idleInterval;
+		this.connectModel 		= null;
+		this.filterChain 		= new Chain<IoFilter>();
+		this.reciveFilterChain	= (Chain<IoFilter>) filterChain.clone();
+		this.sendFilterChain 	= (Chain<IoFilter>) filterChain.clone();
+		this.ioPluginChain 		= new Chain<IoPlugin>().add(new DefaultPlugin());
+		this.messageSplitter 	= new TransferSplitter();
+		this.handler 			= new SynchronousHandler();
 	}
 
 	public FileDescriptor getFileDescriptor() {
@@ -221,32 +223,25 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.ioEventRunnerGroup = ioEventRunnerGroup;
 	}
 
-	protected void initSSL(IoSession session) throws SSLException {
-		if (sslManager != null && connectModel == ConnectModel.SERVER) {
-			sslManager.createServerSSLParser(session);
-		} else if (sslManager != null && connectModel == ConnectModel.CLIENT) {
-			sslManager.createClientSSLParser(session);
-		}
-	}
 
 	/**
 	 * 克隆对象
 	 * @param parentSocketContext 父 socket 对象
 	 */
 	protected void copyFrom(SocketContext parentSocketContext){
-		this.readTimeout = parentSocketContext.readTimeout;
-		this.sendTimeout = parentSocketContext.sendTimeout;
-		this.handler = parentSocketContext.handler;
-		this.filterChain = (Chain<IoFilter>) parentSocketContext.filterChain;
-		this.reciveFilterChain = (Chain<IoFilter>) filterChain.clone();
-		this.sendFilterChain = (Chain<IoFilter>) filterChain.clone();
-		this.messageSplitter = parentSocketContext.messageSplitter;
-		this.sslManager = parentSocketContext.sslManager;
-		this.readBufferSize = parentSocketContext.readBufferSize;
-		this.sendBufferSize = parentSocketContext.sendBufferSize;
-		this.idleInterval = parentSocketContext.idleInterval;
+		this.readTimeout 			= parentSocketContext.readTimeout;
+		this.sendTimeout 			= parentSocketContext.sendTimeout;
+		this.handler 				= parentSocketContext.handler;
+		this.filterChain 			= (Chain<IoFilter>) parentSocketContext.filterChain;
+		this.reciveFilterChain 		= (Chain<IoFilter>) filterChain.clone();
+		this.sendFilterChain 		= (Chain<IoFilter>) filterChain.clone();
+		this.ioPluginChain 			= parentSocketContext.ioPluginChain;
+		this.messageSplitter 		= parentSocketContext.messageSplitter;
+		this.readBufferSize 		= parentSocketContext.readBufferSize;
+		this.sendBufferSize 		= parentSocketContext.sendBufferSize;
+		this.idleInterval 			= parentSocketContext.idleInterval;
 		this.acceptEventRunnerGroup = parentSocketContext.acceptEventRunnerGroup;
-		this.ioEventRunnerGroup = parentSocketContext.ioEventRunnerGroup;
+		this.ioEventRunnerGroup 	= parentSocketContext.ioEventRunnerGroup;
 	}
 
 	/**
@@ -348,24 +343,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	}
 
 	/**
-	 * 获取 SSL 管理器
-	 * @return SSL 管理器
-	 */
-	public SSLManager getSSLManager() {
-		return sslManager;
-	}
-
-	/**
-	 * 设置 SSL 管理器
-	 * @param sslManager SSL 管理器
-	 */
-	public void setSSLManager(SSLManager sslManager) {
-		if(this.sslManager==null){
-			this.sslManager = sslManager;
-		}
-	}
-
-	/**
 	 * 获取主机地址
 	 * @return 主机地址
 	 */
@@ -460,6 +437,10 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	protected Chain<IoFilter> getSendFilterChain() {
 		return sendFilterChain;
+	}
+
+	public Chain<IoPlugin> getPluginChain() {
+		return ioPluginChain;
 	}
 
 	/**

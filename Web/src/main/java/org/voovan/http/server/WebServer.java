@@ -10,6 +10,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.network.plugin.SSLPlugin;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.threadpool.ThreadPool;
@@ -117,7 +118,7 @@ public class WebServer {
 			SSLManager sslManager = new SSLManager("TLS", false);
 			sslManager.loadKey(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
 					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
-			serverSocket.setSSLManager(sslManager);
+			serverSocket.getPluginChain().add(new SSLPlugin(sslManager));
 		}
 
 		serverSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
