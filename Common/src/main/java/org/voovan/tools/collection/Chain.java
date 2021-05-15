@@ -33,6 +33,10 @@ public class Chain<E> {
 		rewind();
 	}
 
+	public E get(int i) {
+		return (E) contianer.get(i);
+	}
+
 	public Chain<E> add(E e) {
 		contianer.add(e);
 		return this;
