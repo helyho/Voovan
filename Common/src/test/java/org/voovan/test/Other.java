@@ -23,9 +23,7 @@ import java.util.List;
  */
 public class Other {
     public static void main(String[] args) throws Exception {
-        double x = Math.random();
-        int y = (int)(x *2);
-        System.out.println(x + " " + y);
+        System.out.println(System.getenv("USER"));
     }
 
 

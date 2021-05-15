@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.atomic.LongAdder;
+import java.util.function.Consumer;
 
 /**
  * ByteBuffer 工具类
@@ -31,9 +32,10 @@ public class TByteBuffer {
     public final static Unsafe UNSAFE = TUnsafe.getUnsafe();
     public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*8);
     public final static int THREAD_BUFFER_POOL_SIZE  = TEnv.getSystemProperty("ThreadBufferPoolSize", 64);
-    public final static LongAdder MALLOC_SIZE       = new LongAdder();
-    public final static LongAdder MALLOC_COUNT      = new LongAdder();
-    public final static LongAdder BYTE_BUFFER_COUNT = new LongAdder();
+    public final static Boolean  MANUAL_RELEASE      = TEnv.getSystemProperty("ManualRelease", false);
+    public final static LongAdder MALLOC_SIZE        = new LongAdder();
+    public final static LongAdder MALLOC_COUNT       = new LongAdder();
+    public final static LongAdder BYTE_BUFFER_COUNT  = new LongAdder();
 
     public final static int BYTE_BUFFER_ANALYSIS  = TEnv.getSystemProperty("ByteBufferAnalysis", 0);
 
@@ -50,7 +52,6 @@ public class TByteBuffer {
             MALLOC_SIZE.add(newCapacity - oldCapacity);
         }
     }
-
 
     public static void free(int capacity) {
         if(BYTE_BUFFER_ANALYSIS >= 0) {
@@ -360,25 +361,31 @@ public class TByteBuffer {
                 return;
             }
 
-            THREAD_BYTE_BUFFER_POOL.release(byteBuffer, (buffer)->{
-                try {
-                    long address = TByteBuffer.getAddress(byteBuffer);
-                    Object att = getAtt(byteBuffer);
-                    if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
-                        if(address!=0) {
-                            byteBuffer.clear();
-                            synchronized (buffer) {
-                                setAddress(byteBuffer, 0);
+            Consumer<ByteBuffer> destory = null;
 
-                                UNSAFE.freeMemory(address);
-                                free(byteBuffer.capacity());
+            if(MANUAL_RELEASE) {
+                destory = buffer->{
+                    try {
+                        long address = TByteBuffer.getAddress(byteBuffer);
+                        Object att = getAtt(byteBuffer);
+                        if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
+                            if(address!=0) {
+                                byteBuffer.clear();
+                                synchronized (buffer) {
+                                    setAddress(byteBuffer, 0);
+
+                                    UNSAFE.freeMemory(address);
+                                    free(byteBuffer.capacity());
+                                }
                             }
                         }
+                    } catch (ReflectiveOperationException e) {
+                        Logger.error(e);
                     }
-                } catch (ReflectiveOperationException e) {
-                    Logger.error(e);
-                }
-            });
+                };
+            }
+
+            THREAD_BYTE_BUFFER_POOL.release(byteBuffer, destory);
         }
     }
 
