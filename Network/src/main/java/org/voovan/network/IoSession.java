@@ -486,16 +486,26 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * 	@return 发送的数据大小
 	 */
 	public int send(ByteBuffer buffer){
-//		try {
-			int position = buffer.position();
-			IoPlugin.warpChain(socketContext, buffer);
-			return buffer.position() - position;
-//		finally {
-//			//同步模式自动 flush
-//			if(socketContext.handler instanceof SynchronousHandler) {
-//				flush();
-//			}
-//		}
+		return send(buffer, false);
+	}
+
+	/**
+	 * 直接向缓冲区发送消息
+	 * 		注意直接调用不会触发 onSent 事件, 也不会经过任何过滤器
+	 * @param buffer byte缓冲区
+	 * @param flush 是否刷新缓冲
+	 * @return 发送的数据大小
+	 */
+	public int send(ByteBuffer buffer, boolean flush){
+		try {
+            int position = buffer.position();
+            IoPlugin.warpChain(socketContext, buffer);
+            return buffer.position() - position;
+        } finally {
+			if(flush) {
+				flush();
+			}
+		}
 	}
 
 	/**
