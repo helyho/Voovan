@@ -7,10 +7,12 @@ import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventTask;
+import org.voovan.tools.exception.LargerThanMaxSizeException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -406,34 +408,36 @@ public class SocketSelector implements Closeable {
 		ByteBufferChannel byteBufferChannel = IoPlugin.getReadBufferChannelChain(socketContext);
 
 		int readSize = -1;
+		boolean isBufferFull = false;
+		for(;;) {
+			if (!byteBufferChannel.isReleased()) {
+				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-		if(!byteBufferChannel.isReleased()) {
-			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-
-			//自动扩容
-			if(byteBufferChannel.available() == 0) {
 				try {
-					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-				} catch (Exception e) {
-					Logger.error("SocketSelector.tcpReadFromChannel reallocate buffer failed " + this, e);
+					//如果有历史数据则从历史数据尾部开始写入
+					byteBuffer.position(byteBuffer.limit());
+					byteBuffer.limit(byteBuffer.capacity());
+					readSize = NioUtil.read(socketContext, byteBuffer);
+
+					isBufferFull = !byteBuffer.hasRemaining();
+
+					byteBuffer.flip();
+
+					//自动扩容
+					if(isBufferFull) {
+						if(byteBufferChannel.available() == 0) {
+							byteBufferChannel.reallocate(byteBufferChannel.capacity() + 256 * 1024);
+						}
+					} else {
+						break;
+					}
+				} catch (Throwable e) {
+					throw new IOException("SocketSelector.tcpReadFromChannel error: " + e.getMessage(), e);
+				} finally {
+					byteBufferChannel.compact();
 				}
 			}
-
-			try {
-				//如果有历史数据则从历史数据尾部开始写入
-				byteBuffer.position(byteBuffer.limit());
-				byteBuffer.limit(byteBuffer.capacity());
-
-				readSize = NioUtil.read(socketContext, byteBuffer);
-
-				byteBuffer.flip();
-			} catch (Throwable e) {
-				throw new IOException("SocketSelector.tcpReadFromChannel error: " + e.getMessage(), e);
-			}finally {
-				byteBufferChannel.compact();
-			}
 		}
-
 
 		return readSize;
 	}
@@ -507,35 +511,41 @@ public class SocketSelector implements Closeable {
 		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
 
 		int readSize = -1;
+		boolean isBufferFull = false;
+		for(;;) {
+			if (!byteBufferChannel.isReleased()) {
+				ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
 
-		if(!byteBufferChannel.isReleased()) {
-			ByteBuffer byteBuffer = byteBufferChannel.getByteBuffer();
-
-			//自动扩容
-			if(byteBufferChannel.available() == 0) {
 				try {
-					byteBufferChannel.reallocate(byteBufferChannel.capacity() + 4 * 1024);
-				} catch (Exception e) {
-					Logger.error("SocketSelector.udpReadFromChannel reallocate buffer failed " + this, e);
+					//如果有历史数据则从历史数据尾部开始写入
+					byteBuffer.position(byteBuffer.limit());
+					byteBuffer.limit(byteBuffer.capacity());
+
+					if (!datagramChannel.isConnected()) {
+						SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
+						session.setInetSocketAddress((InetSocketAddress) socketAddress);
+						readSize = byteBuffer.position();
+					} else {
+						readSize = datagramChannel.read(byteBuffer);
+					}
+
+					isBufferFull = !byteBuffer.hasRemaining();
+
+					byteBuffer.flip();
+
+					//自动扩容
+					if(isBufferFull) {
+						if(byteBufferChannel.available() == 0) {
+							byteBufferChannel.reallocate(byteBufferChannel.capacity() + 256 * 1024);
+						}
+					} else {
+						break;
+					}
+				} catch (Throwable e) {
+					throw new IOException("SocketSelector.tcpReadFromChannel error: " + e.getMessage(), e);
+				} finally {
+					byteBufferChannel.compact();
 				}
-			}
-
-			try {
-				//如果有历史数据则从历史数据尾部开始写入
-				byteBuffer.position(byteBuffer.limit());
-				byteBuffer.limit(byteBuffer.capacity());
-
-				if (!datagramChannel.isConnected()) {
-					SocketAddress socketAddress = datagramChannel.receive(byteBuffer);
-					session.setInetSocketAddress((InetSocketAddress) socketAddress);
-					readSize = byteBuffer.position();
-				} else {
-					readSize = datagramChannel.read(byteBuffer);
-				}
-
-				byteBuffer.flip();
-			} finally {
-				byteBufferChannel.compact();
 			}
 		}
 
