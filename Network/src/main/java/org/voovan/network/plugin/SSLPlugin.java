@@ -2,10 +2,12 @@ package org.voovan.network.plugin;
 
 import org.voovan.network.*;
 import org.voovan.tools.buffer.ByteBufferChannel;
+import org.voovan.tools.log.Logger;
 
 import javax.net.ssl.SSLException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * SSL 插件用于支持 SSL 加密通信
@@ -21,6 +23,14 @@ public class SSLPlugin implements IoPlugin {
 
     public SSLPlugin(SSLManager sslManager) {
         this.sslManager = sslManager;
+    }
+
+    public SSLPlugin(){
+        try {
+            this.sslManager = new SSLManager("TLS");
+        } catch (NoSuchAlgorithmException e) {
+            Logger.error("SSLPlugin construct failed", e);
+        }
     }
 
     @Override
