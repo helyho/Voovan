@@ -317,38 +317,35 @@ public class SSLParser {
 			SSLEngineResult engineResult = null;
 
 			try {
-				ByteBuffer appData = appByteBufferChannel.getByteBuffer();
-				int position = appData.position();
-				appData.position(appData.limit());
-				appData.limit(appData.capacity());
-				try {
-					appData.limit(appData.capacity());
-					while (true) {
+				while (true) {
+					appData.clear();
 
-						ByteBuffer sslByteBuffer = sslByteBufferChannel.getByteBuffer();
+					ByteBuffer sslByteBuffer = sslByteBufferChannel.getByteBuffer();;
 
-						try {
-							engineResult = unwarp(sslByteBuffer, appData);
-						} finally {
-							sslByteBufferChannel.compact();
-						}
+					try {
+						engineResult = unwarp(sslByteBuffer, appData);
+					} finally {
+						sslByteBufferChannel.compact();
+					}
 
-						if (engineResult == null) {
-							throw new SSLException("unWarpByteBufferChannel: Socket is disconnect");
-						}
+					if (engineResult == null) {
+						throw new SSLException("unWarpByteBufferChannel: Socket is disconnect");
+					}
 
-						if (engineResult.getStatus() == Status.OK && sslByteBuffer.remaining() == 0) {
+					if (engineResult.getStatus() == Status.OK){
+						appData.flip();
+						appByteBufferChannel.writeEnd(appData);
+
+						if(sslByteBuffer.remaining() == 0) {
 							break;
-						}
-
-						if (engineResult.getStatus() != Status.OK) {
-							break;
+						} else {
+							continue;
 						}
 					}
-					appData.limit(appData.position());
-					appData.position(position);
-				} finally {
-					appByteBufferChannel.compact();
+
+					if (engineResult.getStatus() != Status.OK) {
+						break;
+					}
 				}
 			}catch (MemoryReleasedException e){
 				if(!session.isConnected()) {
