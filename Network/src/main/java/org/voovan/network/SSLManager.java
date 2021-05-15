@@ -165,7 +165,7 @@ public class SSLManager {
 			this.protocol = "SSL";
 		}
 		try {
-			context = SSLContext.getInstance(protocol, "SunJSSE");
+			context = SSLContext.getInstance(protocol);
 			if(keyManagerFactory!=null && trustManagerFactory!=null){
 				context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
 			} else if(keyManagerFactory!=null){
