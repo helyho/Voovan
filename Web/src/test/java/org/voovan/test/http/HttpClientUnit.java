@@ -107,8 +107,8 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.oschina.net","UTF-8", 6000);
-		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
+		HttpClient httpClient = new HttpClient("https://www.baidu.com","UTF-8", 600000);
+//		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
 		System.out.println(httpClient.send("/").body().getBodyString());
 		httpClient.close();
 	}
