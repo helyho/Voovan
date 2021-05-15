@@ -318,6 +318,9 @@ public class SSLParser {
 
 			try {
 				ByteBuffer appData = appByteBufferChannel.getByteBuffer();
+				int position = appData.position();
+				appData.position(appData.limit());
+				appData.limit(appData.capacity());
 				try {
 					appData.limit(appData.capacity());
 					while (true) {
@@ -342,7 +345,8 @@ public class SSLParser {
 							break;
 						}
 					}
-					appData.flip();
+					appData.limit(appData.position());
+					appData.position(position);
 				} finally {
 					appByteBufferChannel.compact();
 				}
