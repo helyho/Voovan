@@ -342,9 +342,18 @@ public class SocketSelector implements Closeable {
 			}
 
 			IoSession session = socketContext.getSession();
-			//初始化状态不出发 loadAndPrepare
-			if(!session.getState().isInit()) {
-				readSize = loadAndPrepare(session, readSize);
+
+			// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
+			if (MessageLoader.isStreamEnd(readSize) || !session.isOpen()) {
+				session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
+				session.close();
+				return -1;
+			} else {
+
+				//初始化状态不出发 loadAndPrepare
+				if (!session.getState().isInit()) {
+					readSize = loadAndPrepare(session, readSize);
+				}
 			}
 			return readSize;
 		} catch(Exception e){
@@ -587,30 +596,20 @@ public class SocketSelector implements Closeable {
 	 * @throws IOException IO 异常
 	 */
 	public int loadAndPrepare(IoSession session, int readSize) throws IOException {
+		session.socketContext().updateLastTime();
 
-		// 如果对端连接关闭,或者 session 关闭,则直接调用 session 的关闭
-		if (MessageLoader.isStreamEnd(readSize) || !session.isOpen()) {
-			session.getMessageLoader().setStopType(MessageLoader.StopType.STREAM_END);
-			session.close();
-			return -1;
-		} else {
-			session.socketContext().updateLastTime();
+		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
-			ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
+		if (readSize > 0) {
+			IoPlugin.unwarpChain(session.socketContext());
 
-			if (readSize > 0) {
-				IoPlugin.unwarpChain(session.socketContext());
-
-				if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
-					// 触发 onReceive 事件
-					EventTrigger.fireReceive(session);
-				}
+			if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
+				// 触发 onReceive 事件
+				EventTrigger.fireReceive(session);
 			}
-
-			return readSize;
 		}
 
-
+		return readSize;
 	}
 
 	static String BROKEN_PIPE = "Broken pipe";
