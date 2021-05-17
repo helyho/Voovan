@@ -81,7 +81,10 @@ public class HttpClientPool {
     }
 
     public void restitution(HttpClient httpClient) {
-        httpClient.reset();
+        if(httpClient!=null) {
+            httpClient.reset();
+        }
+
         pool.restitution(httpClient);
     }
 
