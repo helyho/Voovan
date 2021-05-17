@@ -26,6 +26,15 @@ import java.io.IOException;
  * Licence: Apache v2 License
  */
 public class HttpClientUnit extends TestCase {
+	static {
+//		System.getProperties().put("socksProxySet","true");
+//		System.getProperties().put("socksProxyHost","127.0.0.1");
+//		System.getProperties().put("socksProxyPort","1080");
+//
+//		System.getProperties().setProperty("proxySet", "true");
+//		System.getProperties().setProperty("http.proxyHost", "127.0.0.1");
+//		System.getProperties().setProperty("http.proxyPort", "1087");
+	}
 
 	public HttpClientUnit(String name){
 		super(name);
@@ -49,8 +58,8 @@ public class HttpClientUnit extends TestCase {
 	public void testGet() throws Exception{
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080/","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
-			.putParameters("name", "测试Get")
-			.putParameters("age", "32").send();
+				.putParameters("name", "测试Get")
+				.putParameters("age", "32").send();
 		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
