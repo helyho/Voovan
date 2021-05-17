@@ -81,7 +81,6 @@ public class Socks5Plugin implements IoPlugin {
                 return readByteBufferChannel.size() == 0 && session.isConnected();
             });
 
-            System.out.println("step 1 done");
             //================================ step 1 ================================
             int protoVer = readByteBufferChannel.get(0);
             if (protoVer != PROTO_VERS) {
@@ -218,8 +217,6 @@ public class Socks5Plugin implements IoPlugin {
             }
             if (ex != null) {
                 throw ex;
-            } else {
-                System.out.println("step 2 done");
             }
         } catch (Exception e) {
             Logger.error("Socks5 connected error, socket will be disconnect", e);
