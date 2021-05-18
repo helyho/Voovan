@@ -164,7 +164,9 @@ public class SocketSelector implements Closeable {
 		if (selectionKey.isValid()) {
 			selectionKey.interestOps(0);
 		}
-		selectionKey.cancel();
+
+		//SocketChannel.close() 中会 cancel()
+		//selectionKey.cancel();
 
 		//正在 select 则唤醒, 需要在 cancel 后立刻处理 selectNow
 		if (selecting.get()) {
