@@ -12,14 +12,13 @@ import java.math.BigDecimal;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class ToDateString<Long> implements Convert<Long, String> {
+public class ToDateString implements Convert<Long, String> {
 
     @Override
     public String convert(String name, Long parameter) {
         if(parameter == null) {
             return null;
         }
-
-        return TDateTime.timestamp((long) parameter);
+        return TDateTime.timestamp(parameter);
     }
 }
