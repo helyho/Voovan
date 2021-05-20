@@ -14,7 +14,7 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class Bucket {
-    public static HashWheelTimer BUCKET_HASH_WHEEL_TIMER = new HashWheelTimer("Bucket", 1000, 1);
+    public static HashWheelTimer BUCKET_HASH_WHEEL_TIMER = new HashWheelTimer("Bucket", 1000, 1000);
     protected HashWheelTask hashWheelTask= null;
     static {
         BUCKET_HASH_WHEEL_TIMER.rotate();
