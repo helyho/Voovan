@@ -490,7 +490,6 @@ public class SocketSelector implements Closeable {
 	 * UDP 服务接受一个新的连接
 	 * @param socketContext UdpServerSocket 对象
 	 * @param datagramChannel DatagramChannel 对象
-	 * @param address 接受通道的地址信息
 	 * @return 接受收到的 UdpSocket 对象
 	 * @throws IOException IO异常
 	 */

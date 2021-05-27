@@ -741,6 +741,7 @@ public class TEnv {
 	 * @param msg 输出的消息
 	 * @param runnable 执行器
 	 * @param timeUnit 输出的时间单位
+	 * @return runnable 运行时间
 	 */
 	public static float measure(String msg, Runnable runnable, TimeUnit timeUnit) {
 		float measure = measure(runnable)/(timeUnit.toNanos(1)*1f);

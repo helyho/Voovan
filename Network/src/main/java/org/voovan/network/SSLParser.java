@@ -90,7 +90,7 @@ public class SSLParser {
 	 *
 	 * @param buffer 需要的数据缓冲区
 	 * @return 返回成功执行的最后一个或者失败的那个 SSLEnginResult
-	 * @throws IOException IO 异常
+	 * @throws SSLException IO 异常
 	 */
 	public synchronized SSLEngineResult warp(ByteBuffer buffer) throws SSLException {
 		if (session.isConnected()) {

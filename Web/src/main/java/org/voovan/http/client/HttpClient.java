@@ -398,7 +398,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 	/**
 	 * 设置请求头, 如果不存在则设置
-	 * @param header header 的 name
+	 * @param name header 的 name
 	 * @param value header 的 nam值
 	 * @return header 的 name
 	 */
