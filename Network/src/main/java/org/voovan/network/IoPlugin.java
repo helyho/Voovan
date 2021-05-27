@@ -37,7 +37,7 @@ public interface IoPlugin {
      * 数据打包
      * @param session IoSession 会话对象
      * @param byteBuffer 需要发送的数据
-     * @param 转换给下一个 plugin 的 ByteBuffer 对象
+     * @return 转换给下一个 plugin 的 ByteBuffer 对象
      */
     public ByteBuffer warp(IoSession session, ByteBuffer byteBuffer);
 
