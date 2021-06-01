@@ -83,6 +83,10 @@ public class EventRunnerGroup implements Closeable {
 		return eventRunner;
 	}
 
+	/**
+	 * 启动 EventRunnerGroup 中所有的 EventRunner
+	 * @return EventRunnerGroup 对象
+	 */
 	public EventRunnerGroup process() {
 		for(EventRunner eventRunner : eventRunners) {
 			eventRunner.process();
@@ -141,7 +145,11 @@ public class EventRunnerGroup implements Closeable {
 
 	}
 
-	public void await() {
+	/**
+	 * 启动 EventRunnerGroup 中所有的 EventRunner, 并等待所有 EventRunner 中的任务执行完成
+	 * @return EventRunnerGroup 对象
+	 */
+	public EventRunnerGroup await() {
 		process();
 		for(;;) {
 			int count = 0;
@@ -156,6 +164,8 @@ public class EventRunnerGroup implements Closeable {
 				break;
 			}
 		}
+
+		return this;
 	}
 
 	@Override
@@ -163,6 +173,9 @@ public class EventRunnerGroup implements Closeable {
 		for(EventRunner eventRunner : eventRunners) {
 			eventRunner.close();
 		}
+
+		//关闭线程池
+		ThreadPool.gracefulShutdown(this.getThreadPool());
 	}
 
 	/**

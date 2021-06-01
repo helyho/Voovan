@@ -837,17 +837,15 @@ public class WebServer {
 			}
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
-			if(serverSocket.getAcceptEventRunnerGroup()!=null) {
-				ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
-			}
-			if(serverSocket.getIoEventRunnerGroup()!=null) {
-				ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
-			}
+			//关闭自定义 Socket 线程池
+			ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
+			ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
 
+			//关闭公共 Socket 线程池
 			SocketContext.gracefulShutdown();
 
+			//关闭公共线程池
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
-
 
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
 

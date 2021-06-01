@@ -154,8 +154,9 @@ public class ThreadPool {
 	 * @param threadPoolExecutor 线程池对象
 	 */
 	public static void gracefulShutdown(ThreadPoolExecutor threadPoolExecutor) {
-		threadPoolExecutor.shutdown();
-
-		TEnv.wait(()-> !threadPoolExecutor.isShutdown());
+		if(threadPoolExecutor!=null && threadPoolExecutor.isShutdown()) {
+			threadPoolExecutor.shutdown();
+			TEnv.wait(() -> !threadPoolExecutor.isShutdown());
+		}
 	}
 }

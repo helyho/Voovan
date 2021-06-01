@@ -555,12 +555,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
      * 平滑的关闭 Socket 线程池
      */
 	public static void gracefulShutdown() {
-		if(COMMON_ACCEPT_EVENT_RUNNER_GROUP!=null) {
-			ThreadPool.gracefulShutdown(COMMON_ACCEPT_EVENT_RUNNER_GROUP.getThreadPool());
-		}
-		if(COMMON_IO_EVENT_RUNNER_GROUP!=null) {
-			ThreadPool.gracefulShutdown(COMMON_IO_EVENT_RUNNER_GROUP.getThreadPool());
-		}
+		ThreadPool.gracefulShutdown(COMMON_ACCEPT_EVENT_RUNNER_GROUP.getThreadPool());
+		ThreadPool.gracefulShutdown(COMMON_IO_EVENT_RUNNER_GROUP.getThreadPool());
 		Logger.info("All IO thread is shutdown");
 	}
 }
