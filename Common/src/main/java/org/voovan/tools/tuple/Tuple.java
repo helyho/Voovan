@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
  * Licence: Apache v2 License
  */
 public class Tuple {
-    private int nullValueId;
-    private Map<String, TupleItem> items;
+    private Integer nullValueId = 0;
+    private Map<Object, TupleItem> items;
 
 
     public Tuple() {
-        items = new LinkedHashMap<String, TupleItem>();
+        items = new LinkedHashMap<Object, TupleItem>();
     }
 
     /**
@@ -41,7 +41,7 @@ public class Tuple {
         return (int)items.values().stream().filter(tupleItem -> tupleItem.equals(value)).count();
     }
 
-    public Map<String, TupleItem> getItems() {
+    public Map<Object, TupleItem> getItems() {
         return items;
     }
 
@@ -51,9 +51,9 @@ public class Tuple {
      * @param value 属性类型
      * @return 元组对象
      */
-    public Tuple set(String name, Object value) {
+    public Tuple set(Object name, Object value) {
         boolean noneName = name == null;
-        name = noneName ? Integer.toString(nullValueId++) : name;
+        name = noneName ? nullValueId++ : name;
 
         TupleItem tupleItem = items.get(name);
         if(noneName && tupleItem!=null) {
@@ -87,7 +87,7 @@ public class Tuple {
      * @param name 属性名称
      * @return 元组元素
      */
-    public TupleItem getItem(String name) {
+    public TupleItem getItem(Object name) {
         return items.get(name);
     }
 
@@ -97,31 +97,8 @@ public class Tuple {
      * @param <T> 响应范型
      * @return 元组数据
      */
-    public <T> T get(String name) {
+    public <T> T get(Object name) {
         return (T)getItem(name).getValue();
-    }
-
-    /**
-     * 根据索引获取元组对象
-     * @param index 索引位置
-     * @return 元组对象
-     */
-    public TupleItem getItem(int index) {
-        if(index >= items.size()) {
-            throw new IndexOutOfBoundsException();
-        }
-
-        return items.values().stream().skip(index).findFirst().orElse(null);
-    }
-
-    /**
-     * 根据索引获取元组数据
-     * @param index 元组数据
-     * @param <T> 响应范型
-     * @return 元组数据
-     */
-    public <T> T get(int index) {
-        return (T) getItem(index).getValue();
     }
 
     /**

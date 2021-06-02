@@ -10,6 +10,7 @@ import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.network.SSLManager;
 import org.voovan.network.SocketContext;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.network.plugin.SSLPlugin;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.threadpool.ThreadPool;
@@ -117,7 +118,7 @@ public class WebServer {
 			SSLManager sslManager = new SSLManager("TLS", false);
 			sslManager.loadKey(System.getProperty("user.dir") + config.getHttps().getCertificateFile(),
 					config.getHttps().getCertificatePassword(), config.getHttps().getKeyPassword());
-			serverSocket.setSSLManager(sslManager);
+			serverSocket.pluginChain().add(new SSLPlugin(sslManager));
 		}
 
 		serverSocket.handler(new WebServerHandler(config, httpDispatcher, webSocketDispatcher));
@@ -526,7 +527,7 @@ public class WebServer {
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
 			}
 		} catch (Exception e) {
-			Logger.error("Initialize WebServer lifeCycle class error: ", e);
+			Logger.error("Initialize WebServer lifeCycle  class [" + lifeCycleClass + "]  error: ", e);
 		}
 	}
 
@@ -836,17 +837,15 @@ public class WebServer {
 			}
 			System.out.println("[" + TDateTime.now() + "] Socket closed");
 
-			if(serverSocket.getAcceptEventRunnerGroup()!=null) {
-				ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
-			}
-			if(serverSocket.getIoEventRunnerGroup()!=null) {
-				ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
-			}
+			//关闭自定义 Socket 线程池
+			ThreadPool.gracefulShutdown(serverSocket.getAcceptEventRunnerGroup().getThreadPool());
+			ThreadPool.gracefulShutdown(serverSocket.getIoEventRunnerGroup().getThreadPool());
 
+			//关闭公共 Socket 线程池
 			SocketContext.gracefulShutdown();
 
+			//关闭公共线程池
 			ThreadPool.gracefulShutdown(Global.getThreadPool());
-
 
 			System.out.println("[" + TDateTime.now() + "] Thread pool is shutdown.");
 

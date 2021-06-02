@@ -23,6 +23,7 @@ import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.HttpMessageSplitter;
+import org.voovan.network.plugin.SSLPlugin;
 import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
@@ -168,7 +169,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			if(isSSL){
 				try {
 					SSLManager sslManager = new SSLManager("TLS");
-					socket.setSSLManager(sslManager);
+					socket.pluginChain().add(new SSLPlugin(sslManager));
 				} catch (NoSuchAlgorithmException e) {
 					Logger.error(e);
 					throw new HttpClientException("HttpClient init SSL failed:", e);
@@ -262,9 +263,9 @@ public class HttpClient extends PooledObject implements Closeable{
 		IoSession session = socket.getSession();
 
 		ByteBuffer tmpBuffer = ByteBuffer.allocate(socket.getReadBufferSize());
-		session.getSocketSelector().select();
+		session.socketSelector().select();
 
-		int readSize = session.read(tmpBuffer);
+		int readSize = session.readFromChannel(tmpBuffer);
 
 		if(session.getAttribute("SocketException") instanceof Exception){
 			session.close();
@@ -392,6 +393,17 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	public HttpClient putHeader(String name ,String value){
 		httpRequest.header().put(name, value);
+		return this;
+	}
+
+	/**
+	 * 设置请求头, 如果不存在则设置
+	 * @param name header 的 name
+	 * @param value header 的 nam值
+	 * @return header 的 name
+	 */
+	public HttpClient putHeaderIfAbsent(String name ,String value){
+		httpRequest.header().putIfAbsent(name, value);
 		return this;
 	}
 
@@ -706,7 +718,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
 		httpRequest.header().put("Pragma","no-collection");
-		httpRequest.header().put("Origin", this.urlString);
+		httpRequest.header().putIfAbsent("Origin", "http"+(isSSL?"s://":"//")+hostString);
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		asyncSend(location, response -> {

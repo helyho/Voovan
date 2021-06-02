@@ -17,11 +17,18 @@ public class EventTrigger {
 		fireEventAsync(session, Event.EventName.ON_ACCEPTED,null);
 	}
 
+	public static void fireInitAsync(IoSession session){
+		fireEventAsync(session, Event.EventName.ON_INIT,null);
+	}
+
 	public static void fireConnectAsync(IoSession session){
 		fireEventAsync(session, Event.EventName.ON_CONNECT,null);
 	}
 
 	public static void fireReceiveAsync(IoSession session) {
+		if(session.getState().isInit() || session.getState().isConnect()) {
+			return;
+		}
 		fireEventAsync(session, Event.EventName.ON_RECEIVE, null);
 	}
 
@@ -52,11 +59,18 @@ public class EventTrigger {
 		fire(session, Event.EventName.ON_ACCEPTED,null);
 	}
 
+	public static void fireInit(IoSession session){
+		fire(session, Event.EventName.ON_INIT,null);
+	}
+
 	public static void fireConnect(IoSession session){
 		fire(session, Event.EventName.ON_CONNECT,null);
 	}
 
 	public static void fireReceive(IoSession session){
+		if(session.getState().isInit() || session.getState().isConnect()) {
+			return;
+		}
 		fire(session, Event.EventName.ON_RECEIVE, null);
 	}
 

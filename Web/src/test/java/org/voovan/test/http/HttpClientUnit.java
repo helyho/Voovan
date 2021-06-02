@@ -9,6 +9,8 @@ import org.voovan.http.message.packet.Part;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
+import org.voovan.network.exception.ReadMessageException;
+import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
@@ -24,6 +26,15 @@ import java.io.IOException;
  * Licence: Apache v2 License
  */
 public class HttpClientUnit extends TestCase {
+	static {
+//		System.getProperties().put("socksProxySet","true");
+//		System.getProperties().put("socksProxyHost","127.0.0.1");
+//		System.getProperties().put("socksProxyPort","1080");
+//
+//		System.getProperties().setProperty("proxySet", "true");
+//		System.getProperties().setProperty("http.proxyHost", "127.0.0.1");
+//		System.getProperties().setProperty("http.proxyPort", "1087");
+	}
 
 	public HttpClientUnit(String name){
 		super(name);
@@ -47,8 +58,8 @@ public class HttpClientUnit extends TestCase {
 	public void testGet() throws Exception{
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080/","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
-			.putParameters("name", "测试Get")
-			.putParameters("age", "32").send();
+				.putParameters("name", "测试Get")
+				.putParameters("age", "32").send();
 		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
@@ -107,10 +118,44 @@ public class HttpClientUnit extends TestCase {
 	}
 
 	public void testHTTPSRequest() throws Exception {
-		HttpClient httpClient = new HttpClient("https://www.oschina.net","UTF-8", 6000);
-		httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
-		System.out.println(httpClient.send("/").body().getBodyString());
-		httpClient.close();
+		HttpClient httpClient = new HttpClient("https://www.baidu.com","UTF-8", 600000);
+		try {
+			httpClient.putHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.95 Safari/537.36");
+			TEnv.measure("111", ()->{
+				try {
+					System.out.println(httpClient.send("/").body().getBodyString().length());
+				} catch (SendMessageException e) {
+					e.printStackTrace();
+				} catch (ReadMessageException e) {
+					e.printStackTrace();
+				}
+			});
+
+			TEnv.measure("111", ()->{
+				try {
+					System.out.println(httpClient.send("/").body().getBodyString().length());
+				} catch (SendMessageException e) {
+					e.printStackTrace();
+				} catch (ReadMessageException e) {
+					e.printStackTrace();
+				}
+			});
+
+			long ss = System.currentTimeMillis();
+			httpClient.asyncSend(response -> {
+				System.out.println("asss: " + (System.currentTimeMillis()-ss));
+				System.out.println(response.body().getBodyString().length());
+
+			});
+
+			TEnv.sleep(10000);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}  finally {
+			httpClient.close();
+		}
+
+
 	}
 
 	public void testSeriesRequest() throws Exception {
@@ -129,7 +174,7 @@ public class HttpClientUnit extends TestCase {
 	public static  WebSocketSession session ;
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("wss://api.huobiasia.vip/ws","GBK2312",60);
+		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/websocket","GBK2312",60);
 
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
@@ -168,7 +213,7 @@ public class HttpClientUnit extends TestCase {
 			}
 		}.addFilterChain(new StringFilter()));
 
-		TEnv.sleep(100000);
+		TEnv.sleep(5000);
 
 		HttpClientUnit.session.close();
 

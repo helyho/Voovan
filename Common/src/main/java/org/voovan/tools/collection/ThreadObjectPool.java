@@ -65,7 +65,13 @@ public class ThreadObjectPool<T> {
 
         //如果小于线程中池的大小则放入线程中的池
         if(!pool.push(t)) {
-            destory.accept(t);
+            if(destory!=null) {
+                destory.accept(t);
+            }
         }
+    }
+
+    public void release(T t){
+        release(t, null);
     }
 }

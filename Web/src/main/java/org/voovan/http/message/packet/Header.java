@@ -79,6 +79,16 @@ public class Header {
 	}
 
 	/**
+	 * 填充 Header, 如果不存在则设置
+	 * @param header header 的 name
+	 * @param value header 的 nam值
+	 * @return header 的 name
+	 */
+	public String putIfAbsent(String header,String value){
+		return headers.putIfAbsent(header,value);
+	}
+
+	/**
 	 * 填充 Header
 	 * @param valueMap Header 的 Map 形式
 	 */

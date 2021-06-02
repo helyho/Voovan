@@ -2,7 +2,6 @@ package org.voovan.network;
 
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.buffer.TByteBuffer;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
 
@@ -39,8 +38,8 @@ public class SSLParser {
 	public SSLParser(SSLEngine engine, IoSession session) {
 		this.engine = engine;
 		this.session = session;
-		this.appData = buildAppDataBuffer();
-		this.netData = buildNetDataBuffer();
+		this.appData = buildAppBuffer();
+		this.netData = buildNetBuffer();
 		sslByteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
 	}
 
@@ -66,13 +65,13 @@ public class SSLParser {
 		return engine;
 	}
 
-	public ByteBuffer buildNetDataBuffer() {
+	public ByteBuffer buildNetBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
 		return TByteBuffer.allocateDirect(newBufferMax);
 	}
 
-	public ByteBuffer buildAppDataBuffer() {
+	public ByteBuffer buildAppBuffer() {
 		SSLSession sslSession = engine.getSession();
 		int newBufferMax = sslSession.getPacketBufferSize();
 		return TByteBuffer.allocateDirect(newBufferMax);
@@ -91,9 +90,9 @@ public class SSLParser {
 	 *
 	 * @param buffer 需要的数据缓冲区
 	 * @return 返回成功执行的最后一个或者失败的那个 SSLEnginResult
-	 * @throws IOException IO 异常
+	 * @throws SSLException IO 异常
 	 */
-	public synchronized SSLEngineResult warpData(ByteBuffer buffer) throws IOException {
+	public synchronized SSLEngineResult warp(ByteBuffer buffer) throws SSLException {
 		if (session.isConnected()) {
 			SSLEngineResult engineResult = null;
 
@@ -136,7 +135,7 @@ public class SSLParser {
 		try {
 			clearBuffer();
 			appData.flip();
-			if (warpData(appData) == null) {
+			if (warp(appData) == null) {
 				return null;
 			}
 			//如果有 HandShake Task 则执行
@@ -156,7 +155,7 @@ public class SSLParser {
 	 * @throws SSLException SSL 异常
 	 * @return SSLEngineResult 对象
 	 */
-	public synchronized SSLEngineResult unwarpData(ByteBuffer netBuffer, ByteBuffer appBuffer) throws SSLException {
+	public synchronized SSLEngineResult unwarp(ByteBuffer netBuffer, ByteBuffer appBuffer) throws SSLException {
 		if (session.isConnected()) {
 			SSLEngineResult engineResult = null;
 
@@ -194,7 +193,7 @@ public class SSLParser {
 
 			try {
 
-				engineResult = unwarpData(byteBuffer, appData);
+				engineResult = unwarp(byteBuffer, appData);
 
 				if (engineResult == null) {
 					return null;
@@ -274,21 +273,19 @@ public class SSLParser {
 						break;
 					case FINISHED:
 						handshakeStatus = engine.getHandshakeStatus();
+						handShakeDone = true;
 						break;
 					case NOT_HANDSHAKING:
-						handShakeDone = true;
-
                         //对于粘包数据的处理
 						if(sslByteBufferChannel.size() > 0){
 							try {
-								unWarpByteBufferChannel();
+								unwarpByteBufferChannel();
 							} finally {
 								sslByteBufferChannel.compact();
 							}
 						}
 
-						//触发 onConnect 时间
-						EventTrigger.fireConnect(session);
+						handShakeDone = true;
 						break;
 					default:
 						break;
@@ -307,7 +304,7 @@ public class SSLParser {
 	 * @return 接收数据大小
 	 * @throws IOException IO异常
 	 */
-	public synchronized int unWarpByteBufferChannel() throws IOException {
+	public synchronized int unwarpByteBufferChannel() throws IOException {
 		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
 
 		if(!isEnoughToUnwarp()) {
@@ -323,10 +320,10 @@ public class SSLParser {
 				while (true) {
 					appData.clear();
 
-					ByteBuffer byteBuffer = sslByteBufferChannel.getByteBuffer();;
+					ByteBuffer sslByteBuffer = sslByteBufferChannel.getByteBuffer();;
 
 					try {
-						engineResult = unwarpData(byteBuffer, appData);
+						engineResult = unwarp(sslByteBuffer, appData);
 					} finally {
 						sslByteBufferChannel.compact();
 					}
@@ -335,20 +332,18 @@ public class SSLParser {
 						throw new SSLException("unWarpByteBufferChannel: Socket is disconnect");
 					}
 
-					appData.flip();
-					appByteBufferChannel.writeEnd(appData);
+					if (engineResult.getStatus() == Status.OK){
+						appData.flip();
+						appByteBufferChannel.writeEnd(appData);
 
-					if (engineResult != null &&
-							engineResult.getStatus() == Status.OK &&
-							byteBuffer.remaining() == 0) {
-						break;
+						if(sslByteBuffer.remaining() == 0) {
+							break;
+						} else {
+							continue;
+						}
 					}
 
-					if (engineResult != null &&
-							(engineResult.getStatus() == Status.BUFFER_OVERFLOW ||
-									engineResult.getStatus() == Status.BUFFER_UNDERFLOW ||
-									engineResult.getStatus() == Status.CLOSED)
-							) {
+					if (engineResult.getStatus() != Status.OK) {
 						break;
 					}
 				}
@@ -371,18 +366,6 @@ public class SSLParser {
 	}
 
 
-	/**
-	 * 判断给定的会话握手是否完成
-	 * @param session IoSession 对象
-	 * @return true:握手完成或不需要握手, false:握手未完成
-	 */
-	public static boolean isHandShakeDone(IoSession session){
-		if(session==null || !session.isSSLMode()){
-			return true;
-		}else{
-			return session.getSSLParser().isHandShakeDone();
-		}
-	}
 
 	/**
 	 <pre>
@@ -445,28 +428,4 @@ public class SSLParser {
 			sslByteBufferChannel.compact();
 		}
 	}
-
-
-	/**
-	 * 等待握手完成
-	 */
-	public void waitHandShakeDone(){
-		try {
-			TEnv.wait(session.socketContext().getReadTimeout(), ()-> {
-				if(session.isSSLMode() && session.getSSLParser().isHandShakeDone()) {
-					return false;
-				} else if(!session.isConnected()) {
-					Logger.error("Socket is disconnected");
-					return false;
-				} else {
-					return true;
-				}
-			});
-		}catch(Exception e){
-			Logger.error(e);
-			session.close();
-		}
-	}
-
-
 }

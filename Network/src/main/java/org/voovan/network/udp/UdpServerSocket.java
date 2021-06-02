@@ -38,7 +38,6 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
      */
     public UdpServerSocket(String host, int port, int readTimeout) throws IOException{
         super(host, port, readTimeout);
-        init();
     }
 
     /**
@@ -52,7 +51,6 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
      */
     public UdpServerSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, idleInterval);
-        init();
     }
 
     /**
@@ -66,7 +64,6 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
      */
     public UdpServerSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
         super(host, port, readTimeout, sendTimeout, idleInterval);
-        init();
     }
 
     private void init() throws IOException {
@@ -122,8 +119,8 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
      * 启动同步的上下文连接,同步读写时使用
      */
     public void syncStart() throws IOException {
+        init();
         datagramChannel.bind(new InetSocketAddress(this.host, this.port));
-
         bindToSocketSelector(SelectionKey.OP_READ);
     }
 

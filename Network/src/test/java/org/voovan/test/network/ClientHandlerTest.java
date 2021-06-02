@@ -39,14 +39,13 @@ public class ClientHandlerTest implements IoHandler {
 
 	@Override
 	public Object onReceive(IoSession session, Object obj) {
-		System.out.println("Recive from: "+session.remoteAddress()+":"+session.remotePort()+" "+session.localPort());
-		//+"["+session.remoteAddress()+":"+session.remotePort()+"]"
 		System.out.println("Client onRecive: "+obj.toString());
 		System.out.println("Attribute onRecive: "+session.getAttribute("key"));
-		TEnv.sleep(1000);
+		System.out.println("==============================================================================");
+		TEnv.sleep(100);
 		reciveCount ++;
 
-		if(reciveCount >= 15) {
+		if(reciveCount >= 300) {
 			session.close();
 		}
 		return "some data\r\n";

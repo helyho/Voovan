@@ -2,19 +2,13 @@ package org.voovan.network;
 
 import org.voovan.network.Event.EventName;
 import org.voovan.network.exception.IoFilterException;
-import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
-import org.voovan.network.udp.UdpSocket;
-import org.voovan.tools.FastThreadLocal;
-import org.voovan.tools.TObject;
 import org.voovan.tools.collection.Chain;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 事件的实际逻辑处理
@@ -47,6 +41,19 @@ public class EventProcess {
     }
 
     /**
+     * 连接预备事件
+     *
+     * @param event 事件对象
+     * @throws IOException IO 异常
+     *
+     */
+    public static void init(Event event) throws IOException {
+        IoSession session = event.getSession();
+
+        IoPlugin.prepareChain(session.socketContext());
+    }
+
+    /**
      * 连接成功事件 建立连接完成后出发
      *
      * @param event 事件对象
@@ -55,14 +62,6 @@ public class EventProcess {
      */
     public static void onConnect(Event event) throws IOException {
         IoSession session = event.getSession();
-
-        //客户端模式主动发起 SSL 握手, 由握手完成后再发起下一次 onConnect
-        if (session.isSSLMode() &&
-                !session.getSSLParser().isHandShakeDone() &&
-                session.socketContext().connectModel == ConnectModel.CLIENT) {
-            session.getSSLParser().doHandShake();
-            return;
-        }
 
         try {
             //设置连接状态
@@ -80,6 +79,13 @@ public class EventProcess {
                     session.flush();
                 }
             }
+
+            //如果有未处理的数据
+            int size = session.getReadByteBufferChannel().size();
+            if(size > 0) {
+                session.socketSelector().loadAndPrepare(session, size);
+            }
+
         } finally {
             //设置空闲状态
             session.getState().setConnect(false);
@@ -404,6 +410,8 @@ public class EventProcess {
         try {
             if (eventName == EventName.ON_ACCEPTED) {
                 EventProcess.onAccepted(event);
+            } else if (eventName == EventName.ON_INIT) {
+                EventProcess.init(event);
             } else if (eventName == EventName.ON_CONNECT) {
                 EventProcess.onConnect(event);
             } else if (eventName == EventName.ON_DISCONNECT) {

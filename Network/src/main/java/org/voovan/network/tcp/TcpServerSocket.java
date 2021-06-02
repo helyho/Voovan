@@ -39,7 +39,6 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 */
 	public TcpServerSocket(String host, int port, int readTimeout) throws IOException{
 		super(host, port, readTimeout);
-		init();
 	}
 
 	/**
@@ -53,7 +52,6 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 */
 	public TcpServerSocket(String host, int port, int readTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, idleInterval);
-		init();
 	}
 
 	/**
@@ -67,7 +65,6 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 */
 	public TcpServerSocket(String host, int port, int readTimeout, int sendTimeout, int idleInterval) throws IOException{
 		super(host, port, readTimeout, sendTimeout, idleInterval);
-		init();
 	}
 
 	/**
@@ -139,8 +136,8 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	 */
 	@Override
 	public void syncStart() throws IOException {
+		init();
 		serverSocketChannel.bind(new InetSocketAddress(host, port), 512);
-
 		bindToSocketSelector(SelectionKey.OP_ACCEPT);
 	}
 

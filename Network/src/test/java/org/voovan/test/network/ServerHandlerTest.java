@@ -32,6 +32,7 @@ public class ServerHandlerTest implements IoHandler {
 	public Object onReceive(IoSession session, Object obj) {
 		Logger.simple(session.remoteAddress()+":"+session.remotePort());
         Logger.simple("Server onRecive: "+obj.toString());
+		System.out.println("==============================================================================");
         return "==== "+obj.toString().trim()+" ===== \r\n";
     }
 

@@ -826,7 +826,7 @@ public class TString {
 		for(int i=1; i<str.length();i++){
 			char c = str.charAt(i);
 			int val = unChars.get(c);
-			result = result * 62 + val;
+			result = result * radix + val;
 		}
 
 		return result;

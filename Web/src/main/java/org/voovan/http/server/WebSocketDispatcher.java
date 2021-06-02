@@ -214,7 +214,6 @@ public class WebSocketDispatcher {
 		RouterWrap<WebSocketRouter> routerWrap = findRouter(request);
 
 		if (routerWrap != null) {
-//			String routePath = (String)routerInfo.getThread(0);
 			WebSocketRouter webSocketRouter = routerWrap.getRouter();
 
 			WebSocketSession webSocketSession = disposeSession(request, webSocketRouter);

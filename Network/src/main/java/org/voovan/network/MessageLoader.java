@@ -161,7 +161,7 @@ public class MessageLoader {
 							break;
 						} else {
 							//消息不可分割,且有消息报文存在, 则尝试继续从 Socket 通道读取数据
-							session.getSocketSelector().select();
+							session.socketSelector().select();
 						}
 					}
 
