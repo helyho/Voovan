@@ -118,7 +118,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap.withTransaction((map)->{
             ((RocksMap)map).put(15, 31);
             ((RocksMap)map).put(16, 32);
-            return false;
+            return null;
         });
 //
         rocksMap.choseColumnFamily("default").put(90, 65536);
@@ -450,8 +450,8 @@ public class RocksMapUnit extends TestCase {
         System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh")));
         System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
         System.out.println("range remove before KeySet: "+ rocksMap.keySet());
-        rocksMap.removeRange("hhhh3", "hhhh5");
-        System.out.println("range remove after KeySet: "+ rocksMap.keySet());
+//        rocksMap.removeRange("hhhh3", "hhhh5");
+//        System.out.println("range remove after KeySet: "+ rocksMap.keySet());
     }
 
     public void testBackup() throws RocksDBException {

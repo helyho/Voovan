@@ -1380,20 +1380,19 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         Transaction transaction = useTransaction ? threadLocalTransaction.get() : null;
         byte[] fromKeyBytes = serialize(fromKey);
         byte[] toKeyBytes = serialize(toKey);
-        try {
-            if(transaction==null) {
-                rocksDB.deleteRange(dataColumnFamilyHandle, writeOptions, fromKeyBytes, toKeyBytes);
-            } else {
-                try (RocksIterator iterator = getIterator()) {
-                    iterator.seek(fromKeyBytes);
-                    while (iterator.isValid()) {
-                        if (!Arrays.equals(iterator.key(), toKeyBytes)) {
-                            transaction.delete(dataColumnFamilyHandle, iterator.key());
-                            iterator.next();
-                        } else {
-                            break;
-                        }
+
+        try (RocksIterator iterator = getIterator()) {
+            iterator.seek(fromKeyBytes);
+            while (iterator.isValid()) {
+                if (!Arrays.equals(iterator.key(), toKeyBytes)) {
+                    if(transaction==null) {
+                        rocksDB.delete(dataColumnFamilyHandle, iterator.key());
+                    } else {
+                        transaction.delete(dataColumnFamilyHandle, iterator.key());
                     }
+                    iterator.next();
+                } else {
+                    break;
                 }
             }
         } catch (RocksDBException e) {
