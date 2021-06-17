@@ -788,8 +788,8 @@ public class WebServer {
 					Logger.simple(TString.rightPad("  --charset", 35, ' ')					+ "set default charset");
 					Logger.simple(TString.rightPad("  --noGzip", 35, ' ')					+ "Do not use gzip for client");
 					Logger.simple(TString.rightPad("  --noAccessLog", 35, ' ')				+ "Do not write access log to access.log");
-					Logger.simple(TString.rightPad("  --https.CertificateFile", 35, ' ')	+ "Certificate file for https");
-					Logger.simple(TString.rightPad("  --https.CertificatePassword", 35, ' ')+ "Certificate passwork for https");
+					Logger.simple(TString.rightPad("  --https.CertificateFile", 35, ' ')	    + "Certificate file for https");
+					Logger.simple(TString.rightPad("  --https.CertificatePassword", 35, ' ') + "Certificate passwork for https");
 					Logger.simple(TString.rightPad("  --https.KeyPassword", 35, ' ')		+ "Certificate key for https");
 					Logger.simple(TString.rightPad("  --help, -?", 35, ' ')					+ "how to use this command");
 					Logger.simple(TString.rightPad("  -v", 35, ' ')							+ "Show the version information");
