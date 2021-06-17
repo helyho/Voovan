@@ -79,6 +79,10 @@ public class GnuCommander<T> {
         return usages;
     }
 
+    public void printUsage(){
+        printUsage(4);
+    }
+
     public void printUsage(int identCount){
         Command command = optionClass.getAnnotation(Command.class);
         if(command!=null) {
@@ -163,7 +167,7 @@ public class GnuCommander<T> {
             pre = i>0                    ? argsLine.charAt(i-1) : pre;
             next = i<argsLine.length()-1 ? argsLine.charAt(i+1) : 0;
             //选项
-            if(!isString && curr == '-') {
+            if(!isString && curr == '-' && (pre=='-' || pre==0 || pre==' ')) {
                 isOpt = true;
                 isOptArg = false;
 
