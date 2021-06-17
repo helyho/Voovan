@@ -35,6 +35,7 @@ public class SSLPlugin implements IoPlugin {
 
     @Override
     public void init(IoSession session) {
+        //准备 SSL 证书
         try {
             SocketContext socketContext = session.socketContext();
             if (sslManager != null && socketContext.getConnectModel() == ConnectModel.SERVER) {
@@ -54,6 +55,7 @@ public class SSLPlugin implements IoPlugin {
             sslParser.doHandShake();
         }
 
+        //等待握手完成
         while(session.isConnected() && !sslParser.isHandShakeDone()) {
             session.socketSelector().select();
 
@@ -65,11 +67,13 @@ public class SSLPlugin implements IoPlugin {
 
     @Override
     public ByteBufferChannel getReadBufferChannel(IoSession session) {
+        //使用 SSLParser 中的缓冲区
         return sslParser.getSSlByteBufferChannel();
     }
 
     @Override
     public ByteBuffer warp(IoSession session, ByteBuffer byteBuffer) {
+
         try {
             sslParser.warp(byteBuffer);
         } catch (SSLException e){
@@ -81,6 +85,7 @@ public class SSLPlugin implements IoPlugin {
 
     @Override
     public void unwarp(IoSession session) {
+        //将 SSLParser 的缓冲区转换到 IoSession 的缓冲区
         try {
             sslParser.unwarpByteBufferChannel();
         } catch (IOException e) {
