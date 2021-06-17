@@ -609,12 +609,10 @@ public class SocketSelector implements Closeable {
 	public int loadAndPrepare(IoSession session, int readSize) throws IOException {
 		session.socketContext().updateLastTime();
 
-		ByteBufferChannel appByteBufferChannel = session.getReadByteBufferChannel();
-
 		if (readSize > 0) {
 			IoPlugin.unwarpChain(session.socketContext());
 
-			if (!session.getState().isReceive() && appByteBufferChannel.size() > 0) {
+			if (!session.getState().isReceive() && session.getReadByteBufferChannel().size() > 0) {
 				// 触发 onReceive 事件
 				EventTrigger.fireReceive(session);
 			}
