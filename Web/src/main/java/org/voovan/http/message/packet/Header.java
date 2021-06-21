@@ -113,7 +113,7 @@ public class Header {
 	 * 清空头
 	 */
 	public void clear(){
-		headers.clear();
+		headers = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
 	}
 
 	@Override
