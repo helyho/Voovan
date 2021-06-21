@@ -1,7 +1,6 @@
 package org.voovan.tools.log;
 
 import org.voovan.tools.*;
-import org.voovan.tools.json.JSON;
 
 import java.util.function.Function;
 
@@ -14,7 +13,7 @@ import java.util.function.Function;
  *         Apache v2 License
  */
 public class Logger {
-	private static Formater	formater	= Formater.newInstance();
+	protected static Formater	formater	= Formater.newInstance();
 	private static boolean enable 		= true;
 
 	/**
@@ -211,15 +210,15 @@ public class Logger {
 	}
 
 	public static void customf(String logLevel, String msg, Throwable e, Object ... args){
-		basicLog(logLevel, TString.tokenReplace(msg, args), e);
+		basicLog(logLevel, msg, e, args);
 	}
 
 	public static void customf(String logLevel, String msg, Object ... args) {
-		customf(logLevel, msg, null, args);
+		basicLog(logLevel, msg, null, args);
 	}
 
 	//============================================== BASIC_LOG ==============================================
-	protected static void basicLog(Object logLevel, Object msg, Throwable e) {
+	protected static void basicLog(Object logLevel, Object msg, Throwable e, Object ... args) {
 		if(!Logger.isEnable()){
 			return;
 		}
@@ -242,9 +241,8 @@ public class Logger {
 		}
 
 		try {
-			msg = buildMessage(msg, e);
-			Message message = Message.newInstance((String)logLevel, msg.toString());
-			formater.writeFormatedLog(message);
+			Message message = Message.newInstance((String)logLevel, msg, args, e);
+			formater.writeLog(message);
 		} catch (Exception oe) {
 			simple("Logger system error: "+oe.getMessage()+"\r\n");
 			simple(TEnv.getStackElementsMessage(oe.getStackTrace()));
@@ -253,58 +251,10 @@ public class Logger {
 	}
 
 	private static void basicLog(Object logLevel, Object msg) {
-		basicLog(logLevel, msg, null);
+		basicLog(logLevel, msg, null, null);
 	}
 
 	private static void basicLog(Object logLevel, Throwable e) {
-		basicLog(logLevel, null, e);
-	}
-
-	private static void basicLog(Object logLevel, String msg, Throwable e, Object ... args){
-		if(!Logger.isEnable()){
-			return;
-		}
-
-		basicLog(logLevel, TString.tokenReplace(msg, args), e);
-	}
-
-	/**
-	 * 构造消息
-	 * @param msg 消息对象
-	 * @param exception 异常消息
-	 * @return 消息
-	 */
-	private static String buildMessage(Object msg, Throwable exception){
-		msg = TObject.nullDefault(msg, "");
-		String stackMessage = "";
-
-		if (exception == null) {
-			if(msg instanceof String) {
-				return msg.toString();
-			} else {
-				Function<Object, String> jsonFormat = LoggerStatic.JSON_FORMAT ? JSON::toJSONWithFormat : JSON::toJSON;
-				return jsonFormat.apply(msg);
-			}
-		}
-
-		do{
-			stackMessage = stackMessage + exception.getClass().getCanonicalName() + ": " +
-					exception.getMessage() + TFile.getLineSeparator() +
-					TString.indent(TEnv.getStackElementsMessage(exception.getStackTrace()), 8) +
-					TFile.getLineSeparator();
-			exception = exception.getCause();
-
-		} while(exception!=null);
-
-		return (msg.toString().isEmpty() ? "" : (msg + " => ")) + stackMessage;
-	}
-
-	/**
-	 * 构造消息
-	 * @param msg 消息对象
-	 * @return 消息
-	 */
-	private static String buildMessage(Object msg){
-		return buildMessage(msg, null);
+		basicLog(logLevel, null, e, null);
 	}
 }

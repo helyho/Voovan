@@ -9,6 +9,7 @@ import org.voovan.tools.json.JSON;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.text.Format;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -99,16 +100,8 @@ public class SingleLogger {
 	}
 
 	public void logf(Object msg, Throwable e, Object ... args){
-		if(!(msg instanceof String)) {
-			Function<Object, String> jsonFormat = LoggerStatic.JSON_FORMAT ? JSON::toJSONWithFormat : JSON::toJSON;
-			msg = jsonFormat.apply(msg);
-		}
-
-		msg = TString.tokenReplace(msg.toString(), args);
-
-		Message message = Message.newInstance(Global.EMPTY_STRING, msg.toString());
-		String logMsg = formater.simpleFormat(message);
-		loggerThread.addLogMessage(logMsg);
+		Message message = Message.newInstance(Global.EMPTY_STRING, msg, args, e);
+		loggerThread.addLogMessage(message);
 	}
 
 	public void logf(Object msg, Object ... args) {

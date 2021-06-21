@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.Formatter;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -20,7 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Licence: Apache v2 License
  */
 public class LoggerThread implements Runnable {
-	private ConcurrentLinkedDeque<String> logQueue;
+	private ConcurrentLinkedDeque<Object> logQueue;
 	private ConcurrentLinkedDeque<String> logCacheQueue;
 	private OutputStream[] outputStreams;
 	private AtomicBoolean finished = new AtomicBoolean(false);
@@ -31,7 +32,7 @@ public class LoggerThread implements Runnable {
 	 * @param outputStreams 输出流数组
 	 */
 	public LoggerThread(OutputStream[] outputStreams) {
-		this.logQueue = new ConcurrentLinkedDeque<String>();
+		this.logQueue = new ConcurrentLinkedDeque<Object>();
 		this.logCacheQueue = new ConcurrentLinkedDeque<String>();
 		this.outputStreams = outputStreams;
 
@@ -101,7 +102,7 @@ public class LoggerThread implements Runnable {
 	 *
 	 * @param msg 消息字符串
 	 */
-	public void addLogMessage(String msg) {
+	public void addLogMessage(Object msg) {
 		logQueue.offer(msg);
 	}
 
@@ -149,13 +150,35 @@ public class LoggerThread implements Runnable {
 
 	}
 
+	public String renderMessage(Object obj){
+		String formatedMessage = null;
+		//消息转换
+		if (obj instanceof String) {
+			formatedMessage = (String) obj;
+		} else if(obj instanceof Message) {
+			Message msg = (Message) obj;
+
+			msg.format();
+
+			if("SIMPLE".equals(msg.getLevel())){
+				formatedMessage = Logger.formater.simpleFormat(msg)+"\r\n";
+			}else{
+				formatedMessage = Logger.formater.format(msg);
+			}
+		}
+
+		return formatedMessage;
+	}
+
 	/**
 	 * 输出日志
 	 * @return true: 有日志输出, false: 无日志输出
 	 * @throws IOException IO 异常
 	 */
 	public boolean output() throws IOException {
-		String formatedMessage = logQueue.poll();
+		Object obj = logQueue.poll();
+		String formatedMessage = renderMessage(obj);
+
 		if (formatedMessage != null && this.outputStreams != null) {
 			for (OutputStream outputStream : outputStreams) {
 				if (outputStream != null) {

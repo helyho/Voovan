@@ -137,18 +137,6 @@ public class Formater {
         return THREAD_LOG_LEVEL.get();
     }
 
-    /**
-     * 获得当前栈元素信息
-     * @return 栈信息元素
-     */
-    public static StackTraceElement currentStackLine() {
-        StackTraceElement[] stackTraceElements = TEnv.getStackElements();
-        if(stackTraceElements.length <= 8) {
-            return stackTraceElements[stackTraceElements.length - 1];
-        } else {
-            return stackTraceElements[8];
-        }
-    }
 
     /**
      * 获取当前线程名称
@@ -184,7 +172,7 @@ public class Formater {
         tokens.put("t", "\t");
         tokens.put("s", " ");
         tokens.put("n", TFile.getLineSeparator());
-        tokens.put("I", message.getMessage());
+        tokens.put("I", message.getMessage().toString());
 
         if(LoggerStatic.HAS_COLOR) {
 
@@ -248,7 +236,7 @@ public class Formater {
         }
 
         if(LoggerStatic.HAS_STACK) {
-            StackTraceElement stackTraceElement = currentStackLine();
+            StackTraceElement stackTraceElement = message.getStackTraceElement();
             tokens.put("SI", stackTraceElement.toString());                                 //堆栈信息
             tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
             tokens.put("M", stackTraceElement.getMethodName());								//方法名
@@ -273,28 +261,15 @@ public class Formater {
      * @return 格式化后的消息
      */
     public String simpleFormat(Message message){
-        //消息缩进
         fillTokens(message);
-        return TString.tokenReplace(message.getMessage(), message.getTokens());
-    }
-
-    /**
-     * 写入消息对象,在进行格式化后的写入
-     * @param message 消息对象
-     */
-    public void writeFormatedLog(Message message) {
-        if("SIMPLE".equals(message.getLevel())){
-            writeLog(simpleFormat(message)+"\r\n");
-        }else{
-            writeLog(format(message));
-        }
+        return TString.tokenReplace(message.getMessage().toString(), message.getTokens());
     }
 
     /**
      * 写入消息
      * @param msg 消息字符串
      */
-    public synchronized void writeLog(String msg) {
+    public synchronized void writeLog(Message msg) {
         if(Logger.isEnable()){
             if (loggerThread == null || loggerThread.isFinished()) {
                 this.loggerThread = LoggerThread.start(getOutputStreams());
