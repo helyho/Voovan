@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HttpItem {
 	public final static int HTTP_ITEM_MAX_LENGTH = 1024;
 
-	public final static IntKeyMap  HTTP_ITEM_MAP = new IntKeyMap(HTTP_ITEM_MAX_LENGTH);
+	public final static ConcurrentHashMap  HTTP_ITEM_MAP = new ConcurrentHashMap(HTTP_ITEM_MAX_LENGTH);
 
 	public final static HttpItem EMPTY = new HttpItem("");
 
