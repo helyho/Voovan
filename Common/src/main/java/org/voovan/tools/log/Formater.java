@@ -288,7 +288,7 @@ public class Formater {
                         TFile.moveFile(logFile, tmpLogFile);
 
                         //开启独立线程进行文件压缩
-                        Global.getThreadPool().execute(()->{
+                        Thread packThread = new Thread(()->{
                             String logFileExtendName = TFile.getFileExtension(logFilePath);
                             String innerLogFilePath = logFilePath.replace("." + logFileExtendName, "");
                             try {
@@ -299,7 +299,9 @@ public class Formater {
                                 System.out.println("[ERROR] Pack log file " + innerLogFilePath + "error: ");
                                 e.printStackTrace();
                             }
-                        });
+                        }, "LogPackThread");
+
+                        packThread.start();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

@@ -119,7 +119,7 @@ public class LoggerThread implements Runnable {
 					}
 
 					if (this.pause != 0) {
-						Thread.sleep(1);
+						Thread.sleep(100);
 						continue;
 					}
 
