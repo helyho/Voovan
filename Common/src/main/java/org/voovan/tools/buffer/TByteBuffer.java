@@ -365,22 +365,25 @@ public class TByteBuffer {
 
             if(MANUAL_RELEASE) {
                 destory = buffer->{
-                    try {
-                        long address = TByteBuffer.getAddress(byteBuffer);
-                        Object att = getAtt(byteBuffer);
-                        if (address!=0 && att!=null && att.getClass() == Deallocator.class) {
-                            if(address!=0) {
-                                byteBuffer.clear();
-                                synchronized (buffer) {
-                                    setAddress(byteBuffer, 0);
+                    synchronized (byteBuffer) {
+                        try {
+                            long address = TByteBuffer.getAddress(byteBuffer);
+                            Object att = getAtt(byteBuffer);
+                            if (address != 0 && att != null && att.getClass() == Deallocator.class) {
+                                if (address != 0) {
+                                    byteBuffer.clear();
+                                    synchronized (buffer) {
+                                        setAddress(byteBuffer, 0);
 
-                                    UNSAFE.freeMemory(address);
-                                    free(byteBuffer.capacity());
+                                        UNSAFE.freeMemory(address);
+                                        free(byteBuffer.capacity());
+                                    }
                                 }
                             }
+
+                        } catch (ReflectiveOperationException e) {
+                            Logger.error(e);
                         }
-                    } catch (ReflectiveOperationException e) {
-                        Logger.error(e);
                     }
                 };
             }

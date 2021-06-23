@@ -23,6 +23,7 @@ public class Message {
 	private Object	message;
 	private Object[] args;
 	private Throwable throwable;
+	private Thread thread;
 
 	private Map<String, String> tokens;
 	private StackTraceElement stackTraceElement;
@@ -39,6 +40,7 @@ public class Message {
 		this.args = args;
 		this.throwable = throwable;
 
+		this.thread = Thread.currentThread();
 		if(LoggerStatic.HAS_STACK) {
 			stackTraceElement =  currentStackLine();
 		}
@@ -66,6 +68,14 @@ public class Message {
 
 	public void setTokens(Map<String, String> tokens) {
 		this.tokens = tokens;
+	}
+
+	public Thread getThread() {
+		return thread;
+	}
+
+	public void setThread(Thread thread) {
+		this.thread = thread;
 	}
 
 	public StackTraceElement getStackTraceElement() {

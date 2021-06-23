@@ -33,6 +33,7 @@ import java.util.Vector;
  */
 
 public class Request {
+
     private RequestProtocol     protocol;
     private Header 			    header;
     private List<Cookie>	    cookies;
@@ -42,7 +43,7 @@ public class Request {
     private volatile boolean    hasBody;
     protected volatile boolean  isSend = false;
     private volatile boolean    cookieParsed = false;
-    private volatile Long       mark = 0l;
+    private volatile Long       mark = null;
 
     private static final String CONTENT_TYPE = "Content-Type";
 
@@ -99,7 +100,7 @@ public class Request {
     }
 
     public Long getMark() {
-        return mark;
+        return mark == null ? 0L : mark;
     }
 
     public void setMark(Long mark) {
@@ -455,7 +456,7 @@ public class Request {
         }
 
         this.cookieParsed = false;
-        this.mark = 0l;
+        this.mark = null;
     }
 
     @Override

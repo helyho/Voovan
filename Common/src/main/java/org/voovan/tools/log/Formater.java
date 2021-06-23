@@ -137,16 +137,6 @@ public class Formater {
         return THREAD_LOG_LEVEL.get();
     }
 
-
-    /**
-     * 获取当前线程名称
-     * @return 当前线程名
-     */
-    private static String currentThreadName() {
-        Thread currentThread = Thread.currentThread();
-        return currentThread.getName();
-    }
-
     private int realLength(String str){
         return str.replaceAll("\\{\\{n\\}\\}","").replaceAll("\\{\\{.*\\}\\}"," ").replaceAll("\033\\[\\d{2}m", "").length();
     }
@@ -224,7 +214,7 @@ public class Formater {
         }
 
         if(LoggerStatic.HAS_THREAD) {
-            tokens.put("T", currentThreadName());                                            //线程
+            tokens.put("T", message.getThread().getName());                                            //线程
         }
 
         if(LoggerStatic.HAS_DATE) {
