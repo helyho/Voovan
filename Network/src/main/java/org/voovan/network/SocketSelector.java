@@ -289,17 +289,19 @@ public class SocketSelector implements Closeable {
 				// 获取 socket 通道
 				SelectableChannel channel = selectedKey.channel();
 				SocketContext socketContext = (SocketContext) selectedKey.attachment();
+
 				if (channel.isOpen() && selectedKey.isValid()) {
 					// 事件分发,包含时间 onRead onAccept
-					// Server接受连接
-					if((selectedKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
-						SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
-						tcpAccept((TcpServerSocket) socketContext, socketChannel);
-					}
 
 					// 有数据读取
 					if ((selectedKey.readyOps() & SelectionKey.OP_READ) != 0) {
 						readFromChannel(socketContext, channel);
+					}
+
+					// Server接受连接
+					if((selectedKey.readyOps() & SelectionKey.OP_ACCEPT) != 0) {
+						SocketChannel socketChannel = ((ServerSocketChannel) channel).accept();
+						tcpAccept((TcpServerSocket) socketContext, socketChannel);
 					}
 				}
 				ret = true;
