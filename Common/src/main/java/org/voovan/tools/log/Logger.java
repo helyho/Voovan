@@ -33,10 +33,6 @@ public class Logger {
 		Logger.enable = enable;
 	}
 
-	public static void stopLoggerThread(){
-
-	}
-
 	/**
 	 * 判断是否包含指定的日志级别
 	 * @param logLevel  日志级别
