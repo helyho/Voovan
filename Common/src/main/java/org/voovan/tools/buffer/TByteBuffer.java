@@ -28,6 +28,7 @@ import java.util.function.Consumer;
  * Licence: Apache v2 License
  */
 public class TByteBuffer {
+    public final static ByteBufferAnalysis BYTE_BUFFER_ANALYSIS = new ByteBufferAnalysis();
 
     public final static Unsafe UNSAFE = TUnsafe.getUnsafe();
     public final static int DEFAULT_BYTE_BUFFER_SIZE = TEnv.getSystemProperty("ByteBufferSize", 1024*8);
@@ -37,43 +38,6 @@ public class TByteBuffer {
     public final static LongAdder MALLOC_COUNT       = new LongAdder();
     public final static LongAdder BYTE_BUFFER_COUNT  = new LongAdder();
 
-    public final static int BYTE_BUFFER_ANALYSIS  = TEnv.getSystemProperty("ByteBufferAnalysis", 0);
-
-    public static void malloc(int capacity) {
-        if(BYTE_BUFFER_ANALYSIS >= 0) {
-            MALLOC_SIZE.add(capacity);
-            MALLOC_COUNT.increment();
-            BYTE_BUFFER_COUNT.increment();
-        }
-    }
-
-    public static void realloc(int oldCapacity, int newCapacity) {
-        if(BYTE_BUFFER_ANALYSIS >= 0) {
-            MALLOC_SIZE.add(newCapacity - oldCapacity);
-        }
-    }
-
-    public static void free(int capacity) {
-        if(BYTE_BUFFER_ANALYSIS >= 0) {
-            MALLOC_SIZE.add(-1 * capacity);
-            MALLOC_COUNT.decrement();
-            BYTE_BUFFER_COUNT.decrement();
-        }
-    }
-
-    public static Map<String, Long> getByteBufferAnalysis() {
-        return TObject.asMap("Time", TDateTime.now(), "MallocSize", TString.formatBytes(MALLOC_SIZE.longValue()),
-                "MallocCount", MALLOC_COUNT.longValue(),
-                "ByteBufferCount", BYTE_BUFFER_COUNT.longValue());
-    }
-
-    static {
-        if(BYTE_BUFFER_ANALYSIS > 0) {
-            Global.getHashWheelTimer().addTask(() -> {
-                Logger.simple(getByteBufferAnalysis());
-            }, BYTE_BUFFER_ANALYSIS);
-        }
-    }
 
     public final static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
 
@@ -136,7 +100,7 @@ public class TByteBuffer {
             Cleaner.create(byteBuffer, deallocator);
 
 
-            malloc(capacity);
+            BYTE_BUFFER_ANALYSIS.malloc(capacity);
 
             return byteBuffer;
 
@@ -223,7 +187,7 @@ public class TByteBuffer {
             //重置容量
             capacityField.set(byteBuffer, newSize);
 
-            realloc(oldCapacity, newSize);
+            BYTE_BUFFER_ANALYSIS.realloc(oldCapacity, newSize);
             return true;
 
         }catch (ReflectiveOperationException e){
@@ -376,7 +340,7 @@ public class TByteBuffer {
                                         setAddress(byteBuffer, 0);
 
                                         UNSAFE.freeMemory(address);
-                                        free(byteBuffer.capacity());
+                                        BYTE_BUFFER_ANALYSIS.free(byteBuffer.capacity());
                                     }
                                 }
                             }
