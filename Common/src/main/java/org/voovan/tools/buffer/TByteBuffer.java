@@ -205,18 +205,12 @@ public class TByteBuffer {
      */
     public static boolean move(ByteBuffer byteBuffer, int offset) {
         try {
-            if(!byteBuffer.hasRemaining()) {
-                byteBuffer.position(0);
-                byteBuffer.limit(0);
-                return true;
-            }
-
             if(offset==0){
                 return true;
             }
 
             int newPosition = byteBuffer.position() + offset;
-            int newLimit = byteBuffer.limit() + offset;
+            int newLimit    = byteBuffer.limit()    + offset;
 
             if(newPosition < 0){
                 return false;

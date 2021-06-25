@@ -775,44 +775,46 @@ public class ByteBufferChannel {
                 }
 
                 int position = byteBuffer.position();
+
+                //非尾部写入则移动数据
+                if(writePosition < byteBuffer.limit()) {
+                    if(!TByteBuffer.move(byteBuffer, writeSize)) {
+                        checkRelease();
+                        throw new RuntimeException("move data failed");
+                    }
+                }
+
+                size = size + writeSize;
+                byteBuffer.limit(size);
                 byteBuffer.position(writePosition);
 
-                if(TByteBuffer.move(byteBuffer, writeSize)){
-
-                    size = size + writeSize;
-                    byteBuffer.limit(size);
-                    byteBuffer.position(writePosition);
-
-                    if(!src.isDirect()) {
-                        byte[] srcBytes = src.array();
-                        unsafe.copyMemory(srcBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET + src.position(),
-                                null, address + writePosition,
-                                writeSize);
+                if(!src.isDirect()) {
+                    byte[] srcBytes = src.array();
+                    unsafe.copyMemory(srcBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET + src.position(),
+                                        null, address + writePosition,
+                                        writeSize);
+                    src.position(src.position() + writeSize);
+                    byteBuffer.position(byteBuffer.position() + writeSize);
+                } else {
+                    try {
+                        long srcAddress = TByteBuffer.getAddress(src);
+                        unsafe.copyMemory(srcAddress + src.position(),
+                                            address + writePosition,
+                                            writeSize);
                         src.position(src.position() + writeSize);
                         byteBuffer.position(byteBuffer.position() + writeSize);
-                    } else {
-                        try {
-                            long srcAddress = TByteBuffer.getAddress(src);
-                            unsafe.copyMemory(srcAddress + src.position(),
-                                    address + writePosition,
-                                    writeSize);
-                            src.position(src.position() + writeSize);
-                            byteBuffer.position(byteBuffer.position() + writeSize);
-                        } catch (ReflectiveOperationException e) {
-                            byteBuffer.put(src);
-                            e.printStackTrace();
-                        }
+                    } catch (ReflectiveOperationException e) {
+                        byteBuffer.put(src);
+                        e.printStackTrace();
                     }
-
-                    if (position > writePosition) {
-                        position = position + writeSize;
-                    }
-
-                    byteBuffer.position(position);
-                } else {
-                    checkRelease();
-                    throw new RuntimeException("move data failed");
                 }
+
+                if (position > writePosition) {
+                    position = position + writeSize;
+                }
+
+                byteBuffer.position(position);
+
             }
 
             return writeSize;
@@ -909,15 +911,11 @@ public class ByteBufferChannel {
             }
 
             if (readSize != 0) {
-                int position = byteBuffer.position();
-                byteBuffer.position(readPosition);
-
-                int dstRemain = dst.remaining();
+                int oldPosition = byteBuffer.position();
                 int oldLimit = byteBuffer.limit();
-                if(dstRemain<byteBuffer.remaining()) {
-                    byteBuffer.limit(dstRemain);
-                }
-//                dst.put(byteBuffer);
+
+                byteBuffer.position(readPosition);
+                byteBuffer.limit(readPosition + readSize);
 
                 if(!dst.isDirect()) {
                     byte[] dstBytes = dst.array();
@@ -925,12 +923,14 @@ public class ByteBufferChannel {
                                         dstBytes, Unsafe.ARRAY_BYTE_BASE_OFFSET + dst.position(),
                                         readSize);
                     dst.position(dst.position()+readSize);
+                    byteBuffer.limit(oldLimit);
                     byteBuffer.position(byteBuffer.position() + readSize);
                 } else {
                     try {
                         long dstAddress = TByteBuffer.getAddress(dst);
                         unsafe.copyMemory(address + readPosition, dstAddress + dst.position(), readSize);
                         dst.position(dst.position()+readSize);
+                        byteBuffer.limit(oldLimit);
                         byteBuffer.position(byteBuffer.position() + readSize);
                     } catch (ReflectiveOperationException e) {
                         byteBuffer.put(dst);
@@ -938,20 +938,24 @@ public class ByteBufferChannel {
                     }
                 }
 
-                byteBuffer.limit(oldLimit);
-
-                if (TByteBuffer.move(byteBuffer, (readSize*-1))) {
-                    size = size - readSize;
-                    byteBuffer.limit(size);
-
-                    if(position > readPosition){
-                        position = position + (readSize*-1);
+                //非尾部读取则移动数据
+                if(byteBuffer.position() != byteBuffer.limit()) {
+                    if(!TByteBuffer.move(byteBuffer, (readSize*-1))){
+                        dst.reset();
+                        checkRelease();
+                        throw new RuntimeException("move data failed");
                     }
-
-                    byteBuffer.position(position);
-                } else {
-                    dst.reset();
                 }
+
+                size = size - readSize;
+                byteBuffer.limit(size);
+
+                if(oldPosition > readPosition){
+                    oldPosition = oldPosition + (readSize*-1);
+                }
+
+                byteBuffer.position(oldPosition);
+
             }
 
             dst.flip();
