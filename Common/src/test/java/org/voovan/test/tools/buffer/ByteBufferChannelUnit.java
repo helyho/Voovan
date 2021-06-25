@@ -249,6 +249,7 @@ public class ByteBufferChannelUnit extends TestCase {
 
 	public void testMulitThread(){
 		ByteBufferChannel byteBufferChannel  = new ByteBufferChannel();
+		byteBufferChannel.setThreadSafe(true);
 		for(int i=0; i < 200; i++){
 			Global.getThreadPool().execute(() -> {
 				Random random = new Random();
@@ -259,7 +260,7 @@ public class ByteBufferChannelUnit extends TestCase {
 					byteBufferChannel.writeEnd(ByteBuffer.wrap((String.valueOf(r)+"_").getBytes()));
 				}  else if(r%18 == 0){
 					Logger.simple("release");
-					byteBufferChannel.release();
+//					byteBufferChannel.release();
 				} else {
 					ByteBuffer byteBuffer = ByteBuffer.allocate(10);
 					byteBufferChannel.readHead(byteBuffer);
