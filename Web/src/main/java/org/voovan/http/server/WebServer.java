@@ -87,7 +87,7 @@ public class WebServer {
 		if(config.getWeaveConfig()!=null) {
 			try {
 				Weave.init(config.getWeaveConfig());
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				Logger.error("Init aop failed: " + e.getMessage());
 			}
 		}
