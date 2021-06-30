@@ -8,7 +8,6 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Type;
 import java.text.ParseException;
-import java.util.Collection;
 import java.util.function.Supplier;
 
 /**
@@ -115,7 +114,7 @@ public class JSON {
 			//设置新的 convertEscapeChar 标志
 			setConvertEscapeChar(convertEscapeChar);
 			if(allField) {
-				jsonString = JSONEncode.fromObject(TReflect.getMapfromObject(object, allField), allField);
+				jsonString = JSONEncode.fromObject(TReflect.getMapFromObject(object, allField), allField);
 			} else {
 				jsonString = JSONEncode.fromObject(object, false);
 			}

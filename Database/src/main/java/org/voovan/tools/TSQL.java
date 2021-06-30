@@ -216,7 +216,7 @@ public class TSQL {
 	 */
 	public static String assembleSQLWithObject(String sqlStr,Object argObjectj) throws ReflectiveOperationException{
 		//获取对象 [属性-值] Map
-		Map<String,Object> argMap = TReflect.getMapfromObject(argObjectj);
+		Map<String,Object> argMap = TReflect.getMapFromObject(argObjectj);
 		return assembleSQLWithMap(sqlStr,argMap);
 	}
 

@@ -8,7 +8,6 @@ import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.convert.Convert;
-import org.voovan.tools.reflect.exclude.Exclude;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
@@ -87,7 +86,7 @@ public class JSONEncode {
      * @throws ReflectiveOperationException
      */
     private static String complexObject(Object object, boolean allField) throws ReflectiveOperationException {
-        return mapObject(TReflect.getMapfromObject(object, allField), allField);
+        return mapObject(TReflect.getMapFromObject(object, allField), allField);
     }
 
     /**

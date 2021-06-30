@@ -160,7 +160,7 @@ public class TReflectTest {
         System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
-                    TReflect.getMapfromObject(obj);
+                    TReflect.getMapFromObject(obj);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -171,7 +171,7 @@ public class TReflectTest {
         System.out.println("native: " + TEnv.measure(()->{
             for(int i=0;i<500000;i++){
                 try {
-                    TReflect.getMapfromObject(obj);
+                    TReflect.getMapFromObject(obj);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -179,7 +179,7 @@ public class TReflectTest {
         })/1000000f);
 
         System.out.println("==========================getObjectFromMap==========================");
-        Map map = TReflect.getMapfromObject(obj);
+        Map map = TReflect.getMapFromObject(obj);
         clear();
         System.out.println("reflect: " + TEnv.measure(()->{
             for(int i=0;i<50000;i++){
