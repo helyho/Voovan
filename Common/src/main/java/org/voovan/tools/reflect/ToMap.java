@@ -1,8 +1,5 @@
 package org.voovan.tools.reflect;
 
-import org.voovan.tools.json.JSON;
-
-import java.text.ParseException;
 import java.util.Map;
 
 /**
@@ -16,6 +13,6 @@ import java.util.Map;
  */
 public interface ToMap<T> {
     default Map<String, Object> toMap() throws ReflectiveOperationException {
-        return TReflect.getMapfromObject(this);
+        return TReflect.getMapFromObject(this);
     }
 }

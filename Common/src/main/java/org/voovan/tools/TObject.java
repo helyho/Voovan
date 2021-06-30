@@ -343,7 +343,7 @@ public class TObject {
 	 * @throws ParseException 解析异常
 	 */
 	public static <T> T clone(T obj) throws ReflectiveOperationException, ParseException {
-		Map dataMap = TReflect.getMapfromObject(obj, true);
+		Map dataMap = TReflect.getMapFromObject(obj, true);
 		return (T)TReflect.getObjectFromMap(obj.getClass(),dataMap, false);
 	}
 
@@ -374,7 +374,7 @@ public class TObject {
 			return (T) origin;
 		}
 
-		Map dataMap = TReflect.getMapfromObject(origin);
+		Map dataMap = TReflect.getMapFromObject(origin);
 		return (T)TReflect.getObjectFromMap(type, dataMap, false);
 	}
 
@@ -391,7 +391,7 @@ public class TObject {
 			return;
 		}
 
-		Map<String, Object> originMap = TReflect.getMapfromObject(origin);
+		Map<String, Object> originMap = TReflect.getMapFromObject(origin);
 		Field[] targetFields = TReflect.getFields(target.getClass());
 
 		for(Field targetField : targetFields){

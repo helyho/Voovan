@@ -22,7 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -1653,8 +1652,8 @@ public class TReflect {
      * @return 转后的 Map
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Map<String, Object> getMapfromObject(Object obj) throws ReflectiveOperationException{
-        return getMapfromObject(obj, false);
+    public static Map<String, Object> getMapFromObject(Object obj) throws ReflectiveOperationException{
+        return getMapFromObject(obj, false);
     }
 
     /**
@@ -1666,7 +1665,7 @@ public class TReflect {
      * @return 转后的 Map
      * @throws ReflectiveOperationException 反射异常
      */
-    public static Map<String, Object> getMapfromObject(Object obj, boolean allField) throws ReflectiveOperationException {
+    public static Map<String, Object> getMapFromObject(Object obj, boolean allField) throws ReflectiveOperationException {
         if(obj instanceof ToMap) {
             return ((ToMap)obj).toMap();
         }
@@ -1695,7 +1694,7 @@ public class TReflect {
         else if(obj instanceof Collection){
             Collection collection = new ArrayList();
             for (Object collectionItem : (Collection)obj) {
-                Map<String, Object> item = getMapfromObject(collectionItem, allField);
+                Map<String, Object> item = getMapFromObject(collectionItem, allField);
                 collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
             }
             mapResult.put(null, collection);
@@ -1707,7 +1706,7 @@ public class TReflect {
 
             for(int i=0;i<Array.getLength(obj);i++) {
                 Object arrayItem = Array.get(obj, i);
-                Map<String, Object> item = getMapfromObject(arrayItem, allField);
+                Map<String, Object> item = getMapFromObject(arrayItem, allField);
                 Array.set(targetArray, i, (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
             }
             mapResult.put(null, targetArray);
@@ -1732,8 +1731,8 @@ public class TReflect {
             Iterator iterator = mapObject.entrySet().iterator();
             while (iterator.hasNext()) {
                 Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
-                Map<String, Object> keyItem = getMapfromObject(entry.getKey(), allField);
-                Map<String, Object> valueItem = getMapfromObject(entry.getValue(), allField);
+                Map<String, Object> keyItem = getMapFromObject(entry.getKey(), allField);
+                Map<String, Object> valueItem = getMapFromObject(entry.getValue(), allField);
                 Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
                 Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
                 map.put(key, value);
@@ -1823,7 +1822,7 @@ public class TReflect {
                         }
                     }else {
                         //如果是复杂类型则递归调用
-                        Map resultMap = getMapfromObject(value, allField);
+                        Map resultMap = getMapFromObject(value, allField);
                         if(resultMap.size()==1 && resultMap.containsKey(null)){
                             mapResult.put(key, resultMap.get(null));
                         }else{

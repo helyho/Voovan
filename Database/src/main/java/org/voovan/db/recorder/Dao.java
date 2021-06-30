@@ -102,7 +102,7 @@ public class Dao<T extends Dao> {
      */
     public T snapshot() {
         try {
-            snapshot = TReflect.getMapfromObject(this, true);
+            snapshot = TReflect.getMapFromObject(this, true);
             return (T)this;
         } catch (ReflectiveOperationException e) {
             throw new RecorderException("beginUpdate failed", e);
@@ -115,7 +115,7 @@ public class Dao<T extends Dao> {
      */
     private String[] getModifyField() {
         try {
-            Map<String, Object> current = TReflect.getMapfromObject(this, true);
+            Map<String, Object> current = TReflect.getMapFromObject(this, true);
 
             List<String> modifyField = new ArrayList<String>();
             for (Map.Entry<String, Object> entry : current.entrySet()) {

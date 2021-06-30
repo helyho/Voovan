@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 
 /**
@@ -528,7 +527,7 @@ public class JdbcOperate implements Closeable {
 		if(TReflect.isBasicType(arg.getClass())){
 			return update(sqlText, arg, null);
 		}else{
-			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg, true);
+			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			return this.baseUpdate(sqlText, paramsMap);
 		}
 	}
@@ -682,7 +681,7 @@ public class JdbcOperate implements Closeable {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryObjectList(sqlText, t, arg,null);
 		}else{
-			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg, true);
+			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
 				return (List<T>) resultInfo.getObjectList(t);
@@ -767,7 +766,7 @@ public class JdbcOperate implements Closeable {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryMapList(sqlText, arg, null);
 		}else{
-			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg, true);
+			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
 				return resultInfo.getMapList();
@@ -855,7 +854,7 @@ public class JdbcOperate implements Closeable {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryObject(sqlText,t,arg,null);
 		}else{
-			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg, true);
+			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
 				return (T) resultInfo.getObject(t);
@@ -945,7 +944,7 @@ public class JdbcOperate implements Closeable {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryMap(sqlText,arg,null);
 		}else{
-			Map<String, Object> paramsMap = TReflect.getMapfromObject(arg, true);
+			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
 				return resultInfo.getMap();
@@ -1005,7 +1004,7 @@ public class JdbcOperate implements Closeable {
 	public int[] batchObject(String sqlText, Collection<?> objects) throws SQLException, ReflectiveOperationException {
 		List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
 		for (Object object : objects) {
-			mapList.add(TReflect.getMapfromObject(object, true));
+			mapList.add(TReflect.getMapFromObject(object, true));
 		}
 		return this.baseBatch(sqlText, mapList);
 	}
@@ -1092,7 +1091,7 @@ public class JdbcOperate implements Closeable {
 		if(TReflect.isBasicType(arg.getClass())){
 			return call(sqlText, callTypes, arg, null);
 		}else{
-			Map<String, Object> paramsMap  = TReflect.getMapfromObject(arg, true);
+			Map<String, Object> paramsMap  = TReflect.getMapFromObject(arg, true);
 			return this.baseCall(sqlText,callTypes, paramsMap);
 		}
 
