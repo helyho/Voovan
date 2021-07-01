@@ -6,8 +6,10 @@ import org.voovan.tools.json.JSONPath;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * 默认框架内 JSON 序列化的实现
@@ -47,27 +49,27 @@ public class DefaultJSONSerialize implements Serialize {
     @Override
     public <T> T unserialize(byte[] bytes) {
         try {
-
-            Class mainClazz = null;
-
             JSONPath jsonPath = new JSONPath(new String(bytes));
 
-            mainClazz = TSerialize.getClassByHash(jsonPath.value("/T", Integer.class));
+            Class mainClazz = TSerialize.getClassByHash(jsonPath.value("/T", Integer.class));
+
             List<Integer> genericClazzStrs = jsonPath.listObject("/G", Integer.class);
-            Class[] genericClazzs = new Class[genericClazzStrs.size()];
+            Class[] genericClazzs = null;
+            if(genericClazzStrs!=null) {
+                genericClazzs = new Class[genericClazzStrs.size()];
 
-            for (int i = 0; i < genericClazzStrs.size(); i++) {
-                genericClazzs[i] = TSerialize.getClassByHash(genericClazzStrs.get(i));
+                for (int i = 0; i < genericClazzStrs.size(); i++) {
+                    genericClazzs[i] = TSerialize.getClassByHash(genericClazzStrs.get(i));
+                }
             }
 
-            genericClazzs = genericClazzs.length == 0 ? null : genericClazzs;
-
-            if (mainClazz == null || TReflect.isSystemType(mainClazz)) {
-                return (T)jsonPath.value("/V", genericClazzs);
+            Object ret = null;
+            if(TReflect.isSuper(mainClazz, Map.class) || TReflect.isSuper(mainClazz, Collection.class)) {
+                ret = TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
             } else {
-                Object obj = TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
-                return (T)obj;
+                ret = jsonPath.value("/V", mainClazz);
             }
+            return (T)ret;
         } catch (Exception e){
             Logger.error("TSerialize.serializeJDK error: ", e);
             return null;

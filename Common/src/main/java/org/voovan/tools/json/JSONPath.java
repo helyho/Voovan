@@ -143,39 +143,38 @@ public class JSONPath {
             return null;
         }
 
-        if (TReflect.isSystemType(clazz) && TReflect.isSuper(value.getClass(), clazz)) {
-            return (T)value;
-        } else {
-            try {
-                Object obj = null;
+        Object obj = null;
 
-                if(value instanceof Map) {
-                    obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
-                }
-
-                if(value instanceof List) {
-                    List objList = (List)value;
-                    obj = objList.stream().map(item-> {
-                        try {
-                            if(item instanceof Map){
-                                return TReflect.getObjectFromMap(clazz, (Map<String, ?>) item, true);
-                            } else {
-                                return TString.toObject(item.toString(), clazz);
-                            }
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            return null;
+        try {
+            if(value instanceof Map) {
+                obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
+            } else if(value instanceof List) {
+                List objList = (List)value;
+                obj = objList.stream().map(item-> {
+                    try {
+                        if(item instanceof Map){
+                            return TReflect.getObjectFromMap(clazz, (Map<String, ?>) item, true);
+                        } else {
+                            return TString.toObject(item.toString(), clazz);
                         }
-                    }).filter(item->item!=null).collect(Collectors.toList());
-                }
-                return (T)obj;
-            } catch (Exception e) {
-                Logger.error("Parse " + pathQry + "error", e);
-            }
 
-            return null;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }).filter(item->item!=null).collect(Collectors.toList());
+            } else if (TReflect.isSystemType(clazz)) {
+                if(TReflect.isSuper(value.getClass(), clazz)) {
+                    obj = value;
+                } else if(TReflect.isBasicType(clazz)){
+                    obj = TReflect.newInstance(clazz, value.toString());
+                }
+            }
+        } catch (Exception e) {
+            Logger.error("Parse " + pathQry + "error", e);
         }
+
+        return (T)obj;
     }
 
     /**
