@@ -154,7 +154,12 @@ public class EventRunnerGroup implements Closeable {
 		for(;;) {
 			int count = 0;
 			for (EventRunner eventRunner : eventRunners) {
-				count += eventRunner.getEventQueue().size();
+				if(eventRunner.getThread().getState() == Thread.State.RUNNABLE) {
+					count++;
+					break;
+				} else {
+					count += eventRunner.getEventQueue().size();
+				}
 			}
 
 			if(count>0) {
