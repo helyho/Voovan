@@ -52,8 +52,7 @@ public class RocksQueue<E> implements Queue<E> {
             firstSeq = newLast;
         } else {
 //            newLast = lastSeq.incrementAndGet();
-            lastSeq++;
-            newLast = lastSeq;
+            newLast = ++lastSeq;
         }
 
         return newLast;
@@ -62,9 +61,7 @@ public class RocksQueue<E> implements Queue<E> {
     public synchronized Long pollSeq() {
         if(firstSeq <= lastSeq) {
 //            return firstSeq.getAndIncrement();
-            Long ret = firstSeq;
-            firstSeq++;
-            return ret;
+            return firstSeq++;
         } else {
            return null;
         }
@@ -134,8 +131,7 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public Iterator<E> iterator() {
-        //TODO
-        return null;
+        return new RocksQueueIterator(this);
     }
 
     @Override
