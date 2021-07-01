@@ -64,12 +64,15 @@ public class RocksQueueUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
         RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
+        rocksQueue.clear();
         System.out.println(rocksQueue.toString());
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
+        EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
+
         for(int x = 0;x<5;x++) {
             int finalX = x;
-            Global.getThreadPool().execute(()->{
+            eventRunnerGroup.addEvent(()->{
                     for (int i = 0; i < 10; i++) {
                         rocksQueue.add(finalX *10 + i);
                     }
@@ -77,15 +80,15 @@ public class RocksQueueUnit extends TestCase {
             );
         }
 
-        TEnv.sleep(1000);
+        eventRunnerGroup.await();
 
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
-        System.out.println(rocksQueue.toString());
+        System.out.println(rocksQueue.toString() + " " + rocksQueue.size());
 
         for(int x = 0;x<5;x++) {
             int finalX = x;
-            Global.getThreadPool().execute(()->{
+            eventRunnerGroup.addEvent(()->{
                         for (int i = 0; i < 10; i++) {
                             System.out.println(rocksQueue.poll());
                         }
@@ -93,7 +96,7 @@ public class RocksQueueUnit extends TestCase {
             );
         }
 
-        TEnv.sleep(1000);
+        eventRunnerGroup.await();
 
         System.out.println(rocksQueue.toString());
 
@@ -101,6 +104,6 @@ public class RocksQueueUnit extends TestCase {
 
         System.out.println("get " + rocksQueue.get(2));
 
-        System.out.println("size: " + rocksQueue.size());
+        assertEquals(rocksQueue.size(), 0);
     }
 }
