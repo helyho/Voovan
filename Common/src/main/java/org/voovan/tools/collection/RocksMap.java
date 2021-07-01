@@ -2011,7 +2011,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         public RocksMapEntry<K,V> nextAndValid(boolean valid) {
-            if(directNext(true)) {
+            if(directNext(valid)) {
                 return getEntry();
             } else {
                 return null;
