@@ -17,6 +17,8 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class RocksQueue<E> implements Queue<E> {
+    private static long BASE_SEQ = 1000000000000000000L;
+
     private RocksMap root;
     private RocksMap<Long, E> container;
 
@@ -29,9 +31,9 @@ public class RocksQueue<E> implements Queue<E> {
         this.container = rocksMap.duplicate(name);
         this.container.getReadOptions().setTotalOrderSeek(true);
         firstSeq = container.firstKey();
-        this.firstSeq = firstSeq == null ? 1000000000000000001L : firstSeq;
+        this.firstSeq = firstSeq == null ? BASE_SEQ + 1 : firstSeq; //加 1 的目的是初始化到 isEmpty() == true 的状态
         lastSeq = container.lastKey();
-        this.lastSeq = lastSeq == null ? 1000000000000000000L : lastSeq;
+        this.lastSeq = lastSeq == null ? BASE_SEQ : lastSeq;
     }
 
     public RocksMap getRoot() {
@@ -44,7 +46,7 @@ public class RocksQueue<E> implements Queue<E> {
 
     public synchronized Long offerSeq(){
         boolean isEmpty = isEmpty();
-        Long newLast = 1000000000000000001L;
+        Long newLast = BASE_SEQ;
         if(isEmpty) {
             lastSeq = newLast;
             firstSeq = newLast;
