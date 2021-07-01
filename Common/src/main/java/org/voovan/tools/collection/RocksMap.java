@@ -7,6 +7,7 @@ import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.exception.RocksMapException;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.serialize.Serialize;
 import org.voovan.tools.serialize.TSerialize;
 
 import java.io.Closeable;
@@ -107,16 +108,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         COLUMN_FAMILY_HANDLE_MAP.remove(rocksDB);
     }
 
-
-    public static byte[] serialize(Object obj) {
-        return obj == null ? new byte[0] : TSerialize.serialize(obj);
-    }
-
-    public static Object unserialize(byte[] obj) {
-        return obj==null || obj.length == 0 ? null : TSerialize.unserialize(obj);
-    }
-
-
     //--------------------- 成员变量 --------------------
     public transient DBOptions            dbOptions;
 
@@ -136,6 +127,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient Boolean readOnly;
     private transient Boolean isDuplicate = false;
     private transient int transactionLockTimeout = 5000;
+    private transient Serialize serialize;
 
     /**
      * 构造方法
@@ -316,6 +308,15 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return new RocksMap<K, V>(this, cfName, shareTransaction);
     }
 
+    public byte[] serialize(Object obj) {
+        serialize = serialize == null ? TSerialize.SERIALIZE : serialize;
+        return obj == null ? new byte[0] : TSerialize.serialize(obj);
+    }
+
+    public Object unserialize(byte[] obj) {
+        serialize = serialize == null ? TSerialize.SERIALIZE : serialize;
+        return obj==null || obj.length == 0 ? null : TSerialize.unserialize(obj);
+    }
 
     public String getDbname() {
         return dbname;
@@ -340,6 +341,35 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public int savePointCount() {
         return threadLocalSavePointCount.get();
     }
+
+    public Boolean getDuplicate() {
+        return isDuplicate;
+    }
+
+    public DBOptions getDbOptions() {
+        return dbOptions;
+    }
+
+    public ReadOptions getReadOptions() {
+        return readOptions;
+    }
+
+    public WriteOptions getWriteOptions() {
+        return writeOptions;
+    }
+
+    public ColumnFamilyOptions getColumnFamilyOptions() {
+        return columnFamilyOptions;
+    }
+
+    public Serialize getSerialize() {
+        return serialize;
+    }
+
+    public void setSerialize(Serialize serialize) {
+        this.serialize = serialize;
+    }
+
 
     public RocksDB getRocksDB(){
         return rocksDB;
@@ -619,7 +649,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 seq = batchResult.sequenceNumber();
                 try (WriteBatch writeBatch = batchResult.writeBatch()) {
-                    List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(ByteBuffer.wrap(writeBatch.data()), filter, withSerial);
+                    List<RocksWalRecord> rocksWalRecordBySeq = RocksWalRecord.parse(this, ByteBuffer.wrap(writeBatch.data()), filter, withSerial);
                     rocksWalRecords.addAll(rocksWalRecordBySeq);
                     writeBatch.clear();
                 }
@@ -922,7 +952,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return null;
     }
 
-    private RocksIterator getIterator(){
+
+    /**
+     * 获取一个迭代器
+     * @param iterReadOptions readOptions 对象
+     * @return RocksIterator 对象
+     */
+    public RocksIterator getIterator(){
         Transaction transaction = threadLocalTransaction.get();
         if(transaction!=null) {
             return transaction.getIterator(readOptions, dataColumnFamilyHandle);
@@ -1002,10 +1038,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
 
-    @Override
     /**
      * 遍历所有数据来获取 kv 记录的数量, 会消耗很多性能
      */
+    @Override
     public int size() {
 //        try {
 //            return Integer.valueOf(rocksDB.getProperty(dataColumnFamilyHandle, "rocksdb.estimate-num-keys"));
@@ -1843,6 +1879,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         private int size = 0;
         private int count=0;
 
+
         //["beginKey", "endKey")
         protected RocksMapIterator(RocksMap rocksMap, K fromKey, K toKey, int skipSize, int size) {
             this.rocksMap = rocksMap;
@@ -1851,7 +1888,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.toKeyBytes = serialize(toKey);
             this.skipSize = skipSize;
             this.size = size;
-
             if(fromKeyBytes==null) {
                 iterator.seekToFirst();
             } else {
@@ -2121,22 +2157,24 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         /**
          * 解析某个序号以后的更新操作记录
+         * @param rocksMap RocksMap 对象
          * @param byteBuffer 字节缓冲器
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static List<RocksWalRecord> parse(ByteBuffer byteBuffer, boolean withSerial) {
-            return parse(byteBuffer, null, withSerial);
+        public static List<RocksWalRecord> parse(RocksMap rocksMap, ByteBuffer byteBuffer, boolean withSerial) {
+            return parse(rocksMap, byteBuffer, null, withSerial);
         }
 
         /**
          * 解析某个序号以后的更新操作记录
+         * @param rocksMap RocksMap 对象
          * @param byteBuffer 字节缓冲器
          * @param filter 过滤器,用来过滤可用的操作类型和列族
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static List<RocksWalRecord> parse(ByteBuffer byteBuffer, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
+        public static List<RocksWalRecord> parse(RocksMap rocksMap, ByteBuffer byteBuffer, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial) {
             ByteOrder originByteOrder = byteBuffer.order();
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
             if(byteBuffer.remaining() < 13) {
@@ -2156,7 +2194,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 count < recordCount && byteBuffer.hasRemaining();
                 count++) {
 
-                RocksWalRecord rocksWalRecord = parseOperation(byteBuffer, sequence, filter, withSerial);
+                RocksWalRecord rocksWalRecord = parseOperation(rocksMap, byteBuffer, sequence, filter, withSerial);
                 if (rocksWalRecord != null) {
                     rocksWalRecords.add(rocksWalRecord);
                 }
@@ -2169,24 +2207,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         /**
          * 解析某个序号的操作记录
+         * @param rocksMap RocksMap 对象
          * @param byteBuffer 字节缓冲器
          * @param sequence 序号
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static RocksWalRecord parseOperation(ByteBuffer byteBuffer, long sequence, boolean withSerial){
-            return parseOperation(byteBuffer, sequence, withSerial);
+        public static RocksWalRecord parseOperation(RocksMap rocksMap, ByteBuffer byteBuffer, long sequence, boolean withSerial){
+            return parseOperation(rocksMap, byteBuffer, sequence, withSerial);
         }
 
         /**
          * 解析某个序号的操作记录
+         * @param rocksMap RocksMap 对象
          * @param byteBuffer 字节缓冲器
          * @param sequence 序号
          * @param filter 过滤器,用来过滤可用的操作类型和列族
          * @param withSerial 是否进行反序列化
          * @return 日志记录集合
          */
-        public static RocksWalRecord parseOperation(ByteBuffer byteBuffer, long sequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial){
+        public static RocksWalRecord parseOperation(RocksMap rocksMap, ByteBuffer byteBuffer, long sequence, BiFunction<Integer, Integer, Boolean> filter, boolean withSerial){
             //操作类型
             int type = byteBuffer.get();
 
@@ -2227,7 +2267,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                         Object chunk = chunkBytes;
                         if (withSerial) {
-                            chunk = unserialize(chunkBytes);
+                            chunk = rocksMap.unserialize(chunkBytes);
                         } else {
                             chunk = chunkBytes;
                         }
