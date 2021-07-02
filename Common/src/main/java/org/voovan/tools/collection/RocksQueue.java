@@ -6,10 +6,12 @@ import org.voovan.tools.serialize.ProtoStuffSerialize;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Class name
+ * RocksDB 的 Queue 封装
  *
  * @author: helyho
  * Voovan Framework.
@@ -22,9 +24,10 @@ public class RocksQueue<E> implements Queue<E> {
     private RocksMap root;
     private RocksMap<Long, E> container;
 
-    private Long firstSeq;
-    private Long lastSeq;
+    private volatile Long firstSeq;
+    private volatile Long lastSeq;
 
+    private Object lock = new Object();
 
     public RocksQueue(RocksMap rocksMap, String name) {
         this.root = rocksMap;
@@ -59,7 +62,7 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     public synchronized Long pollSeq() {
-        if(firstSeq <= lastSeq) {
+        if(!isEmpty()) {
 //            return firstSeq.getAndIncrement();
             return firstSeq++;
         } else {
@@ -70,6 +73,11 @@ public class RocksQueue<E> implements Queue<E> {
     @Override
     public boolean add(E e) {
         container.put(offerSeq(), e);
+
+        synchronized (lock) {
+            lock.notify();
+        }
+
         return false;
     }
 
@@ -98,6 +106,25 @@ public class RocksQueue<E> implements Queue<E> {
     @Override
     public E remove() {
         return poll();
+    }
+
+    public E take(long timeout, TimeUnit unit) throws TimeoutException {
+        Long seq = pollSeq();
+        try {
+            synchronized (lock) {
+                if (seq == null) {
+                    lock.wait(unit.toMillis(timeout));
+
+                    seq = pollSeq();
+                    if (seq == null) {
+                        throw new TimeoutException();
+                    }
+                }
+            }
+            return seq == null ? null : container.remove(seq);
+        } catch (InterruptedException e) {
+            throw new TimeoutException(e.getMessage());
+        }
     }
 
     @Override
