@@ -17,6 +17,8 @@ import org.voovan.tools.serialize.TSerialize;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 类文字命名
@@ -34,9 +36,11 @@ public class RocksQueueUnit extends TestCase {
     }
 
     public void testRocksQueue() {
+
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
         RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
+
         System.out.println(rocksQueue.toString());
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
         for(int i=0;i<10;i++) {
@@ -58,6 +62,24 @@ public class RocksQueueUnit extends TestCase {
         System.out.println("get " + rocksQueue.get(2));
 
         System.out.println("size: " + rocksQueue.size());
+    }
+
+    public void testRocksQueueTake() {
+        String cfName = "testdb1000";
+        RocksMap rocksMap = new RocksMap(cfName);
+        RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
+        Global.getThreadPool().execute(()->{
+            try {
+                System.out.println("data: " + rocksQueue.take(1, TimeUnit.MINUTES));
+            } catch (TimeoutException e) {
+                e.printStackTrace();
+            }
+        });
+
+        TEnv.sleep(2000);
+        System.out.println("add");
+        rocksQueue.add(1031);
+        TEnv.sleep(100000);
     }
 
     public void testConcurrentRocksQueue() {
