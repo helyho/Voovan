@@ -19,6 +19,8 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class Message {
+	private final static int LOGGER_CLASS_HASH = Logger.class.getCanonicalName().hashCode();
+
 	private String	level;
 	private Object	message;
 	private Object[] args;
@@ -128,11 +130,18 @@ public class Message {
 	 */
 	public static StackTraceElement currentStackLine() {
 		StackTraceElement[] stackTraceElements = TEnv.getStackElements();
-		if(stackTraceElements.length <= 8) {
-			return stackTraceElements[stackTraceElements.length - 1];
-		} else {
-			return stackTraceElements[8];
+
+		StackTraceElement stackTraceElement = null;
+		for(int i=6;i<stackTraceElements.length;i++) {
+			stackTraceElement =  stackTraceElements[i];
+			if(stackTraceElement.getClassName().endsWith("Logger")) {
+				continue;
+			} else {
+				break;
+			}
 		}
+
+		return stackTraceElement;
 	}
 
 	public static Message newInstance(String level, Object message, Object[] args, Throwable throwable) {
