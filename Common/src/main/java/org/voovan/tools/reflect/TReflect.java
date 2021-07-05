@@ -1327,7 +1327,7 @@ public class TReflect {
             constructors = findConstructor(targetClazz, args.length);
             for(Constructor constructorItem : constructors) {
                 try {
-                    result = (T) newInstance(constructor, args);
+                    result = (T) newInstance(constructorItem, args);
                     //匹配到合适的则加入缓存
                     CONSTRUCTORS.put(getConstructorParamTypeMark(clazz, paramTeypes), constructorItem);
                     return result;
