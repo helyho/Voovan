@@ -725,13 +725,28 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 非 null: 事务成功, null: 事务失败
      */
     public <T> T withTransaction(Function<RocksMap<K, V>, T> transFunction) {
-        return withTransaction(-1, true, false, transFunction);
+        return withTransaction(writeOptions, -1, true, false, transFunction);
+    }
+
+
+    /**
+     * 开启式事务模式 (立即失败, 死锁检测,无快照)
+     *      同一个线程共线给一个事务
+     *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
+     * @param transWriteOptions 事务内使用的 WriteOptions 对象
+     * @param transFunction 事务执行器, 返回 Null 则事务回滚, 其他则事务提交
+     * @param <T>  范型
+     * @return 非 null: 事务成功, null: 事务失败
+     */
+    public <T> T withTransaction(WriteOptions transWriteOptions, Function<RocksMap<K, V>, T> transFunction) {
+        return withTransaction(transWriteOptions, -1, true, false, transFunction);
     }
 
     /**
      * 开启式事务模式
      *      同一个线程共线给一个事务
      *      使用内置公共事务通过 savepoint 来失败回滚, 但统一提交, 性能会好很多, 但是由于很多层嵌套的 savepont 在高并发时使用这种方式时回导致提交会慢很多
+     * @param transWriteOptions 事务内使用的 WriteOptions 对象
      * @param expire         提交时锁超时时间
      * @param deadlockDetect 死锁检测是否打开
      * @param withSnapShot   是否启用快照事务
@@ -739,8 +754,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param <T>  范型
      * @return 非 null: 事务成功, null: 事务失败
      */
-    public <T> T withTransaction(long expire, boolean deadlockDetect, boolean withSnapShot, Function<RocksMap<K, V>, T> transFunction) {
-        beginTransaction(expire, deadlockDetect, withSnapShot);
+    public <T> T withTransaction(WriteOptions transWriteOptions, long expire, boolean deadlockDetect, boolean withSnapShot, Function<RocksMap<K, V>, T> transFunction) {
+        beginTransaction(transWriteOptions, expire, deadlockDetect, withSnapShot);
 
         try {
             T object = transFunction.apply(this);
@@ -766,7 +781,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      *      默认: 锁提交等待时间-1, 死锁检测:true, 是否启用快照事务: false
      */
     public void beginTransaction() {
-        beginTransaction(-1, true, false);
+        beginTransaction(writeOptions, -1, true, false);
+    }
+
+    /**
+     * 开启事务
+     *      同一个线程共线给一个事务
+     *      默认: 锁提交等待时间-1, 死锁检测:true, 是否启用快照事务: false
+     * @param transWriteOptions 事务内使用的 WriteOptions 对象
+     */
+    public void beginTransaction(WriteOptions transWriteOptions) {
+        beginTransaction(transWriteOptions, -1, true, false);
     }
 
     /**
@@ -782,7 +807,25 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param withSnapShot   是否启用快照事务
      */
     public void beginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
-        baseBeginTransaction(expire, deadlockDetect, withSnapShot);
+        baseBeginTransaction(writeOptions, expire, deadlockDetect, withSnapShot);
+    }
+
+
+    /**
+     * 开启事务
+     *      同一个线程共线给一个事务
+     *      事务都是读事务，无论操作的记录间是否有交集，都不会锁定。
+     *      事务包含读、写事务：
+     *      所有的读事务不会锁定，读到的数据取决于snapshot设置。
+     *      写事务之间如果不存在记录交集，不会锁定。
+     *      写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
+     * @param transWriteOptions 事务内使用的 WriteOptions 对象
+     * @param expire         提交时锁超时时间
+     * @param deadlockDetect 死锁检测是否打开
+     * @param withSnapShot   是否启用快照事务
+     */
+    public void beginTransaction(WriteOptions transWriteOptions, long expire, boolean deadlockDetect, boolean withSnapShot) {
+        baseBeginTransaction(transWriteOptions, expire, deadlockDetect, withSnapShot);
     }
 
     /**
@@ -793,15 +836,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      *      所有的读事务不会锁定，读到的数据取决于snapshot设置。
      *      写事务之间如果不存在记录交集，不会锁定。
      *      写事务之间如果存在记录交集，此时如果未设置snapshot，则交集部分的记录是可以串行提交的。如果设置了snapshot，则第一个写事务(写锁队列的head)会成功，其他写事务会失败(之前的事务修改了该记录的情况下)。
+     * @param transWriteOptions 事务内使用的 WriteOptions 对象
      * @param expire         提交时锁超时时间
      * @param deadlockDetect 死锁检测是否打开
      * @param withSnapShot   是否启用快照事务
      * @return Transaction 事务对象
      */
-    private Transaction baseBeginTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
+    private Transaction baseBeginTransaction(WriteOptions transWriteOptions, long expire, boolean deadlockDetect, boolean withSnapShot) {
         Transaction transaction = threadLocalTransaction.get();
         if(transaction==null) {
-            transaction = createTransaction(expire, deadlockDetect, withSnapShot);
+            transaction = createTransaction(transWriteOptions, expire, deadlockDetect, withSnapShot);
             threadLocalTransaction.set(transaction);
         } else {
             savePoint();
@@ -810,7 +854,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return transaction;
     }
 
-    private Transaction createTransaction(long expire, boolean deadlockDetect, boolean withSnapShot) {
+    private Transaction createTransaction(WriteOptions transWriteOptions, long expire, boolean deadlockDetect, boolean withSnapShot) {
         if(readOnly){
             throw new RocksMapException("RocksMap Not supported operation in read only mode");
         }
@@ -830,7 +874,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         transactionOptions.setLockTimeout(transactionLockTimeout);
 
 
-        Transaction transaction = ((TransactionDB) rocksDB).beginTransaction(writeOptions, transactionOptions);
+        Transaction transaction = ((TransactionDB) rocksDB).beginTransaction(transWriteOptions, transactionOptions);
+        transaction.setWriteOptions(transWriteOptions==null ? this.writeOptions : transWriteOptions);
 
         transactionOptions.close();
 
@@ -1214,7 +1259,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] valueBytes = serialize(value);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
-        Transaction transaction = baseBeginTransaction(-1, true, false);
+        Transaction transaction = baseBeginTransaction(writeOptions, -1, true, false);
 
         try {
             byte[] oldValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
@@ -1276,7 +1321,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         byte[] oldValueBytes = serialize(oldValue);
 
         //这里使用独立的事务是未了防止默认事务提交导致失效
-        Transaction transaction = baseBeginTransaction(-1, true, false);
+        Transaction transaction = baseBeginTransaction(writeOptions, -1, true, false);
 
         try {
             byte[] oldDbValueBytes = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, keyBytes, true);
