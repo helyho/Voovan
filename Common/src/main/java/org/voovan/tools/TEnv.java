@@ -758,4 +758,14 @@ public class TEnv {
 		String value = System.getProperty(propertyName);
 		return value == null ? null : TString.toObject(value, clazz);
 	}
+
+	public static <T> T getEnv(String propertyName, T defVal) {
+		String value = System.getenv(propertyName);
+		return value == null ? defVal : TString.toObject(value, defVal.getClass());
+	}
+
+	public static <T> T getEnv(String propertyName, Class clazz) {
+		String value = System.getenv(propertyName);
+		return value == null ? null : TString.toObject(value, clazz);
+	}
 }
