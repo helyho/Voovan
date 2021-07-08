@@ -271,7 +271,7 @@ public class RocksMapUnit extends TestCase {
             //测试事务隔离
             rocksMap.commit();
             System.out.println("withTransaction: " + rocksMapT.get("rollback"));
-            return false;
+            return null;
         });
         System.out.println("withTransaction rollback: " + rocksMap.get("rollback"));
 
