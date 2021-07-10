@@ -1,5 +1,6 @@
 package org.voovan.http.message;
 
+import org.voovan.Global;
 import org.voovan.http.message.exception.BodyParseExecption;
 import org.voovan.http.message.packet.*;
 import org.voovan.http.server.context.WebContext;
@@ -265,7 +266,7 @@ public class Request {
 
         String contentType = header.get(CONTENT_TYPE);
         if(contentType!=null && contentType.startsWith("multipart/form-data;")){
-            boundary = THash.encryptBASE64(TString.generateId(this));
+            boundary = buildBoundary();
             header.put(CONTENT_TYPE, "multipart/form-data;boundary=" + boundary);
         }
 
@@ -332,6 +333,10 @@ public class Request {
         return ByteBuffer.wrap(TString.toAsciiBytes(stringBuilder.toString()));
     }
 
+    private String buildBoundary() {
+        return "----" + WebContext.SERVER + "Boundary" + TString.removeSuffix(THash.encryptBASE64(TString.generateId(this))) + (char)((Math.random() * 26)+97);
+    }
+
     /**
      * 发送数据
      * @param session socket 会话对象
@@ -381,7 +386,7 @@ public class Request {
                 if (parts.size() != 0) {
 
                     if(boundary == null){
-                        boundary = THash.encryptBASE64(TString.generateId(this));
+                        boundary = buildBoundary();
                     }
 
                     // 获取 multiPart 标识
