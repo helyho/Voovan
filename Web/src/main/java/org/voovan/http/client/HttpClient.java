@@ -40,6 +40,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -693,8 +695,12 @@ public class HttpClient extends PooledObject implements Closeable{
 
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
-		List<Cookie> cookies = httpRequest.cookies();
+
+		List<Cookie> cookies = new ArrayList<Cookie>();
+		cookies.addAll(httpRequest.cookies());
+
 		httpRequest.clear();  							//socketSession will be null
+
 		httpRequest.cookies().addAll(cookies);
 
 		//重新初始化 Header
