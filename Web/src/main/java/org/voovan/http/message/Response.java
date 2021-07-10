@@ -144,9 +144,12 @@ public class Response {
 	 */
 	public synchronized List<Cookie> cookies() {
 		if(!cookieParsed) {
-			String cookieStr = header.get("Cookie");
+			String cookieStr = header.get("Set-Cookie");
 			if(cookieStr!=null) {
-				HttpParser.parseCookie(cookies, 0, cookieStr);
+				String[] cooikesArr = cookieStr.split("\r\n");
+				for(String cookieLine : cooikesArr) {
+					HttpParser.parseCookie(cookies, 1, cookieLine);
+				}
 			}
 			cookieParsed = true;
 		}
