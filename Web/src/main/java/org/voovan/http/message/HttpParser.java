@@ -464,7 +464,10 @@ public class HttpParser {
 		}
 
 		if(headerName!=null && headerValue!=null) {
-			headerMap.put(headerName, headerValue);
+			String finalHeaderValue = headerValue;
+			headerMap.compute(headerName, (key, oldValue) -> {
+				return oldValue == null ? finalHeaderValue : oldValue.toString() + "\r\n" + finalHeaderValue;
+			});
 		}
 		return false;
 	}
