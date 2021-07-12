@@ -113,6 +113,10 @@ public class Formater {
             @Override
             public void run() {
                 if(Logger.isEnable()) {
+                    if(loggerThread == null) {
+                        return;
+                    }
+
                     try {
                         if (loggerThread.pause()) {
                             if (finalFormater == null || finalFormater.loggerThread == null) {
