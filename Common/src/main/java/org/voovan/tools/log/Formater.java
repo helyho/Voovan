@@ -113,16 +113,25 @@ public class Formater {
             @Override
             public void run() {
                 if(Logger.isEnable()) {
-                    //压缩历史日志文件
-                    packLogFile();
-                    if(finalFormater==null || finalFormater.loggerThread == null){
-                        cancel();
-                    }
+                    try {
+                        if (loggerThread.pause()) {
+                            if (finalFormater == null || finalFormater.loggerThread == null) {
+                                cancel();
+                            }
 
-                    //如果日志发生变化则产生新的文件
-                    if (!finalFormater.getDateStamp().equals(DATE)) {
-                        finalFormater.loggerThread.setOutputStreams(getOutputStreams());
-                        finalFormater.setDateStamp(DATE);
+                            //压缩历史日志文件
+                            packLogFile();
+
+
+                            //如果日志发生变化则产生新的文件
+                            if (!finalFormater.getDateStamp().equals(DATE)) {
+                                finalFormater.loggerThread.setOutputStreams(getOutputStreams());
+                                finalFormater.setDateStamp(DATE);
+                            }
+                        }
+                    } finally {
+                        //恢复日志输出
+                        loggerThread.unpause();
                     }
                 }
             }
@@ -281,38 +290,30 @@ public class Formater {
         File tmpLogFile = new File(tmpFilePath);
 
         if(packSize > 0 && logFile.length() > packSize){
-            //暂停日志输出
             try {
-                if (loggerThread.pause()) {
+                TFile.moveFile(logFile, tmpLogFile);
+
+                //开启独立线程进行文件压缩
+                Thread packThread = new Thread(()->{
+                    String logFileExtendName = TFile.getFileExtension(logFilePath);
+                    String innerLogFilePath = logFilePath.replace("." + logFileExtendName, "");
                     try {
-                        TFile.moveFile(logFile, tmpLogFile);
-
-                        //开启独立线程进行文件压缩
-                        Thread packThread = new Thread(()->{
-                            String logFileExtendName = TFile.getFileExtension(logFilePath);
-                            String innerLogFilePath = logFilePath.replace("." + logFileExtendName, "");
-                            try {
-                                File packFile = new File(innerLogFilePath + "." + TDateTime.now("HHmmss") + "." + logFileExtendName + ".gz");
-                                TZip.encodeGZip(tmpLogFile, packFile);
-                                TFile.deleteFile(tmpLogFile);
-                            } catch (Exception e) {
-                                System.out.println("[ERROR] Pack log file " + innerLogFilePath + "error: ");
-                                e.printStackTrace();
-                            }
-                        }, "LogPackThread");
-
-                        packThread.start();
-                    } catch (IOException e) {
+                        File packFile = new File(innerLogFilePath + "." + TDateTime.now("HHmmss") + "." + logFileExtendName + ".gz");
+                        TZip.encodeGZip(tmpLogFile, packFile);
+                        TFile.deleteFile(tmpLogFile);
+                    } catch (Exception e) {
+                        System.out.println("[ERROR] Pack log file " + innerLogFilePath + "error: ");
                         e.printStackTrace();
                     }
+                }, "LogPackThread");
 
-                    //重置文件输出流
-                    loggerThread.setOutputStreams(getOutputStreams());
-                }
-            } finally {
-                //恢复日志输出
-                loggerThread.unpause();
+                packThread.start();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+
+            //重置文件输出流
+            loggerThread.setOutputStreams(getOutputStreams());
         }
     }
 
@@ -353,7 +354,7 @@ public class Formater {
      * 获取输出流
      * @return 输出流数组
      */
-    protected static OutputStream[] getOutputStreams(){
+    protected synchronized static OutputStream[] getOutputStreams(){
         String[] LogTypes = LoggerStatic.getLogConfig("LogType", LoggerStatic.LOG_TYPE).split(",");
         String logFilePath = getFormatedLogFilePath();
 
