@@ -465,13 +465,8 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 			TEnv.waitThrow(socketContext.getReadTimeout(), ()->state.isInit());
 
 			if (obj != null) {
-				try {
-					EventProcess.sendMessage(this, obj);
-					flush();
-				}catch (Exception e){
-					throw new SendMessageException("Method syncSend error! Error by "+
-							e.getClass().getSimpleName() + ".",e);
-				}
+				EventProcess.sendMessage(this, obj);
+				flush();
 			}
 		} catch (TimeoutException e) {
 			throw new SendMessageException("Method syncSend error! Error by "+
