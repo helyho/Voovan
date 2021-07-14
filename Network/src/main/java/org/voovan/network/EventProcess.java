@@ -246,7 +246,12 @@ public class EventProcess {
      */
     public static Object filterDecoder(IoSession session, ByteBuffer readedBuffer) throws IoFilterException{
         Object result = readedBuffer;
+
         Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().getReciveFilterChain();
+        if(SocketContext.ASYNC_RECIVE) {
+            filterChain = (Chain<IoFilter>) filterChain.clone();
+        }
+
         filterChain.rewind();
         while (filterChain.hasNext()) {
             IoFilter fitler = filterChain.next();
@@ -268,6 +273,10 @@ public class EventProcess {
      */
     public static ByteBuffer filterEncoder(IoSession session, Object result) throws IoFilterException{
         Chain<IoFilter> filterChain = (Chain<IoFilter>) session.socketContext().getSendFilterChain();
+
+        if(SocketContext.ASYNC_SEND) {
+            filterChain = (Chain<IoFilter>) filterChain.clone();
+        }
 
         filterChain.rewind();
         while (filterChain.hasPrevious()) {
