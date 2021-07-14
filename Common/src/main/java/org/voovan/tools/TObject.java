@@ -204,24 +204,6 @@ public class TObject {
 	}
 
 	/**
-	 * 数组拼接
-	 * @param firstArray		   首个数组
-	 * @param firstArrayLength     首个数组长度
-	 * @param lastArray			   拼接在后的数组
-	 * @param lastArrayLength      拼接在后的数组长度
-	 * @return 拼接后的数组
-	 */
-	public static Object[] arrayConcat(Object[] firstArray,int firstArrayLength, Object[] lastArray,int lastArrayLength) {
-		if (lastArray.length == 0)
-			return firstArray;
-		Object[] target = new Object[firstArrayLength + lastArrayLength];
-		System.arraycopy(firstArray, 0, target, 0, firstArrayLength);
-		System.arraycopy(lastArrayLength, 0, target, firstArrayLength, lastArrayLength);
-		return target;
-	}
-
-
-	/**
 	 * 在数组中查找元素
 	 * @param source 数组
 	 * @param mark 被查找的元素
