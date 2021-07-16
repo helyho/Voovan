@@ -25,6 +25,7 @@ public class LoggerThread implements Runnable {
 	private ConcurrentLinkedDeque<String> logCacheQueue;
 	private OutputStream[] outputStreams;
 	private AtomicBoolean finished = new AtomicBoolean(false);
+	private Thread thread;
 	private int pause = 0; // 0: 正常 , 1: 暂停中, 2: 暂停
 
 	/**
@@ -49,7 +50,7 @@ public class LoggerThread implements Runnable {
 	 * @return true: 结束, false: 运行中
 	 */
 	public boolean isFinished() {
-		return finished.get();
+		return finished.get() || !thread.isAlive();
 	}
 
 	/**
@@ -66,6 +67,14 @@ public class LoggerThread implements Runnable {
 	 */
 	public void unpause(){
 		pause = 0;
+	}
+
+	public Thread getThread() {
+		return thread;
+	}
+
+	protected void setThread(Thread thread) {
+		this.thread = thread;
 	}
 
 	/**
@@ -141,13 +150,10 @@ public class LoggerThread implements Runnable {
 			System.out.println("[FRAMEWORK] Main logger thread is terminaled");
 
 			flush();
-
-			finished.set(true);
-
 		} finally {
 			close();
+			finished.set(true);
 		}
-
 	}
 
 	public String renderMessage(Object obj){
@@ -257,6 +263,8 @@ public class LoggerThread implements Runnable {
 		loggerMainThread.setDaemon(true);
 		loggerMainThread.setPriority(1);
 		loggerMainThread.start();
+
+		loggerThread.setThread(loggerMainThread);
 		return loggerThread;
 	}
 
