@@ -125,14 +125,14 @@ public class JSONPath {
      * @param <T>     范型
      * @return  节点的数据
      */
-    public <T> T value(String pathQry,T defaultValue) {
+    public <T> T value(String pathQry, T defaultValue) {
         return (T)TObject.nullDefault(value(pathQry),defaultValue);
     }
 
     /**
      * 获取节点值并转换成相应的对象,默认忽略段大小写
      * @param pathQry  JSONPath 路径
-     * @param clazz    对象的 class, Map:作为 Value 的类型, List 作为元素的类型
+     * @param clazz    对象的 class, Map:作为转换目标对象的类型, List 作为元素的类型
      * @param <T>      范型指代对象
      * @return  转换后的对象
      */
