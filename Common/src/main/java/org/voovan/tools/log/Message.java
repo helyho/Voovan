@@ -1,11 +1,9 @@
 package org.voovan.tools.log;
 
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TFile;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
+import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -26,6 +24,8 @@ public class Message {
 	private Object[] args;
 	private Throwable throwable;
 	private Thread thread;
+	private Date timestamp;
+	private long runTime;
 
 	private Map<String, String> tokens;
 	private StackTraceElement stackTraceElement;
@@ -34,6 +34,9 @@ public class Message {
 		if(LoggerStatic.HAS_STACK) {
 			stackTraceElement =  currentStackLine();
 		}
+
+		this.timestamp = new Date();
+		this.runTime = TPerformance.getRuningTime()/1000;
 	}
 
 	public Message(String level, Object message, Object[] args, Throwable throwable ) {
@@ -41,11 +44,14 @@ public class Message {
 		this.message = message;
 		this.args = args;
 		this.throwable = throwable;
-
 		this.thread = Thread.currentThread();
+
 		if(LoggerStatic.HAS_STACK) {
 			stackTraceElement =  currentStackLine();
 		}
+
+		this.timestamp = new Date();
+		this.runTime = TPerformance.getRuningTime()/1000;
 	}
 
 	public String getLevel() {
@@ -86,6 +92,22 @@ public class Message {
 
 	public void setStackTraceElement(StackTraceElement stackTraceElement) {
 		this.stackTraceElement = stackTraceElement;
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	public long getRunTime() {
+		return runTime;
+	}
+
+	public void setRunTime(long runTime) {
+		this.runTime = runTime;
 	}
 
 	public String format() {

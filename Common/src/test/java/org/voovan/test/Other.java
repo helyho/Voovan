@@ -1,10 +1,12 @@
 package org.voovan.test;
 
 import org.junit.rules.TestRule;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.cmd.GnuCommander;
 import org.voovan.tools.cmd.annotation.Command;
 import org.voovan.tools.cmd.annotation.Option;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 
 import java.math.BigDecimal;
 import java.net.InetSocketAddress;
@@ -23,6 +25,8 @@ import java.util.List;
  */
 public class Other {
     public static void main(String[] args) throws Exception {
-        System.out.println(System.getenv("USER"));
+        Logger.infof(System.getenv("USER"));
+
+        TEnv.sleep(100);
     }
 }
