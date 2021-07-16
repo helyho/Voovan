@@ -231,11 +231,11 @@ public class Formater {
         }
 
         if(LoggerStatic.HAS_DATE) {
-            tokens.put("D", TDateTime.now("yyyy-MM-dd HH:mm:ss:SS z"));                      //当前时间
+            tokens.put("D", TDateTime.format(message.getTimestamp(), "yyyy-MM-dd HH:mm:ss:SS z"));                      //当前时间
         }
 
         if(LoggerStatic.HAS_RUNTIME) {
-            tokens.put("R", TDateTime.formatElapsedSecs(TPerformance.getRuningTime()/1000)); //系统运行时间
+            tokens.put("R", TDateTime.formatElapsedSecs(message.getRunTime())); //系统运行时间
         }
 
         if(LoggerStatic.HAS_STACK) {
