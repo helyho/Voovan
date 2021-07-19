@@ -2392,13 +2392,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 }, true);
 
+                boolean processSucc = false;
                 if (rocksWalRecords.size() > 0) {
                     //调用处理器
-                    rocksWalProcessor.process(endSequence, rocksWalRecords);
+                    processSucc = rocksWalProcessor.process(endSequence, rocksWalRecords);
                 }
 
-                rocksMap.put(mark, endSequence);
-                lastSequence = endSequence;
+                if(processSucc) {
+                    rocksMap.put(mark, endSequence);
+                    lastSequence = endSequence;
+                } else {
+                    Logger.warnf("process failed, {}->{}", lastSequence, endSequence);
+                }
             } catch (RocksMapException ex) {
                 if(!ex.getMessage().contains("while stat a file for size")) {
                     throw ex;
@@ -2410,7 +2415,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
          * 日志处理器
          */
         public static interface RocksWalProcessor {
-            public void process(Long endSequence, List<RocksWalRecord> rocksWalRecords);
+            public boolean process(Long endSequence, List<RocksWalRecord> rocksWalRecords);
         }
     }
 }
