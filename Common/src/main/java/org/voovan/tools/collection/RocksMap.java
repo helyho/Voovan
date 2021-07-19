@@ -2392,17 +2392,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 }, true);
 
-                boolean processSucc = false;
                 if (rocksWalRecords.size() > 0) {
                     //调用处理器
-                    processSucc = rocksWalProcessor.process(endSequence, rocksWalRecords);
-                }
-
-                if(processSucc) {
-                    rocksMap.put(mark, endSequence);
-                    lastSequence = endSequence;
-                } else {
-                    Logger.warnf("process failed, {}->{}", lastSequence, endSequence);
+                    if(rocksWalProcessor.process(endSequence, rocksWalRecords)) {
+                        rocksMap.put(mark, endSequence);
+                        lastSequence = endSequence;
+                    } else {
+                        Logger.warnf("process failed, {}->{}", lastSequence, endSequence);
+                    }
                 }
             } catch (RocksMapException ex) {
                 if(!ex.getMessage().contains("while stat a file for size")) {
