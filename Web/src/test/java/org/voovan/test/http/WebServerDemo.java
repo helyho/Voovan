@@ -200,7 +200,7 @@ public class WebServerDemo {
 				//调用发送函数发送
 				try {
 
-					String mm= new String(TFile.loadFile(new File("/Users/helyho/Work/ex_trx.py")));
+					String mm= new String("opened");
 					webSocketSession.send(mm);
 				} catch (Exception e) {
 					e.printStackTrace();
