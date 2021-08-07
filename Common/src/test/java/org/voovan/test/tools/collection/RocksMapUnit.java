@@ -11,7 +11,6 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.serialize.ProtoStuffSerialize;
 import org.voovan.tools.serialize.TSerialize;
 
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -459,24 +458,35 @@ public class RocksMapUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.put(System.currentTimeMillis(), System.currentTimeMillis());
-        BackupableDBOptions backupableDBOptions = RocksMap.createBackupableOption(rocksMap1);
+
+        BackupableDBOptions backupableDBOptions = rocksMap1.getBackupableDBOptions();
         backupableDBOptions.setDestroyOldData(false);
         backupableDBOptions.setBackupLogFiles(true);
-        System.out.println(rocksMap1.createBackup(backupableDBOptions, true));
+
+        //创建备份
+        String backupDir = rocksMap1.createBackup(true);
+        System.out.println(backupDir);
+
+        rocksMap1.PurgeOldBackups(5);
+        rocksMap1.restoreLatestBackup(true);
     }
 
-
     public void testBackupInfo() throws RocksDBException {
-        //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         List mm = rocksMap1.getBackupInfo();
-        System.out.println(JSON.toJSON(mm));
+        System.out.println(JSON.toJSONWithFormat(mm));
     }
 
     public void testRestoreLastBackup() throws RocksDBException {
-        //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
-        RocksMap.restoreLatestBackup();
+        RocksMap rocksMap1 = new RocksMap(cfName);
+        rocksMap1.restoreLatestBackup();
+    }
+
+    public void testRestoreBackup() throws RocksDBException {
+        String cfName = "testdb1000";
+        RocksMap rocksMap1 = new RocksMap(cfName);
+        rocksMap1.restore(6);
     }
 }

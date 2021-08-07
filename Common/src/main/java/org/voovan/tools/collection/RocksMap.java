@@ -1,6 +1,5 @@
 package org.voovan.tools.collection;
 import org.rocksdb.*;
-import org.voovan.Global;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
 import org.voovan.tools.Varint;
@@ -45,8 +44,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static Map<RocksDB, Map<String, ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, Map<String, ColumnFamilyHandle>>();
 
     //数据文件的默认保存路径
-    private static String DEFAULT_DB_PATH = ".rocksdb"+ File.separator;
-    private static String DEFAULT_WAL_PATH = DEFAULT_DB_PATH + ".wal"+ File.separator;
+    private static String DEFAULT_DB_PATH     = ".rocksdb"+ File.separator;
+    private static String DEFAULT_WAL_PATH    = DEFAULT_DB_PATH + ".wal"+ File.separator;
+    private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backups"+File.separator;
 
     /**
      * 获取默认数据存储路径
@@ -72,12 +72,26 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return DEFAULT_WAL_PATH;
     }
 
+
     /**
      * 设置WAL数存储据路径
      * @param defaultWalPath WAL数存储据路径
      */
     public static void setDefaultWalPath(String defaultWalPath) {
-        DEFAULT_WAL_PATH = defaultWalPath.endsWith(File.separator) ? defaultWalPath : defaultWalPath + File.separator;;
+        DEFAULT_WAL_PATH = defaultWalPath.endsWith(File.separator) ? defaultWalPath : defaultWalPath + File.separator;
+    }
+
+
+    /**
+     * 默认数据备份存储据路径
+     * @return WAL数存储据路径
+     */
+    public static String getDefaultBackupPath() {
+        return DEFAULT_BACKUP_PATH;
+    }
+
+    public static void setDefaultBackupPath(String defaultBackupPath) {
+        DEFAULT_BACKUP_PATH = defaultBackupPath.endsWith(File.separator) ? defaultBackupPath : defaultBackupPath + File.separator;;
     }
 
     /**
@@ -114,15 +128,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public transient ReadOptions          readOptions;
     public transient WriteOptions         writeOptions;
     public transient ColumnFamilyOptions  columnFamilyOptions;
+    public transient BackupableDBOptions  backupableDBOptions;
 
     private transient RocksDB                     rocksDB;
     private transient ColumnFamilyHandle          dataColumnFamilyHandle;
     private transient ThreadLocal<Transaction>    threadLocalTransaction      = new ThreadLocal<Transaction>();
     private transient ThreadLocal<Integer>        threadLocalSavePointCount   = ThreadLocal.withInitial(()->new Integer(0));
 
-    private transient String dbname;
+    private transient String dbName;
     private transient String dataPath;
     private transient String walPath;
+    private transient String backupPath;
     private transient String columnFamilyName;
     private transient Boolean readOnly;
     private transient Boolean isDuplicate = false;
@@ -146,11 +162,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 构造方法
-     * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param dbName 数据库的名称, 基于数据保存目录的相对路径
      * @param columnFamilyName 列族名称
      */
-    public RocksMap(String dbname, String columnFamilyName) {
-        this(dbname, columnFamilyName, null, null, null, null, null);
+    public RocksMap(String dbName, String columnFamilyName) {
+        this(dbName, columnFamilyName, null, null, null, null, null);
     }
 
     /**
@@ -172,17 +188,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 构造方法
-     * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param dbName 数据库的名称, 基于数据保存目录的相对路径
      * @param columnFamilyName 列族名称
      * @param readOnly 是否以只读模式打开
      */
-    public RocksMap(String dbname, String columnFamilyName, boolean readOnly) {
-        this(dbname, columnFamilyName, null, null, null, null, readOnly);
+    public RocksMap(String dbName, String columnFamilyName, boolean readOnly) {
+        this(dbName, columnFamilyName, null, null, null, null, readOnly);
     }
 
     /**
      * 构造方法
-     * @param dbname 数据库的名称, 基于数据保存目录的相对路径
+     * @param dbName 数据库的名称, 基于数据保存目录的相对路径
      * @param columnFamilyName 列族名称
      * @param dbOptions DBOptions 配置对象
      * @param readOptions ReadOptions 配置对象
@@ -190,8 +206,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param columnFamilyOptions 列族配置对象
      * @param readOnly 是否以只读模式打开
      */
-    public RocksMap(String dbname, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
-        this.dbname = dbname == null ? DEFAULT_DB_NAME : dbname;
+    public RocksMap(String dbName, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
+        this.dbName = dbName == null ? DEFAULT_DB_NAME : dbName;
         this.columnFamilyName = columnFamilyName == null ? "voovan_default" : columnFamilyName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
@@ -209,15 +225,20 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.dbOptions = dbOptions;
         }
 
-        this.dataPath = DEFAULT_DB_PATH + this.dbname;
-        this.walPath = DEFAULT_WAL_PATH +this.dbname;
+        this.dataPath = DEFAULT_DB_PATH + this.dbName + File.separator;
+        this.walPath = DEFAULT_WAL_PATH + this.dbName + File.separator;
+        this.backupPath = DEFAULT_BACKUP_PATH + this.dbName + File.separator;
 
-        this.dbOptions.setWalDir(walPath);
+
 
         TFile.mkdir(dataPath);
-        TFile.mkdir(this.dbOptions.walDir());
+        TFile.mkdir(walPath);
+        TFile.mkdir(backupPath);
 
-        rocksDB = ROCKSDB_MAP.get(this.dbname);
+        this.dbOptions.setWalDir(walPath);
+        this.backupableDBOptions = new BackupableDBOptions(backupPath);
+
+        rocksDB = ROCKSDB_MAP.get(this.dbName);
 
         try {
             if (rocksDB == null || this.readOnly) {
@@ -226,7 +247,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 //加载已经存在的所有列族
                 {
-                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbname);
+                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbName);
                     if (columnFamilyNameBytes.size() > 0) {
                         for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
                             ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte, this.columnFamilyOptions);
@@ -243,10 +264,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
                 //打开 Rocksdb
                 if (this.readOnly) {
-                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbname, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbName, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                 } else {
-                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbname, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
-                    ROCKSDB_MAP.put(this.dbname, rocksDB);
+                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbName, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    ROCKSDB_MAP.put(this.dbName, rocksDB);
                 }
 
                 Map<String, ColumnFamilyHandle> columnFamilyHandleMap = new ConcurrentHashMap<String, ColumnFamilyHandle>();
@@ -280,7 +301,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.threadLocalSavePointCount = ThreadLocal.withInitial(()->new Integer(0));
         }
 
-        this.dbname =  rocksMap.dbname;
+        this.dbName =  rocksMap.dbName;
         this.columnFamilyName = columnFamilyName;
         this.readOnly = rocksMap.readOnly;
         this.transactionLockTimeout = rocksMap.transactionLockTimeout;
@@ -318,8 +339,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return obj==null || obj.length == 0 ? null : TSerialize.unserialize(obj);
     }
 
-    public String getDbname() {
-        return dbname;
+    public String getDbName() {
+        return dbName;
     }
 
     public String getDataPath() {
@@ -328,6 +349,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     public String getWalPath() {
         return walPath;
+    }
+
+    public String getBackupPath() {
+        return backupPath;
     }
 
     public String getColumnFamilyName() {
@@ -362,6 +387,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return columnFamilyOptions;
     }
 
+    public BackupableDBOptions getBackupableDBOptions() {
+        return backupableDBOptions;
+    }
+
     public Serialize getSerialize() {
         return serialize;
     }
@@ -375,37 +404,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return rocksDB;
     }
 
-    /**
-     * 创建一个备份选项
-     * @param dbName db 名称
-     * @param backupPath 备份路径, null 使用默认路径
-     * @return BackupableDBOptions 对象
-     */
-    public static BackupableDBOptions createBackupableOption(String dbName, String backupPath) {
-        String defaultBackPath = backupPath==null ? DEFAULT_DB_PATH+".backups"+File.separator+dbName+File.separator : backupPath;
-        TFile.mkdir(defaultBackPath);
-        return new BackupableDBOptions(defaultBackPath);
-    }
-
-    public static BackupableDBOptions createBackupableOption(String dbName) {
-        return createBackupableOption(dbName, null);
-    }
-
-    public static BackupableDBOptions createBackupableOption(RocksMap rocksMap) {
-        return createBackupableOption(rocksMap.getDbname(), null);
-    }
 
     /**
      * 创建一个备份
-     * @param backupableDBOptions 备份选项
      * @param beforeFlush 是否在备份前执行 flush
      * @return 备份路径
      */
-    public String createBackup(BackupableDBOptions backupableDBOptions, boolean beforeFlush) {
-        if(backupableDBOptions==null) {
-            backupableDBOptions = createBackupableOption(this.dbname);
-        }
-
+    public String createBackup(boolean beforeFlush) {
         try {
             BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
             backupEngine.createNewBackup(this.rocksDB, beforeFlush);
@@ -415,12 +420,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public String createBackup(BackupableDBOptions backupableDBOptions) {
-        return createBackup(backupableDBOptions, false);
-    }
-
     public String createBackup() {
-        return createBackup(null, false);
+        return createBackup(false);
     }
 
     /**
@@ -428,11 +429,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param backupableDBOptions 备份选线
      * @return 备份信息清单
      */
-    public List<BackupInfo> getBackupInfo(BackupableDBOptions backupableDBOptions) {
-        if(backupableDBOptions==null) {
-            backupableDBOptions = createBackupableOption(this.dbname);
-        }
-
+    public List<BackupInfo> getBackupInfo() {
         try {
             BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
             return backupEngine.getBackupInfo();
@@ -441,22 +438,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public List<BackupInfo> getBackupInfo() {
-        return getBackupInfo(null);
-    }
-
     /**
      * 从最后一次备份恢复数据
-     * @param dbName 数据库名, 用以确定恢复路径
-     * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
-    public static void restoreLatestBackup(String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) {
-
-        if(backupableDBOptions==null) {
-            backupableDBOptions = createBackupableOption(dbName);
-        }
-
+    public void restoreLatestBackup(Boolean keepLogfile) {
         try {
             String dataPath = DEFAULT_DB_PATH + dbName;
             String walPath = DEFAULT_WAL_PATH + dbName;
@@ -470,8 +456,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public static void restoreLatestBackup() {
-        restoreLatestBackup(DEFAULT_DB_NAME, null, true);
+    public void restoreLatestBackup() {
+        restoreLatestBackup(true);
     }
 
     /**
@@ -481,12 +467,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
-    public static void restore(int backupId, String dbName, BackupableDBOptions backupableDBOptions, Boolean keepLogfile) {
-
-        if(backupableDBOptions==null) {
-            backupableDBOptions = createBackupableOption(dbName);
-        }
-
+    public void restore(int backupId, Boolean keepLogfile) {
         try {
             String dataPath = DEFAULT_DB_PATH + dbName;
             String walPath = DEFAULT_WAL_PATH + dbName;
@@ -500,16 +481,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
-    public static void restore(int backupId) throws RocksDBException {
-        restoreLatestBackup(DEFAULT_DB_NAME, null, true);
+    public void restore(int backupId) throws RocksDBException {
+        restore(backupId, true);
     }
 
     /**
      * 清理备份
-     * @param backupableDBOptions 备份选项
+     * @param dbName 数据库明城
      * @param number 保留的备份书
      */
-    public static void PurgeOldBackups(BackupableDBOptions backupableDBOptions, int number) {
+    public void PurgeOldBackups(int number) {
         try {
             BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
             backupEngine.purgeOldBackups(number);
