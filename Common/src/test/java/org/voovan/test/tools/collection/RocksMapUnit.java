@@ -460,9 +460,9 @@ public class RocksMapUnit extends TestCase {
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.put(System.currentTimeMillis(), System.currentTimeMillis());
         BackupableDBOptions backupableDBOptions = RocksMap.createBackupableOption(rocksMap1);
-        backupableDBOptions.setDestroyOldData(true);
-        backupableDBOptions.setBackupLogFiles(false);
-        System.out.println(rocksMap1.createBackup(backupableDBOptions));
+        backupableDBOptions.setDestroyOldData(false);
+        backupableDBOptions.setBackupLogFiles(true);
+        System.out.println(rocksMap1.createBackup(backupableDBOptions, true));
     }
 
 
@@ -471,7 +471,7 @@ public class RocksMapUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         List mm = rocksMap1.getBackupInfo();
-        System.out.println(mm);
+        System.out.println(JSON.toJSON(mm));
     }
 
     public void testRestoreLastBackup() throws RocksDBException {
