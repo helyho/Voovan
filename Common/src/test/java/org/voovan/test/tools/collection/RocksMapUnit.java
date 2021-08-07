@@ -454,6 +454,7 @@ public class RocksMapUnit extends TestCase {
     }
 
     public void testBackup() throws RocksDBException {
+        RocksMap.setDefaultBackupPath(".bks");
         //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
@@ -465,10 +466,19 @@ public class RocksMapUnit extends TestCase {
 
         //创建备份
         String backupDir = rocksMap1.createBackup(true);
-        System.out.println(backupDir);
+        System.out.println("Backup path: " + backupDir);
 
+        //只保留 5 个历史备份
         rocksMap1.PurgeOldBackups(5);
+        //恢复最后一个备份
         rocksMap1.restoreLatestBackup(true);
+
+        //获取备份信息
+        List<BackupInfo> mm = rocksMap1.getBackupInfo();
+        System.out.println(JSON.toJSONWithFormat(mm));
+
+        //恢复到指定 Id 的备份
+        rocksMap1.restore(mm.get(3).backupId());
     }
 
     public void testBackupInfo() throws RocksDBException {
