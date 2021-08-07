@@ -506,15 +506,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 清理备份
-     * @param dbName 数据库明城
      * @param backupableDBOptions 备份选项
      * @param number 保留的备份书
      */
-    public static void PurgeOldBackups(String dbName, BackupableDBOptions backupableDBOptions, int number) {
-        if(backupableDBOptions==null) {
-            backupableDBOptions = createBackupableOption(dbName);
-        }
-
+    public static void PurgeOldBackups(BackupableDBOptions backupableDBOptions, int number) {
         try {
             BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
             backupEngine.purgeOldBackups(number);
