@@ -46,7 +46,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     //数据文件的默认保存路径
     private static String DEFAULT_DB_PATH     = ".rocksdb"+ File.separator;
     private static String DEFAULT_WAL_PATH    = DEFAULT_DB_PATH + ".wal"+ File.separator;
-    private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backups"+File.separator;
+    private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backup"+File.separator;
 
     /**
      * 获取默认数据存储路径
@@ -57,7 +57,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 设置默认数存储据路径
+     * 设置默认数据存储据路径
      * @param defaultDbPath 默认数存储据路径
      */
     public static void setDefaultDbPath(String defaultDbPath) {
@@ -65,7 +65,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 默认WAL数存储据路径
+     * 默认WAL数据存储据路径
      * @return WAL数存储据路径
      */
     public static String getDefaultWalPath() {
@@ -74,7 +74,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
 
     /**
-     * 设置WAL数存储据路径
+     * 设置WAL数据存储据路径
      * @param defaultWalPath WAL数存储据路径
      */
     public static void setDefaultWalPath(String defaultWalPath) {
@@ -90,6 +90,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return DEFAULT_BACKUP_PATH;
     }
 
+    /**
+     * 设置数据备份存储据路径
+     * @param defaultWalPath WAL数存储据路径
+     */
     public static void setDefaultBackupPath(String defaultBackupPath) {
         DEFAULT_BACKUP_PATH = defaultBackupPath.endsWith(File.separator) ? defaultBackupPath : defaultBackupPath + File.separator;;
     }
