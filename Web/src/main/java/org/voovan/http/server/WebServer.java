@@ -820,6 +820,19 @@ public class WebServer {
 			}
 		}
 
+		if(TEnv.JDK_VERSION > 14) {
+			System.out.println("Your are working on: JDK-" + TEnv.JDK_VERSION + ". " +
+					"You should add java command arguments: " +
+					"--add-opens=jdk.unsupported/sun.misc=ALL-UNNAMED " +
+					"--add-opens=java.base/sun.nio.ch=ALL-UNNAMED " +
+					"--add-opens=java.base/java.nio=ALL-UNNAMED " +
+					"--add-opens=java.base/java.tcp=ALL-UNNAMED " +
+					"--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED " +
+					"--add-opens=java.base/java.net=ALL-UNNAMED " +
+					"--add-opens=java.base/java.lang=ALL-UNNAMED " +
+					"--add-opens=java.base/java.security=ALL-UNNAMED");
+		}
+
 		WebServer webServer = WebServer.newInstance(config);
 		return webServer;
 	}
