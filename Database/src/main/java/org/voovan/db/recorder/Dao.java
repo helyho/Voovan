@@ -339,8 +339,6 @@ public class Dao<T extends Dao> {
         andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
 
         Query query = Query.newInstance().data(dataFields).and(andFields);
-        pageNum = pageNum == null ? -1 : pageNum;
-        pageSize = pageSize == null ? -1 : pageSize;
         query.page(pageNum, pageSize);
 
         try {
@@ -396,19 +394,16 @@ public class Dao<T extends Dao> {
     /**
      * 使用自定义查询数据多条数据
      * @param dataSql select 和 from 之间的 sql 语句
-     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @@param whereSQL SQL 中 where 的查询条件
      * @param clazz 查询返回的对象类型
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> List<R> customQuery(String dataSql, String[] andFields, Class<R> clazz) {
+    public <R> List<R> customQuery(String dataSql, String whereSQL, Class<R> clazz) {
         check();
 
-        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
-
-        Query query = Query.newInstance().and(andFields);
         try {
-            List<R> ret = recorder.customQuery(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            List<R> ret = recorder.customQuery(null, dataSql, whereSQL, (T)this, clazz);
             return ret;
         } catch (Exception e) {
             Logger.error("Dao.customQuery failed", e);
@@ -481,19 +476,16 @@ public class Dao<T extends Dao> {
     /**
      * 使用自定义查询数据单条数据
      * @param dataSql select 和 from 之间的 sql 语句
-     * @param andFields 查询记录的查询条件, 这些对像属性将使用 and 拼装出 where 后的条件
+     * @param whereSQL SQL 中 where 的查询条件
      * @param clazz 查询返回的对象类型
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> R customQueryOne(String dataSql, String[] andFields, Class<R> clazz) {
+    public <R> R customQueryOne(String dataSql, String whereSQL, Class<R> clazz) {
         check();
 
-        andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
-
-        Query query = Query.newInstance().and(andFields);
         try {
-            R ret = recorder.customQueryOne(null, dataSql, recorder.genWhereSql((T)this, query), (T)this, clazz);
+            R ret = recorder.customQueryOne(null, dataSql, whereSQL, (T)this, clazz);
             return ret;
         } catch (Exception e) {
             Logger.error("Dao.customQuery failed", e);

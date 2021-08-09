@@ -89,7 +89,9 @@ public class Query {
         return this;
     }
 
-    public Query page(int pageNumber, int pageSize){
+    public Query page(Integer pageNumber, Integer pageSize){
+        pageNumber = pageNumber == null ? -1 : pageNumber;
+        pageSize = pageSize == null ? -1 : pageSize;
         this.pageNumber = pageNumber;
         this.pageSize = pageSize;
 

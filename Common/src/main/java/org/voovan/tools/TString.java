@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
  *
  * @author helyho
  * <p>
- * Voovan Framework80797d4b533dc83bb73457eb5194d13a45779258eaf3a2c07f041a98b329f79d.
+ * Voovan Framework
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
