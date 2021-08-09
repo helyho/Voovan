@@ -405,15 +405,15 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
+        if (tableName == null) {
+            tableName = getTableNameWithDataBase(obj);
+        }
+
         String cacheKey = getCacheKey("QUERY", tableName, obj.getClass(), query);
         String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
         if(resultSql == null) {
             Table table = obj.getClass().getAnnotation(Table.class);
-
-            if (tableName == null) {
-                tableName = getTableNameWithDataBase(obj);
-            }
 
             //SQL模板准备
             //准备查询列
@@ -480,15 +480,15 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) {
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
+
         String cacheKey = getCacheKey("UPDATE", tableName, obj.getClass(), query);
         String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
         if(resultSql == null) {
             Table table = obj.getClass().getAnnotation(Table.class);
-
-            if(tableName == null){
-                tableName = getTableNameWithDataBase(obj);
-            }
 
             //SQL模板准备
             String mainSql = TString.assembly("update " , tableName , " set");
@@ -566,16 +566,16 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildInsertSqlTemplate(String tableName, T obj) {
+        if (tableName == null) {
+            tableName = getTableNameWithDataBase(obj);
+        }
+
         String cacheKey = getCacheKey("INSERT", tableName, obj.getClass(), null);
         String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
         if(resultSql == null) {
 
             Table table = obj.getClass().getAnnotation(Table.class);
-
-            if (tableName == null) {
-                tableName = getTableNameWithDataBase(obj);
-            }
 
             //SQL模板准备
             String mainSql = TString.assembly("insert into ", tableName);
@@ -627,16 +627,16 @@ public class Recorder {
      * @return 拼装的 SQL
      */
     public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) {
+        if(tableName == null){
+            tableName = getTableNameWithDataBase(obj);
+        }
+
         String cacheKey = getCacheKey("DELETE", tableName, obj.getClass(), query);
         String resultSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
         if(resultSql == null) {
 
             Table table = obj.getClass().getAnnotation(Table.class);
-
-            if (tableName == null) {
-                tableName = getTableNameWithDataBase(obj);
-            }
 
             //SQL模板准备
             String mainSql = TString.assembly("delete from ", tableName);
