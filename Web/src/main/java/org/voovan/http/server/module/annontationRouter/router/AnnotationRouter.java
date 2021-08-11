@@ -78,8 +78,6 @@ public class AnnotationRouter implements HttpRouter {
                 Logger.error("New a singleton object error", e);
             }
         }
-
-        methodDynamicFunction = TReflect.getMethodInvoker(clazz, method, true);
     }
 
     public String getUrlPath() {
@@ -580,6 +578,9 @@ public class AnnotationRouter implements HttpRouter {
         try {
             //调用方法
 //             return TReflect.invokeMethod(annotationObj, method.getName(), params);
+            if(methodDynamicFunction == null) {
+                methodDynamicFunction = TReflect.getMethodInvoker(clazz, method, true);
+            }
             return methodDynamicFunction.call(annotationObj, params);
         } catch (IllegalArgumentException e) {
             throw new AnnotationRouterException("Router method failed: \r\n [" + method + "]\r\n params" + JSON.toJSON(params), e);
