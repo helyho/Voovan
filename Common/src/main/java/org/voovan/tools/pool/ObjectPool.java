@@ -50,6 +50,7 @@ public class ObjectPool<T extends IPooledObject> {
     private int maxSize = Integer.MAX_VALUE;
     private int interval = 5;
     private int maxBorrow = -1;
+    private HashWheelTask task;
 
     /**
      * 构造一个对象池
@@ -477,7 +478,7 @@ public class ObjectPool<T extends IPooledObject> {
         if(interval > 0) {
             final ObjectPool finalobjectPool = this;
 
-            OBJECT_POOL_HASH_WHEEL.addTask(new HashWheelTask() {
+            task = new HashWheelTask() {
                 @Override
                 public void run() {
                     try {
@@ -544,10 +545,17 @@ public class ObjectPool<T extends IPooledObject> {
                         Logger.error(e);
                     }
                 }
-            }, this.interval, true);
+            };
+
+            OBJECT_POOL_HASH_WHEEL.addTask(task, this.interval, true);
         }
 
         return this;
+    }
+
+    public void shutdown() {
+        OBJECT_POOL_HASH_WHEEL.removeTask(task);
+        clear();
     }
 
     /**
