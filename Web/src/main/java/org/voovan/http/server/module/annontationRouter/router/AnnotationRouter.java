@@ -7,6 +7,7 @@ import org.voovan.http.server.exception.AnnotationRouterException;
 import org.voovan.http.server.module.annontationRouter.AnnotationModule;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.websocket.WebSocketRouter;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.compiler.function.DynamicFunction;
@@ -30,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class AnnotationRouter implements HttpRouter {
+    //是否预编译路由
+    public final static boolean PRE_BUILDER_ROUTER = TEnv.getSystemProperty("PrebuildRouter", false);
 
     public static final List<RouterInfo> ROUTER_INFO_LIST = new ArrayList<RouterInfo>();
 
@@ -77,6 +80,10 @@ public class AnnotationRouter implements HttpRouter {
             } catch (Exception e) {
                 Logger.error("New a singleton object error", e);
             }
+        }
+
+        if(PRE_BUILDER_ROUTER) {
+            methodDynamicFunction = TReflect.getMethodInvoker(clazz, method, true);
         }
     }
 
