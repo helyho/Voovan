@@ -625,7 +625,7 @@ public class SocketSelector implements Closeable {
 	}
 
 	static String BROKEN_PIPE = "Broken pipe";
-	static String CONNECTION_RESET = "Connection reset by peer";
+	static String CONNECTION_RESET = "Connection reset";
 
 	/**
 	 * 异常处理方法
@@ -634,7 +634,7 @@ public class SocketSelector implements Closeable {
 	 * @return 永远返回 -1
 	 */
 	public int dealException(SocketContext socketContext, Exception e) {
-		if(e.getMessage()!=null && (e.getMessage().endsWith(CONNECTION_RESET) || e.getMessage().endsWith(BROKEN_PIPE))){
+		if(e.getMessage()!=null && (e.getMessage().contains(CONNECTION_RESET) || e.getMessage().endsWith(BROKEN_PIPE))){
 			socketContext.close();
 			return -1;
 		}
