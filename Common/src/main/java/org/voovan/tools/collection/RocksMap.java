@@ -461,7 +461,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public void restoreLatestBackup() {
-        restoreLatestBackup(true);
+        restoreLatestBackup(false);
     }
 
     /**
@@ -486,7 +486,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public void restore(int backupId) throws RocksDBException {
-        restore(backupId, true);
+        restore(backupId, false);
     }
 
     /**
