@@ -1007,12 +1007,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             while (iterator.isValid()) {
                 byte[] key = iterator.key();
-                if (toKey == null || !Arrays.equals(toKeyBytes, key)) {
-                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
-                } else {
-                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
-                    break;
+
+                boolean fromKeyCompare = fromKeyBytes==null || TByte.byteArrayCompare(fromKeyBytes, key) <= 0;
+                boolean toKeyCompare = toKey==null || TByte.byteArrayCompare(toKeyBytes, key) >= 0;
+
+                if(!toKeyCompare || !fromKeyCompare) {
+                    return subMap;
                 }
+
+                if(fromKeyCompare && toKeyCompare) {
+                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
+                }
+//                if (toKey == null || !Arrays.equals(toKeyBytes, key)) {
+//                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
+//                } else {
+//                    subMap.put((K) unserialize(iterator.key()), (V) unserialize(iterator.value()));
+//                    break;
+//                }
                 iterator.next();
             }
 
@@ -1810,10 +1821,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
         RocksMap<K,V> innerRocksMap = this.duplicate(this.getColumnFamilyName(), false);
-
-        if(disableWal) {
-            innerRocksMap.writeOptions.setSync(false);
-        }
 
         innerRocksMap.writeOptions.setDisableWAL(disableWal);
 

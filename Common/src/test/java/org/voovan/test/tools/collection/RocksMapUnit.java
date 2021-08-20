@@ -52,29 +52,29 @@ public class RocksMapUnit extends TestCase {
 
         UniqueId uniqueId = new UniqueId(200, 10);
 
-        RocksMap rocksMap2 = new RocksMap("javaComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
 
-        if(rocksMap2.size() < 3000)
-        TEnv.measure("cppComparator", ()->{
-            for (int i = 0; i < 3000; i++) {
-                rocksMap2.put(((Long)uniqueId.nextNumber()), i);
+        RocksMap rocksMap2 = new RocksMap("cppComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        TEnv.measure("cppComparator: ", ()->{
+            for (int i = 0; i < 30000; i++) {
+                rocksMap2.put(uniqueId.nextNumber(), i, false);
             }
         });
-
-        rocksMap2.scan(null, "6652262218912382986", entry->{
-            System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
-            return true;
-        }, true);
-
-//        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
-//
-//        TEnv.measure("javaComparator", ()->{
-//            for (int i = 0; i < 3000; i++) {
-//                rocksMap1.put(uniqueId.nextNumber(), i);
-//            }
-//        });
-
         TEnv.sleep(500);
+
+
+        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        TEnv.measure("javaComparator: ", ()->{
+            for (int i = 0; i < 30000; i++) {
+                rocksMap1.put(uniqueId.nextNumber(), i, false);
+            }
+        });
+        TEnv.sleep(500);
+
+//        rocksMap2.scan(null, "6652262218912382986", entry->{
+//            System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
+//            return true;
+//        }, true);
+
         System.out.println(1);
     }
 
@@ -407,12 +407,17 @@ public class RocksMapUnit extends TestCase {
 
         //putAll
         Map<String, String> data = new HashMap<>();
-        data.put("hhhh1", "iiii");
-        data.put("hhhh2", "iiii");
+        data.put("aaaa1", "iiii");
+        data.put("aaaa2", "iiii");
+        data.put("aaaa3", "iiii");
+        data.put("aaaa4", "iiii");
+
         data.put("hhhh3", "iiii");
         data.put("hhhh4", "iiii");
         data.put("hhhh5", "iiii");
         data.put("hhhh6", "iiii");
+        data.put("hhhh1", "iiii");
+        data.put("hhhh2", "iiii");
         data.put("hhhh7", "iiii");
         data.put("xxxx7", "iiii");
         rocksMap.putAll(data);
@@ -420,7 +425,7 @@ public class RocksMapUnit extends TestCase {
         System.out.println("KeySet: "+ rocksMap.keySet());
 
         //submap
-        Map subMap = rocksMap.subMap("hhhh2", "hhhh5");
+        Map subMap = rocksMap.subMap("hhhh3", "hhhh5");
         System.out.println("subMap 2->5: " + subMap);
 
 
@@ -439,9 +444,9 @@ public class RocksMapUnit extends TestCase {
         System.out.println("lastKey:" + rocksMap.lastKey());
 
         rocksMap.put("name", "testdb");
-        rocksMap.put("111", "testdb");
-        rocksMap.put("333", "testdb");
-        rocksMap.put("222", "testdb");
+        rocksMap.put("111", "testdb1");
+        rocksMap.put("333", "testdb2");
+        rocksMap.put("222", "testdb3");
         System.out.println("getAll" + rocksMap.getAll(TObject.asList("111", "222", "333")));
         System.out.println("name:" + rocksMap.get("name"));
         rocksMap.removeAll(TObject.asList("111", "222"));
@@ -449,6 +454,17 @@ public class RocksMapUnit extends TestCase {
         System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh")));
         System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
         System.out.println("range remove before KeySet: "+ rocksMap.keySet());
+
+
+        rocksMap.scan("hh", null, entry->{
+            String key = ((RocksMap.RocksMapEntry)entry).getKey().toString();
+            if(key.startsWith("hh")) {
+                System.out.println(key);
+                return true;
+            } else {
+                return false;
+            }
+        });
 //        rocksMap.removeRange("hhhh3", "hhhh5");
 //        System.out.println("range remove after KeySet: "+ rocksMap.keySet());
     }
