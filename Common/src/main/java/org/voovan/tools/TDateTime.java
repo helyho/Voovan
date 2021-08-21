@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 public class TDateTime {
 	public final static Long BOOT_TIME_MILLS = System.currentTimeMillis();
-	public final static Long BOOT_TIME_NANOS = System.nanoTime();
 	public final static String STANDER_DATE_TEMPLATE = "yyyy-MM-dd";
 	public final static String STANDER_TIME_TEMPLATE = "HH:mm:ss";
 	public final static String STANDER_DATETIME_TEMPLATE = "yyyy-MM-dd HH:mm:ss";
@@ -245,12 +244,7 @@ public class TDateTime {
 	 * @return 当前的纳秒时间
 	 */
 	public static Long currentTimeNanos(){
-		Long currentMillis = System.currentTimeMillis();
-		Long millisDiff = currentMillis - BOOT_TIME_MILLS;
-		Long nanosDiff = millisDiff*1000000;
-		long nanos = System.nanoTime() - BOOT_TIME_NANOS - nanosDiff;
-		Long currentNanos = currentMillis*1000000 + nanos;
-		return currentNanos;
+		return BOOT_TIME_MILLS*1000000 + System.nanoTime();
 	}
 
 	/**
