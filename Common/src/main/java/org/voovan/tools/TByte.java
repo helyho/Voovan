@@ -276,10 +276,10 @@ public class TByte {
 
 
     /**
-     * 安自己比较两个byte[]的大小
+     * 安字节比较两个byte[]的大小, 以 byte1 的字节数进行比较
      * @param byte1 被比较的 byte[]
      * @param byte2 比较的数据 byte[]
-     * @return 1: 大于, 0: 等于, -1: 小于
+     * @return 1: 大于 (byte1>byte2), 0: 等于 (byte1 = byte2), -1: 小于 (byte2 < byte1)
      */
     public static int byteArrayCompare(byte[] byte1, byte[] byte2) {
         if(byte1.length == 0 && byte2.length >0) {
