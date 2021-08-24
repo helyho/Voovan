@@ -424,16 +424,16 @@ public class RocksMapUnit extends TestCase {
 
         //submap
         Map subMap = rocksMap.subMap("hhhh3", "hhhh5");
-        System.out.println("subMap 2->5: " + subMap);
+        System.out.println("subMap 3->5: " + subMap);
 
 
         //headmap
         Map headMap = rocksMap.headMap("hhhh4");
-        System.out.println("headMap b->4: " + headMap);
+        System.out.println("headMap begin->4: " + headMap);
 
         //tailmap
         Map tailMap = rocksMap.tailMap("hhhh5");
-        System.out.println("tailMap 5->E: " + tailMap);
+        System.out.println("tailMap 5->End: " + tailMap);
 
         //first
         System.out.println("firstKey: " + rocksMap.firstKey());
@@ -450,7 +450,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap.removeAll(TObject.asList("111", "222"));
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh").keySet()));
-        System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh", 3, 30).keySet()));
+        System.out.println("startWith hh skip 3->end: " + JSON.toJSON(rocksMap.startWith("hh", 3, 0).keySet()));
         System.out.println("startWith hh one row: " + JSON.toJSON(rocksMap.startWith("hh", 0, 1).keySet()));
         System.out.println("range remove before KeySet: "+ rocksMap.keySet());
         rocksMap.removeRange("hhhh3", "hhhh5");
