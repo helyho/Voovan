@@ -1990,7 +1990,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (toKeyBytes == null) {
                 ret = iterator.isValid();
             } else {
-                ret = iterator.isValid() && TByte.byteArrayCompare(toKeyBytes, iterator.key()) != 0;
+                //1. 迭代器游标可用
+                //2. 且
+                //3. (toKey==null 为 true) 或者 (迭代器 key 的头几个字节小于等于 toKey 为 true)
+                ret = iterator.isValid() && (toKeyBytes.length==0 || TByte.byteArrayCompare(toKeyBytes, iterator.key()) >= 0);
             }
             return ret;
         }

@@ -449,23 +449,23 @@ public class RocksMapUnit extends TestCase {
         System.out.println("name:" + rocksMap.get("name"));
         rocksMap.removeAll(TObject.asList("111", "222"));
         System.out.println("KeySet: "+ rocksMap.keySet());
-        System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh")));
-        System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
-        System.out.println("startWith hh one row: " + JSON.toJSON(rocksMap.startWith("hh",0, 1)));
+        System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh").keySet()));
+        System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh", 3, 30).keySet()));
+        System.out.println("startWith hh one row: " + JSON.toJSON(rocksMap.startWith("hh", 0, 1).keySet()));
         System.out.println("range remove before KeySet: "+ rocksMap.keySet());
+        rocksMap.removeRange("hhhh3", "hhhh5");
+        System.out.println("range remove [hhhh3->hhhh5) after KeySet: "+ rocksMap.keySet());
 
-
-        rocksMap.scan("hh", null, entry->{
+        rocksMap.scan("hhhh0", "hhhh9", entry->{
             String key = ((RocksMap.RocksMapEntry)entry).getKey().toString();
             if(key.startsWith("hh")) {
-                System.out.println(key);
+                System.out.println("scan hhhh0->hhhh9: " + key);
                 return true;
             } else {
                 return false;
             }
         });
-//        rocksMap.removeRange("hhhh3", "hhhh5");
-//        System.out.println("range remove after KeySet: "+ rocksMap.keySet());
+
     }
 
     public void testBackup() throws RocksDBException {
