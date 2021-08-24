@@ -1678,7 +1678,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 找到的 Map 数据
      */
     public Map<K,V> startWith(K key) {
-        return startWith(key, 0,0);
+        return startWith(key, 0, 0);
+    }
+
+
+    /**
+     * 按前缀查找关联的 key
+     * @param key key 的前缀
+     * @param size 返回记录数
+     * @return 找到的 Map 数据
+     */
+    public Map<K,V> startWith(K key, int size) {
+        return startWith(key, 0, size);
     }
 
     /**
@@ -2036,6 +2047,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
             if(flag) {
                 count++;
+                if(size!=0 && count > size){
+                    return false;
+                }
                 return true;
             } else {
                 return false;
