@@ -65,6 +65,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
     }
 
     private synchronized String offerSeq(long delayMilliSecond){
+        delayMilliSecond = delayMilliSecond<0 ? 0 : delayMilliSecond;
         String ret = TString.radixConvert((System.currentTimeMillis() + delayMilliSecond)/1000, 62) + TString.radixConvert(TDateTime.currentTimeNanos(), 62);
         return ret;
     }
