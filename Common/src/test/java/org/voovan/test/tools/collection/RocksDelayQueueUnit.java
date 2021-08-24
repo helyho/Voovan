@@ -3,6 +3,7 @@ package org.voovan.test.tools.collection;
 import junit.framework.TestCase;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.UniqueId;
 import org.voovan.tools.collection.RocksDelayQueue;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.collection.RocksQueue;
@@ -95,12 +96,14 @@ public class RocksDelayQueueUnit extends TestCase {
 
         EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
 
+        UniqueId uniqueId = new UniqueId();
+
         TEnv.measure("add cost: ", ()->{
             for (int x = 0; x < 50; x++) {
                 int finalX = x;
                 eventRunnerGroup.addEvent(() -> {
                             for (int i = 0; i < 10000; i++) {
-                                rocksQueue.add(new Rdqo(-1000, finalX * 10 + i));
+                                rocksQueue.add(new Rdqo(-1000, uniqueId.nextNumber()));
                             }
                         }
                 );
