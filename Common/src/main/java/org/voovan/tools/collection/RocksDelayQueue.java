@@ -38,10 +38,11 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
             public void run() {
                 RocksMap.RocksMapIterator iterator0 = null;
                 synchronized (container) {
-                    String fromKey = lastKey == null ? null : container.get(lastKey)!=null ? lastKey : null;
-                    String toKey = lastKey == null ? TString.radixConvert(System.currentTimeMillis(), 62) : null;
+                    String fromKey = lastKey == null ? null : container.isKeyExists(lastKey) ? lastKey : null;
+                    String toKey = TString.radixConvert(System.currentTimeMillis()/1000, 62);
                     iterator0 = container.iterator(fromKey, toKey, fromKey == null ? 0 : 1, 0);
                 }
+
 
                 try (RocksMap.RocksMapIterator iterator = iterator0) {
                     RocksMap.RocksMapEntry rocksMapEntry = null;
