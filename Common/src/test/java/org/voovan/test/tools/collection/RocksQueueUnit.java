@@ -92,10 +92,10 @@ public class RocksQueueUnit extends TestCase {
 
         EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
 
-        for(int x = 0;x<5;x++) {
+        for(int x = 0;x<50;x++) {
             int finalX = x;
             eventRunnerGroup.addEvent(()->{
-                    for (int i = 0; i < 10; i++) {
+                    for (int i = 0; i < 1000; i++) {
                         rocksQueue.add(finalX *10 + i);
                     }
                 }
@@ -108,10 +108,10 @@ public class RocksQueueUnit extends TestCase {
 
         System.out.println(rocksQueue.toString() + " " + rocksQueue.size());
 
-        for(int x = 0;x<5;x++) {
+        for(int x = 0;x<50;x++) {
             int finalX = x;
             eventRunnerGroup.addEvent(()->{
-                        for (int i = 0; i < 10; i++) {
+                        for (int i = 0; i < 1000; i++) {
                             System.out.println(rocksQueue.poll());
                         }
                     }

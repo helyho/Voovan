@@ -24,8 +24,8 @@ public class RocksQueue<E> implements Queue<E> {
     private RocksMap root;
     private RocksMap<Long, E> container;
 
-    private volatile Long firstSeq;
-    private volatile Long lastSeq;
+    private volatile AtomicLong firstSeq = new AtomicLong();
+    private volatile AtomicLong lastSeq = new AtomicLong();
 
     private Object lock = new Object();
 
@@ -33,10 +33,8 @@ public class RocksQueue<E> implements Queue<E> {
         this.root = rocksMap;
         this.container = rocksMap.duplicate(name);
         this.container.getReadOptions().setTotalOrderSeek(true);
-        firstSeq = container.firstKey();
-        this.firstSeq = firstSeq == null ? BASE_SEQ + 1 : firstSeq; //加 1 的目的是初始化到 isEmpty() == true 的状态
-        lastSeq = container.lastKey();
-        this.lastSeq = lastSeq == null ? BASE_SEQ : lastSeq;
+        this.firstSeq.set(container.firstKey() == null ? BASE_SEQ + 1 : firstSeq.get()); //加 1 的目的是初始化到 isEmpty() == true 的状态
+        this.lastSeq.set(container.lastKey() == null ? BASE_SEQ : lastSeq.get());
     }
 
     public RocksMap getRoot() {
@@ -51,11 +49,11 @@ public class RocksQueue<E> implements Queue<E> {
         boolean isEmpty = isEmpty();
         Long newLast = BASE_SEQ;
         if(isEmpty) {
-            lastSeq = newLast;
-            firstSeq = newLast;
+            lastSeq.set(newLast);
+            firstSeq.set(newLast);
         } else {
-//            newLast = lastSeq.incrementAndGet();
-            newLast = ++lastSeq;
+            newLast = lastSeq.incrementAndGet();
+//            newLast = ++lastSeq;
         }
 
         return newLast;
@@ -63,8 +61,8 @@ public class RocksQueue<E> implements Queue<E> {
 
     public synchronized Long pollSeq() {
         if(!isEmpty()) {
-//            return firstSeq.getAndIncrement();
-            return firstSeq++;
+            return firstSeq.getAndIncrement();
+//            return firstSeq++;
         } else {
            return null;
         }
@@ -95,7 +93,7 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public boolean isEmpty() {
-        return firstSeq > lastSeq;
+        return firstSeq.get() > lastSeq.get();
     }
 
     @Override
@@ -143,7 +141,7 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     public E get(int offset) {
-        return container.get(firstSeq + offset);
+        return container.get(firstSeq.get() + offset);
     }
 
     @Override
@@ -163,13 +161,13 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public Object[] toArray() {
-        Map map = container.subMap(firstSeq, lastSeq);
+        Map map = container.subMap(firstSeq.get(), lastSeq.get());
         return map.values().toArray();
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return container.subMap(firstSeq, lastSeq).values().toArray(a);
+        return container.subMap(firstSeq.get(), lastSeq.get()).values().toArray(a);
     }
 
 
