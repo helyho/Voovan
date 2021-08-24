@@ -139,20 +139,12 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
 
     }
 
-    ArrayList mmm = new ArrayList();
-
     @Override
     public E poll() {
-        //RocksDB 迭代器多线程的并发问题, 有可能已经在其他线程 poll 过这个 key, 所以这里使用循环获取
         while(true) {
             String seq = queueCache.poll();
             if (seq != null) {
                 E e = container.remove(seq);
-                if(e==null) {
-                    continue;
-                }
-
-                mmm.add(seq);
                 return e;
             } else {
                 return null;
