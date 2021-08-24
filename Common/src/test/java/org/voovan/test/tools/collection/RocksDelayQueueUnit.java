@@ -52,7 +52,7 @@ public class RocksDelayQueueUnit extends TestCase {
 
         for(int i=0;i<10;i++) {
             if(i==3){
-                rocksQueue.add(new Rdqo(-20, "asdfasdfasdf"));
+                rocksQueue.add(new Rdqo(0, "asdfasdfasdf1"));
             }
             System.out.println(TDateTime.now() + " " + JSON.toJSON(rocksQueue.poll()));
             TEnv.sleep(1000);
