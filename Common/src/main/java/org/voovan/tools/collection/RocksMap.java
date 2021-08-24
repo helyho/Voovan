@@ -1837,7 +1837,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
             RocksMap<K, V>.RocksMapEntry<K, V> rocksMapEntry = null;
-            while ((rocksMapEntry = iterator.nextAndValid(true))!=null) {
+            while ((rocksMapEntry = iterator.next())!=null) {
                 if (checker.apply(rocksMapEntry)) {
                     continue;
                 } else {
@@ -2069,7 +2069,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         @Override
         public RocksMapEntry<K,V> next() {
-            return nextAndValid(false);
+            return nextAndValid(true);
         }
 
         @Override
