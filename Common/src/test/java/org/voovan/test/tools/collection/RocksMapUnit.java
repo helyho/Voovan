@@ -194,6 +194,8 @@ public class RocksMapUnit extends TestCase {
         System.out.println("keyMayExists 11: " + rocksMap.keyMayExists("11"));
         System.out.println("keyMayExists 22: " + rocksMap.keyMayExists("22"));
 
+        System.out.println("isKeyExists 11: " + rocksMap.isKeyExists("11"));
+        System.out.println("isKeyExists 22: " + rocksMap.isKeyExists("22"));
         rocksMap.clear();
 
         System.out.println("isEmpty: " + rocksMap.isEmpty());
@@ -445,6 +447,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap.put("111", "testdb1");
         rocksMap.put("333", "testdb2");
         rocksMap.put("222", "testdb3");
+
         System.out.println("getAll" + rocksMap.getAll(TObject.asList("111", "222", "333")));
         System.out.println("name:" + rocksMap.get("name"));
         rocksMap.removeAll(TObject.asList("111", "222"));

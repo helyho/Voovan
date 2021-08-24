@@ -1115,19 +1115,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     @Override
     public boolean containsKey(Object key) {
-        byte[] values = null;
-        try {
-            Transaction transaction = threadLocalTransaction.get();
-            if(transaction!=null) {
-                values = transaction.get(dataColumnFamilyHandle, readOptions, serialize(key));
-            } else {
-                values = rocksDB.get(dataColumnFamilyHandle, readOptions, serialize(key));
-            }
-        } catch (RocksDBException e) {
-            throw new RocksMapException("RocksMap containsKey " + key + " failed, " + e.getMessage(), e);
-        }
-
-        return values!=null;
+        return isKeyExists((K)key);
     }
 
     @Override
@@ -1296,11 +1284,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         boolean result = keyMayExists(keyBytes);
 
         if(result) {
-            try {
-                return rocksDB.get(keyBytes) != null;
-            } catch (RocksDBException e) {
-                throw new RocksMapException("RocksMap isKeyExists failed , " + e.getMessage(), e);
-            }
+            return get(keyBytes)!= null;
         }
         return result;
     }
