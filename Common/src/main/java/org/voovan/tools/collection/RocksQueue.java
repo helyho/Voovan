@@ -133,7 +133,7 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public E element() {
-        E e = container.remove(pollSeq());
+        E e = poll();
         if(e == null) {
             throw new NoSuchElementException();
         }
