@@ -32,7 +32,7 @@ public class RocksQueueUnit extends TestCase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-//        TSerialize.SERIALIZE = new ProtoStuffSerialize();
+        TSerialize.SERIALIZE = new ProtoStuffSerialize();
     }
 
     public void testRocksQueue() {
