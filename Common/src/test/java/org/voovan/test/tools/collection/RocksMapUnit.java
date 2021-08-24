@@ -3,9 +3,7 @@ package org.voovan.test.tools.collection;
 import junit.framework.TestCase;
 import org.rocksdb.*;
 import org.rocksdb.util.BytewiseComparator;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
-import org.voovan.tools.UniqueId;
+import org.voovan.tools.*;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.serialize.ProtoStuffSerialize;
@@ -453,6 +451,7 @@ public class RocksMapUnit extends TestCase {
         System.out.println("KeySet: "+ rocksMap.keySet());
         System.out.println("startWith hh: " + JSON.toJSON(rocksMap.startWith("hh")));
         System.out.println("startWith hh 3->end: " + JSON.toJSON(rocksMap.startWith("hh",3, 30)));
+        System.out.println("startWith hh one row: " + JSON.toJSON(rocksMap.startWith("hh",0, 1)));
         System.out.println("range remove before KeySet: "+ rocksMap.keySet());
 
 
@@ -514,5 +513,21 @@ public class RocksMapUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.restore(6);
+    }
+
+    public void testOther() {
+        String cfName = "testOther";
+        RocksMap rocksMap = new RocksMap(cfName);
+        rocksMap.clear();
+        for( int i=0;i<100; i++ ) {
+//            String x = Long.valueOf(TDateTime.currentTimeNanos()).toString();
+            String x = TString.radixConvert(System.currentTimeMillis()/1000, 62) + TString.radixConvert(TDateTime.currentTimeNanos(), 62);
+            System.out.println(x);
+            System.out.println(System.currentTimeMillis()/1000);
+            rocksMap.put(x, "testIther-"+i);
+        }
+
+        System.out.println("done");
+
     }
 }
