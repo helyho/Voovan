@@ -76,7 +76,7 @@ public class RocksQueue<E> implements Queue<E> {
             lock.notify();
         }
 
-        return false;
+        return true;
     }
 
     @Override
