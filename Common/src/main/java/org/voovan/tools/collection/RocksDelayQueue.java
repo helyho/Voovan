@@ -24,7 +24,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
 
     private RocksMap root;
     private RocksMap<String, E> container;
-    private ConcurrentLinkedQueue<String> queueCache = new ConcurrentLinkedQueue<>();
+    private LinkedBlockingQueue<String> queueCache = new LinkedBlockingQueue<>();
     private volatile String lastKey;
 
     public RocksDelayQueue(RocksMap rocksMap, String name) {
@@ -38,7 +38,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
             public void run() {
                 RocksMap.RocksMapIterator iterator0 = null;
                 synchronized (container) {
-                    String fromKey = lastKey == null ? null : container.isKeyExists(lastKey) ? lastKey : null;
+                    String fromKey = lastKey == null ? null : container.get(lastKey)!=null ? lastKey : null;
                     String toKey = lastKey == null ? TString.radixConvert(System.currentTimeMillis(), 62) : null;
                     iterator0 = container.iterator(fromKey, toKey, fromKey == null ? 0 : 1, 0);
                 }
@@ -51,7 +51,6 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
                         queueCache.add(key);
                     }
                 }
-
             }
         }, 1000, 1000);
     }
@@ -152,6 +151,8 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
                 if(e==null) {
                     continue;
                 }
+
+                mmm.add(seq);
                 return e;
             } else {
                 return null;
