@@ -45,7 +45,7 @@ public class RocksQueue<E> implements Queue<E> {
         return container;
     }
 
-    public synchronized Long offerSeq(){
+    private synchronized Long offerSeq(){
         boolean isEmpty = isEmpty();
         Long newLast = BASE_SEQ;
         if(isEmpty) {
@@ -59,7 +59,7 @@ public class RocksQueue<E> implements Queue<E> {
         return newLast;
     }
 
-    public synchronized Long pollSeq() {
+    private synchronized Long pollSeq() {
         if(!isEmpty()) {
             return firstSeq.getAndIncrement();
 //            return firstSeq++;
