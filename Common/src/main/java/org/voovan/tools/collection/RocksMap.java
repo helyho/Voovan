@@ -1807,10 +1807,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 数据清理执行器
      * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
-     * @param disableWal 是否屏蔽 wal
+     * @param inTranscation 是否启用事务
      */
-    public void scan(Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
-        scan(null, null, checker, disableWal);
+    public void scan(Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean inTranscation) {
+        scan(null, null, checker, inTranscation);
     }
 
     /**
@@ -1828,23 +1828,32 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param fromKey 起始 key
      * @param toKey   结束 key
      * @param checker 数据清理逻辑, true: 继续扫描, false: 停止扫描
-     * @param disableWal 是否屏蔽 wal
+     * @param inTranscation 是否启用事务
      */
-    public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean disableWal) {
+    public void scan(K fromKey, K toKey, Function<RocksMap<K,V>.RocksMapEntry<K,V>, Boolean> checker, boolean inTranscation) {
         RocksMap<K,V> innerRocksMap = this.duplicate(this.getColumnFamilyName(), false);
 
-        innerRocksMap.writeOptions.setDisableWAL(disableWal);
-
-        try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
-            RocksMap<K, V>.RocksMapEntry<K, V> rocksMapEntry = null;
-            while ((rocksMapEntry = iterator.next())!=null) {
-                if (checker.apply(rocksMapEntry)) {
-                    continue;
-                } else {
-                    break;
+        Runnable runnable = ()->{
+            try(RocksMap<K,V>.RocksMapIterator<K,V> iterator = innerRocksMap.iterator(fromKey, toKey)) {
+                RocksMap<K, V>.RocksMapEntry<K, V> rocksMapEntry = null;
+                while ((rocksMapEntry = iterator.next())!=null) {
+                    if (checker.apply(rocksMapEntry)) {
+                        continue;
+                    } else {
+                        break;
+                    }
                 }
-            }
 
+            }
+        };
+
+        if(inTranscation) {
+            innerRocksMap.withTransaction(obj -> {
+                runnable.run();
+                return null;
+            });
+        } else {
+            runnable.run();
         }
 
         innerRocksMap.close();
