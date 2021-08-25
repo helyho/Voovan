@@ -261,6 +261,9 @@ public class TByte {
             if(i > byte1.length - 1) {
                 return false;
             }
+            if (byte1[i] == byte2[i]){
+                continue;
+            }
 
             if (byte1[i] < byte2[i]){
                 return false;
@@ -293,6 +296,10 @@ public class TByte {
         for(int i = 0; i < byte1.length; i++) {
             if(i > byte2.length - 1) {
                 return 1;
+            }
+
+            if (byte1[i] == byte2[i]){
+                continue;
             }
 
             if (byte1[i] < byte2[i]){
