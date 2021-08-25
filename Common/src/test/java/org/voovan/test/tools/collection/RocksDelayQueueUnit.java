@@ -42,17 +42,19 @@ public class RocksDelayQueueUnit extends TestCase {
         rocksQueue.clear();
 
         rocksQueue.add(new Rdqo(-1, "asdfasdfasdf"));
-        rocksQueue.add(new Rdqo(1, "asdfasdfasdf"));
-        rocksQueue.add(new Rdqo(2, "asdfasdfasdf"));
-        rocksQueue.add(new Rdqo(3, "asdfasdfasdf"));
         rocksQueue.add(new Rdqo(4, "asdfasdfasdf"));
         rocksQueue.add(new Rdqo(5, "asdfasdfasdf"));
         rocksQueue.add(new Rdqo(6, "asdfasdfasdf"));
         rocksQueue.add(new Rdqo(7, "asdfasdfasdf"));
+        rocksQueue.add(new Rdqo(1, "asdfasdfasdf"));
+        rocksQueue.add(new Rdqo(2, "asdfasdfasdf"));
+        rocksQueue.add(new Rdqo(3, "asdfasdfasdf"));
+
 
         for(int i=0;i<10;i++) {
             if(i==3){
                 rocksQueue.add(new Rdqo(0, "asdfasdfasdf1"));
+                System.out.println(TDateTime.now() + " " + JSON.toJSON(rocksQueue.poll()));
             }
             System.out.println(TDateTime.now() + " " + JSON.toJSON(rocksQueue.poll()));
             TEnv.sleep(1000);

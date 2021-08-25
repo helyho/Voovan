@@ -24,7 +24,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
 
     private RocksMap root;
     private RocksMap<String, E> container;
-    private LinkedBlockingQueue<String> queueCache = new LinkedBlockingQueue<>();
+    private LinkedBlockingDeque<String> queueCache = new LinkedBlockingDeque<>();
     private volatile String lastKey;
 
     public RocksDelayQueue(RocksMap rocksMap, String name) {
@@ -38,7 +38,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
             public void run() {
                 RocksMap.RocksMapIterator iterator0 = null;
                 synchronized (container) {
-                    String fromKey = lastKey == null ? null : container.isKeyExists(lastKey) ? lastKey : null;
+                    String fromKey = lastKey == null ? null : container.containsKey(lastKey) ? lastKey : null;
                     String toKey = TString.radixConvert(System.currentTimeMillis()/1000, 62);
                     iterator0 = container.iterator(fromKey, toKey, fromKey == null ? 0 : 1, 0);
                 }
@@ -75,10 +75,14 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
         return ret;
     }
 
-
     @Override
     public boolean add(E e) {
-        container.put(offerSeq(e.getDelay(TimeUnit.MILLISECONDS)), e);
+        long delay = e.getDelay(TimeUnit.MILLISECONDS);
+        String seq = offerSeq(delay);
+        container.put(seq, e);
+        if(delay<=0) {
+            queueCache.offerFirst(seq);
+        }
         return true;
     }
 
@@ -87,7 +91,6 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
         c.stream().forEach(e->add(e));
         return true;
     }
-
 
 
     @Override
