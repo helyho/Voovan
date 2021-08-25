@@ -348,6 +348,10 @@ public class TByte {
                 return 1;
             }
 
+            if (byte1[i] == byte2[i]){
+                continue;
+            }
+
             if (byte1[offset1 + i] < byte2[offset2 + i]){
                 return -1;
             }
