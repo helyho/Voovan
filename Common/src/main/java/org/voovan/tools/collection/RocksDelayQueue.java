@@ -176,8 +176,9 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
     }
 
     @Override
-    public void clear() {
+    public synchronized void clear() {
         container.clear();
+        queueCache.clear();
     }
 
     @Override
