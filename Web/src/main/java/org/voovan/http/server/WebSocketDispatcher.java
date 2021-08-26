@@ -36,7 +36,7 @@ public class WebSocketDispatcher {
 		if(HEARTBEAT_WHEEL_TIMER == null) {
 			synchronized (IoSession.class) {
 				if(HEARTBEAT_WHEEL_TIMER == null) {
-					HEARTBEAT_WHEEL_TIMER = new HashWheelTimer("SocketIdle", 60, 1000);
+					HEARTBEAT_WHEEL_TIMER = new HashWheelTimer("WS_HEART_BEAT", 60, 1000);
 					HEARTBEAT_WHEEL_TIMER.rotate();
 				}
 			}
