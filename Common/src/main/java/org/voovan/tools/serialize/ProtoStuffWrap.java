@@ -74,10 +74,15 @@ public class ProtoStuffWrap {
 
 
     public void feed(Map target) {
-        target.putAll(mapObj);
+        if(mapObj != null) {
+            target.putAll(mapObj);
+        }
+
     }
 
     public void feed(Collection target) {
-        target.addAll(collectionObj);
+        if(collectionObj!=null) {
+            target.addAll(collectionObj);
+        }
     }
 }

@@ -5,6 +5,7 @@ import org.voovan.test.tools.json.TestObject;
 import org.voovan.tools.TObject;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.serialize.ProtoStuffSerialize;
 import org.voovan.tools.serialize.TSerialize;
 
 import java.text.ParseException;
@@ -45,10 +46,14 @@ public class TSerializationUnit extends TestCase {
     }
 
     public void testProtoStuffMapCollection() {
+        TSerialize.SERIALIZE = new ProtoStuffSerialize();
+        byte[] mm;
+        Object mk;
+
         HashMap m = new HashMap();
-        m.putAll(TObject.asMap("a", "123123", "1", 123));
-        byte[] mm =TSerialize.serialize(m);
-        Object mk = TSerialize.unserialize(mm);
+//        m.putAll(TObject.asMap("a", "123123", "1", 123));
+        mm =TSerialize.serialize(m);
+        mk = TSerialize.unserialize(mm);
         System.out.println(mk);
 
         List m1 = new ArrayList();
