@@ -446,8 +446,8 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
 
-                        Class keyType = ((BodyParam) annotation).keyType();
-                        Class valueType = ((BodyParam) annotation).valueType();
+                        Class keyType = ((Body) annotation).keyType();
+                        Class valueType = ((Body) annotation).valueType();
 
                         if(parameterTypes[i].equals(Map.class) &&
                                 keyType!=Object.class &&
