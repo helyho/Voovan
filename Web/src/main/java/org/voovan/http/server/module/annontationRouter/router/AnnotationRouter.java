@@ -17,9 +17,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -401,10 +399,25 @@ public class AnnotationRouter implements HttpRouter {
                                 }
                             }
 
+                            Class keyType = ((BodyParam) annotation).keyType();
+                            Class valueType = ((BodyParam) annotation).valueType();
+
                             if(TReflect.isBasicType(bodyParam.getClass())) {
                                 params[i] = TString.toObject(bodyParam.toString(), parameterTypes[i], true);
                             } else if(bodyParam instanceof Map){
-                                params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map)bodyParam, true);
+                                if(parameterTypes[i].equals(Map.class) &&
+                                        keyType!=Object.class &&
+                                        valueType != Object.class){
+                                    Class[] genericType = new Class[]{keyType, valueType};
+                                    params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map) bodyParam, genericType, true);
+                                } else {
+                                    params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map) bodyParam, true);
+                                }
+                            } else if(bodyParam instanceof Collection &&
+                                        valueType != Object.class){
+                                Map innerParam = TObject.asMap(TReflect.SINGLE_VALUE_KEY, bodyParam);
+                                Class[] genericType = new Class[]{valueType};
+                                params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map)innerParam, genericType, true);
                             } else {
                                 params[i] = bodyParam;
                             }
@@ -433,9 +446,25 @@ public class AnnotationRouter implements HttpRouter {
                             }
                         }
 
-                        params[i] =  bodyMap == null ?
-                                TString.toObject(bodyString, parameterTypes[i], true) :
-                                TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
+                        Class keyType = ((BodyParam) annotation).keyType();
+                        Class valueType = ((BodyParam) annotation).valueType();
+
+                        if(parameterTypes[i].equals(Map.class) &&
+                                keyType!=Object.class &&
+                                valueType != Object.class) {
+                            Class[] genericType = new Class[]{keyType, valueType};
+                            params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map) bodyMap, genericType, true);
+                        } else if(bodyMap instanceof Collection &&
+                                valueType != Object.class) {
+                            Map innerParam = TObject.asMap(TReflect.SINGLE_VALUE_KEY, bodyMap);
+                            Class[] genericType = new Class[]{valueType};
+                            params[i] = TReflect.getObjectFromMap(parameterTypes[i], (Map)innerParam, genericType, true);
+                        } else {
+                            params[i] =  bodyMap == null ?
+                                    TString.toObject(bodyString, parameterTypes[i], true) :
+                                    TReflect.getObjectFromMap(parameterTypes[i], bodyMap, true);
+                        }
+
                         continue;
                     }
 //                    catch (AnnotationRouterException e) {

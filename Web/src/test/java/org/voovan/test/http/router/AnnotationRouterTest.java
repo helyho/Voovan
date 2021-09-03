@@ -206,7 +206,7 @@ public class AnnotationRouterTest {
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
     @Router(tags = {"genericBodyParam"})
     @ApiGeneric(clazz =A.class)
-    public List<A> g_bodyParamList(@BodyParam("list") List<A> list, @BodyParam("other") String other){
+    public List<A> g_bodyParamList(@BodyParam(value = "list", valueType = A.class) List<A> list, @BodyParam("other") String other){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return list;
@@ -218,7 +218,7 @@ public class AnnotationRouterTest {
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
     @Router(tags = {"genericBodyParam"})
     @ApiGeneric(clazz =A.class)
-    public Map<String, A> g_bodyParamMap(@BodyParam("map") Map<String, A> map, @BodyParam("other") String other){
+    public Map<String, A> g_bodyParamMap(@BodyParam(value = "map") Map<String, A> map, @BodyParam("other") String other){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();
         return map;

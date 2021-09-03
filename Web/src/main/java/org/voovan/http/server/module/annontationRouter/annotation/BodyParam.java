@@ -14,9 +14,13 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface BodyParam {
+
     String value() default "";
     boolean isRequire() default true;
     String defaultVal() default "";
+    Class keyType() default Object.class;
+    Class valueType() default Object.class;
+
 
     //-------------- API 文档相关属性 --------------
     /**
