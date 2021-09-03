@@ -29,4 +29,7 @@ public @interface Body {
      * @return 样例数据
      */
     String example() default "";
+
+    Class keyType() default Object.class;
+    Class valueType() default Object.class;
 }
