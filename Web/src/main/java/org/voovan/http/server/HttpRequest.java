@@ -153,12 +153,16 @@ public class HttpRequest extends Request {
 	 */
 	public String getRemoteAddres() {
 		String xForwardedFor = header().get("X-Forwarded-For");
+
+		if (xForwardedFor != null) {
+			return xForwardedFor.split(",")[0].trim();
+		}
+
 		String xRealIP = header().get("X-Real-IP");
+
 		if (xRealIP != null) {
 			return xRealIP;
-		} else if (xForwardedFor != null) {
-			return xForwardedFor.split(",")[0].trim();
-		}else{
+		} else{
 			return socketSession.remoteAddress();
 		}
 	}
