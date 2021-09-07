@@ -130,12 +130,12 @@ public class SocketSelector implements Closeable {
 					}
 
 					socketContext.setRegister(true);
-
+				} catch (ClosedChannelException e) {
+					Logger.error("Register " + socketContext + " to selector error", e);
+				} finally {
 					if (socketContext.connectModel != ConnectModel.LISTENER) {
 						socketContext.unhold();
 					}
-				} catch (ClosedChannelException e) {
-					Logger.error("Register " + socketContext + " to selector error", e);
 				}
 			});
 
