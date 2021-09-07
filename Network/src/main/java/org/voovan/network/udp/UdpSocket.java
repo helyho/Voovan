@@ -159,7 +159,6 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
     @Override
     public void acceptStart() throws IOException {
 		bindToSocketSelector(0);
-        hold();
     }
 
     /**
