@@ -1,6 +1,5 @@
 package org.voovan.network;
 
-import com.sun.corba.se.impl.orbutil.closure.Future;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.plugin.DefaultPlugin;
@@ -520,7 +519,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		EventTrigger.fireInit(getSession());
 		EventTrigger.fireConnect(getSession());
 		wait.run();
-
 	}
 
 	/**
