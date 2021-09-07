@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import com.sun.corba.se.impl.orbutil.closure.Future;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.plugin.DefaultPlugin;
@@ -22,6 +23,9 @@ import java.lang.reflect.Field;
 import java.net.SocketOption;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 /**
  * socket 上下文
@@ -147,7 +151,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 
 	private FileDescriptor fileDescriptor;
 
-	private Object wait = new Object();
+	Callable callable;
+	private FutureTask<Boolean> wait = new FutureTask<Boolean>(()->true);
 
 	/**
 	 * 构造函数
@@ -290,10 +295,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		} else {
 			return false;
 		}
-	}
-
-	Object getWait() {
-		return wait;
 	}
 
 	/**
@@ -506,23 +507,20 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	 */
 	protected void hold() {
 		if(!isRegister) {
-			synchronized (wait) {
-				try {
-					wait.wait(readTimeout);
-				} catch (Exception e) {
-					Logger.error(e);
-					close();
-				}
+			try {
+				wait.get(readTimeout, TimeUnit.MILLISECONDS);
+			} catch (Exception e) {
+				Logger.error(e);
+				close();
 			}
 		}
 	}
 
 	protected void unhold() {
-		synchronized (wait) {
-			EventTrigger.fireInit(getSession());
-			EventTrigger.fireConnect(getSession());
-			wait.notifyAll();
-		}
+		EventTrigger.fireInit(getSession());
+		EventTrigger.fireConnect(getSession());
+		wait.run();
+
 	}
 
 	/**

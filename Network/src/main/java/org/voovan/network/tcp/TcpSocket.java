@@ -170,7 +170,6 @@ public class TcpSocket extends SocketContext<SocketChannel, TcpSession> {
 	protected void acceptStart() throws IOException {
 	 	IoPlugin.initChain(this);
 		bindToSocketSelector(SelectionKey.OP_READ);
-		hold();
 	}
 
 	@Override
