@@ -263,24 +263,22 @@ public class WebSocketDispatcher {
 				} else if (event == WebSocketEvent.PING) {
 					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
 				} else if (event == WebSocketEvent.PONG) {
-					final IoSession poneSession = session;
-					if(poneSession.isConnected()) {
-						WebSocketDispatcher.getHeartBeatWheelTimer().addTask(new HashWheelTask() {
-							@Override
-							public void run() {
-								try {
-									if(poneSession.socketContext().isConnected()) {
-										poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
-									}
-								} catch (SendMessageException e) {
-									poneSession.close();
-									Logger.error("Send WebSocket ping error", e);
-								} finally {
-									this.cancel();
-								}
-							}
-						}, poneSession.socketContext().getReadTimeout() / 1000/ 3);
-					}
+//					final IoSession poneSession = session;
+//					if(poneSession.isConnected()) {
+//						WebSocketDispatcher.getHeartBeatWheelTimer().addTask(new HashWheelTask() {
+//							@Override
+//							public void run() {
+//								try {
+//									if(poneSession.socketContext().isConnected()) {
+//										poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+//									}
+//								} catch (SendMessageException e) {
+//									poneSession.close();
+//									Logger.error("Send WebSocket ping error", e);
+//								}
+//							}
+//						}, poneSession.socketContext().getReadTimeout() / 1000/ 3);
+//					}
 				}
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);

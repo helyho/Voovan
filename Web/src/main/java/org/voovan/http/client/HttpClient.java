@@ -28,7 +28,6 @@ import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
@@ -40,7 +39,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -771,11 +769,11 @@ public class HttpClient extends PooledObject implements Closeable{
 		IoSession session = socket.getSession();
 
 		WebSocketSession webSocketSession = new WebSocketSession(socket.getSession(), webSocketRouter, WebSocketType.CLIENT);
-		WebSocketHandler webSocketHandler = new WebSocketHandler(this, webSocketSession, webSocketRouter);
+		HttpClientWebSocketHandler httpClientWebSocketHandler = new HttpClientWebSocketHandler(this, webSocketSession, webSocketRouter);
 		webSocketSession.setWebSocketRouter(webSocketRouter);
 
 		//先注册Socket业务处理句柄,再打开消息分割器中 WebSocket 开关
-		socket.handler(webSocketHandler);
+		socket.handler(httpClientWebSocketHandler);
 		HttpSessionState httpSessionState = WebServerHandler.getSessionState(session);
 		httpSessionState.setType(HttpRequestType.WEBSOCKET);
 
@@ -791,19 +789,6 @@ public class HttpClient extends PooledObject implements Closeable{
 				buffer = (ByteBuffer) WebSocketDispatcher.filterEncoder(webSocketSession, result);
 				WebSocketFrame webSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.TEXT, true, buffer);
 				sendWebSocketData(webSocketFrame);
-
-				Global.getHashWheelTimer().addTask(new HashWheelTask() {
-					@Override
-					public void run() {
-						try {
-							sendWebSocketData(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
-						} catch (SendMessageException e) {
-							e.printStackTrace();
-						} finally {
-							this.cancel();
-						}
-					}
-				}, socket.getReadTimeout() / 1000, true);
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
 			} catch (SendMessageException e) {
