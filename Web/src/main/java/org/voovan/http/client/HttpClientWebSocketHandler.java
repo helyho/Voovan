@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
  *         WebSite: https://github.com/helyho/Voovan
  *         Licence: Apache v2 License
  */
-public class WebSocketHandler implements IoHandler{
+public class HttpClientWebSocketHandler implements IoHandler{
 
     private WebSocketRouter webSocketRouter;
     private HttpClient httpClient;
@@ -36,7 +36,7 @@ public class WebSocketHandler implements IoHandler{
      * @param webSocketSession WebSocketSession对象
      * @param webSocketRouter WebSocketRouter对象
      */
-    public WebSocketHandler(HttpClient httpClient, WebSocketSession webSocketSession, WebSocketRouter webSocketRouter){
+    public HttpClientWebSocketHandler(HttpClient httpClient, WebSocketSession webSocketSession, WebSocketRouter webSocketRouter){
         this.webSocketRouter = webSocketRouter;
         this.httpClient = httpClient;
         this.webSocketSession = webSocketSession;
@@ -94,21 +94,7 @@ public class WebSocketHandler implements IoHandler{
         }
         // WS_PONG 收到 pong 帧则返回 ping 帧
         else if (reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
-            final IoSession poneSession = session;
-
-            Global.getHashWheelTimer().addTask(new HashWheelTask() {
-                @Override
-                public void run() {
-                    try {
-                        poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, true, null));
-                    } catch (SendMessageException e) {
-                        poneSession.close();
-                        Logger.error("WebSocket Pong event writeToChannel Ping frame error", e);
-                    }finally {
-                        this.cancel();
-                    }
-                }
-            }, poneSession.socketContext().getReadTimeout()/3/1000);
+            //WebSocket 客户端不处理, PONG
         }
         // CONTINUOUS 收到 pong 帧则返回 ping 帧
         else if(reqWebSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){

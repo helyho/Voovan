@@ -399,18 +399,20 @@ public class WebServerHandler implements IoHandler {
 				@Override
 				public void run() {
 					//发送 ping 消息
-					try {
-						WebSocketFrame ping = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
-						session.send(ping.toByteBuffer());
-						session.flush();
-					} catch (Exception e) {
-						session.close();
-						Logger.error("WebSocket writeToChannel Ping frame error", e);
-					} finally {
-						this.cancel();
+					if(session.isConnected()) {
+						try {
+							WebSocketFrame ping = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
+							session.send(ping.toByteBuffer());
+							session.flush();
+						} catch (Exception e) {
+							session.close();
+							Logger.error("WebSocket writeToChannel Ping frame error", e);
+						}
+					} else {
+						this.isCancel();
 					}
 				}
-			}, session.socketContext().getReadTimeout()/3/1000);
+			}, 3);
 		}
 	}
 
