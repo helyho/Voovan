@@ -633,7 +633,7 @@ public class AnnotationRouter implements HttpRouter {
             }
 
 
-            throw new AnnotationRouterParamException("Router " + path + " annotation [" + paramCheckMsg + "]" + requestParam).setPath(path).setParamCheckMsg(paramCheckMsg);
+            throw new AnnotationRouterParamException("Router " + path + " annotation error, param required [" + paramCheckMsg + "]" + requestParam).setPath(path).setParamCheckMsg(paramCheckMsg);
         }
 
         try {
