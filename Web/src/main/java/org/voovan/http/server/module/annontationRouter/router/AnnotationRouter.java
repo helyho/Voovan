@@ -615,12 +615,13 @@ public class AnnotationRouter implements HttpRouter {
 
 
         if(!paramCheck.isEmpty()) {
-            String paramCheckMsg = "[";
+            String paramCheckMsg = "";
             for(String parmaName : paramCheck) {
                 paramCheckMsg = paramCheckMsg + " " + parmaName + " = null," ;
             }
 
-            paramCheckMsg = TString.removeSuffix(paramCheckMsg) + " ]";
+            paramCheckMsg = TString.removeSuffix(paramCheckMsg);
+            paramCheckMsg = paramCheckMsg.trim();
 
             String requestParam = "";
             if(!request.getParameters().isEmpty()) {
@@ -632,7 +633,7 @@ public class AnnotationRouter implements HttpRouter {
             }
 
 
-            throw new AnnotationRouterParamException("Router " + path + " annotation " + paramCheckMsg + requestParam).setPath(path).setParamCheckMsg(paramCheckMsg);
+            throw new AnnotationRouterParamException("Router " + path + " annotation [" + paramCheckMsg + "]" + requestParam).setPath(path).setParamCheckMsg(paramCheckMsg);
         }
 
         try {
