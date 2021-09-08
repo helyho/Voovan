@@ -26,6 +26,6 @@
 	"Other":{
 		"Mime"			:"text/html",
 		"StatusCode"	:500,
-		"Page"			:"Error.html"
+		"Page"			:"Error.json"
 	}  
 }
