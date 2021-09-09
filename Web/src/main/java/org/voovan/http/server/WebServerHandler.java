@@ -298,6 +298,11 @@ public class WebServerHandler implements IoHandler {
 	public WebSocketFrame disposeWebSocket(IoSession session, WebSocketFrame webSocketFrame) {
 		HttpSessionState httpSessionState = getSessionState(session);
 
+		//更新会话超时时间
+		if(webSocketFrame.getOpcode() != WebSocketFrame.Opcode.CLOSING) {
+			refreshTimeout(session);
+		}
+
 		ByteBufferChannel byteBufferChannel = null;
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
 			byteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
@@ -318,7 +323,6 @@ public class WebServerHandler implements IoHandler {
 		}
 		// WS_PING 收到 pong 帧则返回 ping 帧
 		else if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.PONG) {
-			refreshTimeout(session);
 			webSocketDispatcher.firePoneEvent(session, reqWebSocket, webSocketFrame.getFrameData());
 			return null;
 		}else if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CONTINUOUS){
@@ -424,7 +428,7 @@ public class WebServerHandler implements IoHandler {
 		//处理连接保持
 		if (httpSessionState.isKeepAlive() && webConfig.getKeepAliveTimeout() > 0) {
 
-			if (httpSessionState.isKeepLiveListContain()) {
+			if (!httpSessionState.isKeepLiveListContain()) {
 				keepAliveSessionList.add(session);
 				httpSessionState.setKeepLiveListContain(true);
 			}
