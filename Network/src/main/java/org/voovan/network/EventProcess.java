@@ -302,12 +302,9 @@ public class EventProcess {
      * 在一个独立的线程中并行的发送消息
      *
      * @param session Session 对象
-     * @param obj 待发送的对象
+     * @param sendObj 待发送的对象
      */
-    public static void sendMessage(IoSession session, Object obj) {
-
-        final Object sendObj = obj;
-
+    public static void sendMessage(IoSession session, Object sendObj) {
         if(sendObj == null) {
             return;
         }

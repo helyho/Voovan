@@ -150,10 +150,17 @@ public class MessageLoader {
 							splitLength = dataByteBuffer.limit();
 						} else {
 							//拦截心跳, 可能有多个连续的心跳
+							boolean hasHeartBeat = false;
 							while(HeartBeat.intercept(session)){
-
+								hasHeartBeat = true;
 							}
-							splitLength = messageSplitter.canSplite(session, dataByteBuffer);
+
+							if(hasHeartBeat && !dataByteBuffer.hasRemaining()) {
+								stopType = StopType.STREAM_END;
+								break;
+							}
+
+						   splitLength = messageSplitter.canSplite(session, dataByteBuffer);
 						}
 
 						if (splitLength >= 0) {
