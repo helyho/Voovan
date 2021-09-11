@@ -207,7 +207,8 @@ public class WebServerHandler implements IoHandler {
 		HttpSessionState httpSessionState = getSessionState(session);
 
 		//如果是长连接则填充响应报文
-		if(httpRequest.protocol().getVersion().endsWith(HttpStatic.HTTP_11_STRING)) {
+		boolean isHttp11 = httpRequest.protocol().getVersion().endsWith(HttpStatic.HTTP_11_STRING);
+		if(isHttp11) {
 			httpSessionState.setKeepAlive(true);
 		} else if (httpRequest.header().contain(HttpStatic.CONNECTION_STRING)) {
 			if(httpRequest.header().get(HttpStatic.CONNECTION_STRING).toLowerCase().contains(HttpStatic.KEEP_ALIVE_STRING)) {
@@ -225,7 +226,7 @@ public class WebServerHandler implements IoHandler {
         httpDispatcher.process(httpRequest, httpResponse);
 
 		//Gzip 启用检测
-		if(webConfig.isGzip() && httpRequest.header().contain(HttpStatic.ACCEPT_ENCODING_STRING) &&
+		if(isHttp11 && webConfig.isGzip() && httpRequest.header().contain(HttpStatic.ACCEPT_ENCODING_STRING) &&
 				httpRequest.header().get(HttpStatic.ACCEPT_ENCODING_STRING).contains(HttpStatic.GZIP_STRING) &&
 				httpResponse.header().get(HttpStatic.CONTENT_TYPE_STRING) != null) {
 			//检查 body 大小是否启用 gzip
