@@ -47,13 +47,12 @@ public class RocksQueue<E> implements Queue<E> {
 
     private synchronized Long offerSeq(){
         boolean isEmpty = isEmpty();
-        Long newLast = BASE_SEQ;
+        Long newLast = BASE_SEQ  +1;
         if(isEmpty) {
             lastSeq.set(newLast);
             firstSeq.set(newLast);
         } else {
             newLast = lastSeq.incrementAndGet();
-//            newLast = ++lastSeq;
         }
 
         return newLast;
@@ -62,7 +61,6 @@ public class RocksQueue<E> implements Queue<E> {
     private synchronized Long pollSeq() {
         if(!isEmpty()) {
             return firstSeq.getAndIncrement();
-//            return firstSeq++;
         } else {
            return null;
         }
@@ -152,6 +150,8 @@ public class RocksQueue<E> implements Queue<E> {
     @Override
     public void clear() {
         container.clear();
+        this.firstSeq.set(BASE_SEQ + 1); //加 1 的目的是初始化到 isEmpty() == true 的状态
+        this.lastSeq.set(BASE_SEQ);
     }
 
     @Override
