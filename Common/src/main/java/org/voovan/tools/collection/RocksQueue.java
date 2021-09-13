@@ -45,30 +45,26 @@ public class RocksQueue<E> implements Queue<E> {
         return container;
     }
 
-    private synchronized Long offerSeq(){
-        boolean isEmpty = isEmpty();
-        Long newLast = BASE_SEQ  +1;
-        if(isEmpty) {
-            lastSeq.set(newLast);
-            firstSeq.set(newLast);
-        } else {
-            newLast = lastSeq.incrementAndGet();
-        }
-
-        return newLast;
-    }
-
-    private synchronized Long pollSeq() {
-        if(!isEmpty()) {
-            return firstSeq.getAndIncrement();
-        } else {
-           return null;
-        }
-    }
-
     @Override
     public boolean add(E e) {
-        container.put(offerSeq(), e);
+        if(e == null) {
+            throw new NullPointerException();
+        }
+
+        boolean isEmpty = isEmpty();
+        Long newLast = BASE_SEQ;
+        if(isEmpty) {
+            firstSeq.set(newLast + 1);
+            lastSeq.set(newLast);
+        }
+
+        synchronized (lastSeq) {
+            lastSeq.updateAndGet(old -> {
+                long newSeq = old + 1;
+                container.put(newSeq, e);
+                return newSeq;
+            });
+        }
 
         synchronized (lock) {
             lock.notify();
@@ -105,28 +101,39 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     public E take(long timeout, TimeUnit unit) throws TimeoutException {
-        Long seq = pollSeq();
+        E e = poll();
         try {
             synchronized (lock) {
-                if (seq == null) {
+                if (e == null) {
                     lock.wait(unit.toMillis(timeout));
 
-                    seq = pollSeq();
-                    if (seq == null) {
+                    e = poll();
+                    if (e == null) {
                         throw new TimeoutException();
                     }
                 }
             }
-            return seq == null ? null : container.remove(seq);
-        } catch (InterruptedException e) {
-            throw new TimeoutException(e.getMessage());
+            return e;
+        } catch (InterruptedException ex) {
+            throw new TimeoutException(ex.getMessage());
         }
     }
 
     @Override
     public E poll() {
-        Long seq = pollSeq();
-        return seq == null ? null : container.remove(seq);
+        Object[] tmp = new Object[1];
+        if(!isEmpty()) {
+            synchronized (firstSeq) {
+                firstSeq.getAndUpdate(old -> {
+                    tmp[0] = container.remove(old);
+                    return old + 1;
+                });
+            }
+        } else {
+            return null;
+        }
+
+        return tmp[0] == null ? null : (E)tmp[0];
     }
 
     @Override
@@ -144,7 +151,7 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public E peek() {
-        return container.get(pollSeq());
+        return container.get(container.get(firstSeq));
     }
 
     @Override

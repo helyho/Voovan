@@ -40,7 +40,8 @@ public class RocksQueueUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
         RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
-        rocksQueue.clear();
+        System.out.println(rocksQueue.toString());
+//        rocksQueue.clear();
 
         System.out.println(rocksQueue.toString());
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
@@ -93,11 +94,20 @@ public class RocksQueueUnit extends TestCase {
 
         EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
 
-        for(int x = 0;x<50;x++) {
+        for(int x = 0;x<40;x++) {
             int finalX = x;
             eventRunnerGroup.addEvent(()->{
                     for (int i = 0; i < 1000; i++) {
-                        rocksQueue.add(finalX *10 + i);
+                        if(finalX%2 == 0) {
+                            rocksQueue.add(finalX * 10 + " " + i);
+                        } else {
+                            try {
+                                Object v = rocksQueue.take(100000, TimeUnit.MILLISECONDS);
+                                System.out.println(v);
+                            } catch (TimeoutException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
                 }
             );
@@ -105,27 +115,32 @@ public class RocksQueueUnit extends TestCase {
 
         eventRunnerGroup.await();
 
-        System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
-        System.out.println(rocksQueue.toString() + " " + rocksQueue.size());
 
-        for(int x = 0;x<50;x++) {
-            int finalX = x;
-            eventRunnerGroup.addEvent(()->{
-                        for (int i = 0; i < 1000; i++) {
-                            System.out.println(rocksQueue.poll());
-                        }
-                    }
-            );
-        }
-
-        eventRunnerGroup.await();
-
-        System.out.println(rocksQueue.toString());
+        TEnv.sleep(1000);
 
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
-        System.out.println("get " + rocksQueue.get(2));
+        System.out.println(rocksQueue.toString() + " size:" + rocksQueue.size());
+//
+//        for(int x = 0;x<50;x++) {
+//            int finalX = x;
+//            eventRunnerGroup.addEvent(()->{
+//                        for (int i = 0; i < 1000; i++) {
+//                            System.out.println(rocksQueue.poll());
+//                        }
+//                    }
+//            );
+//        }
+//
+//        eventRunnerGroup.await();
+//
+//        System.out.println(rocksQueue.toString());
+//
+//        System.out.println(JSON.toJSON(rocksQueue.toArray()));
+//
+//        System.out.println("get " + rocksQueue.get(2));
+
 
         assertEquals(rocksQueue.size(), 0);
     }
