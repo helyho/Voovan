@@ -27,8 +27,6 @@ public class RocksQueue<E> implements Queue<E> {
     private volatile AtomicLong firstSeq = new AtomicLong();
     private volatile AtomicLong lastSeq = new AtomicLong();
 
-    private Object lock = new Object();
-
     public RocksQueue(RocksMap rocksMap, String name) {
         this.root = rocksMap;
         this.container = rocksMap.duplicate(name);
@@ -66,10 +64,6 @@ public class RocksQueue<E> implements Queue<E> {
             });
         }
 
-        synchronized (lock) {
-            lock.notify();
-        }
-
         return true;
     }
 
@@ -98,25 +92,6 @@ public class RocksQueue<E> implements Queue<E> {
     @Override
     public E remove() {
         return poll();
-    }
-
-    public E take(long timeout, TimeUnit unit) throws TimeoutException {
-        E e = poll();
-        try {
-            synchronized (lock) {
-                if (e == null) {
-                    lock.wait(unit.toMillis(timeout));
-
-                    e = poll();
-                    if (e == null) {
-                        throw new TimeoutException();
-                    }
-                }
-            }
-            return e;
-        } catch (InterruptedException ex) {
-            throw new TimeoutException(ex.getMessage());
-        }
     }
 
     @Override

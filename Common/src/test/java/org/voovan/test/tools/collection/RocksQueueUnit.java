@@ -66,47 +66,34 @@ public class RocksQueueUnit extends TestCase {
         System.out.println("size: " + rocksQueue.size());
     }
 
-    public void testRocksQueueTake() {
-        String cfName = "testdb1000";
-        RocksMap rocksMap = new RocksMap(cfName);
-        RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
-        Global.getThreadPool().execute(()->{
-            try {
-                System.out.println("data: " + rocksQueue.take(1, TimeUnit.MINUTES));
-            } catch (TimeoutException e) {
-                e.printStackTrace();
-            }
-        });
-
-        TEnv.sleep(2000);
-        System.out.println("add");
-        rocksQueue.add(1031);
-        TEnv.sleep(100000);
-    }
-
     public void testConcurrentRocksQueue() {
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
         RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
-        rocksQueue.clear();
+//        rocksQueue.clear();
         System.out.println(rocksQueue.toString());
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
         EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
 
-        for(int x = 0;x<40;x++) {
+//        for(int i=0;i<10;i++) {
+//            rocksQueue.add(i);
+//        }
+
+        for(int x = 0;x<100;x++) {
             int finalX = x;
             eventRunnerGroup.addEvent(()->{
-                    for (int i = 0; i < 1000; i++) {
+                    for (int i = 1; i <= 4000; i++) {
                         if(finalX%2 == 0) {
-                            rocksQueue.add(finalX * 10 + " " + i);
+                            rocksQueue.add(finalX + " " + i);
                         } else {
-                            try {
-                                Object v = rocksQueue.take(100000, TimeUnit.MILLISECONDS);
-                                System.out.println(v);
-                            } catch (TimeoutException e) {
-                                e.printStackTrace();
+                            Object v = rocksQueue.poll();
+                            if(v==null) {
+                                i++;
+                            } else {
+                                System.out.println(v + " " + System.currentTimeMillis());
                             }
+
                         }
                     }
                 }
@@ -122,26 +109,7 @@ public class RocksQueueUnit extends TestCase {
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
         System.out.println(rocksQueue.toString() + " size:" + rocksQueue.size());
-//
-//        for(int x = 0;x<50;x++) {
-//            int finalX = x;
-//            eventRunnerGroup.addEvent(()->{
-//                        for (int i = 0; i < 1000; i++) {
-//                            System.out.println(rocksQueue.poll());
-//                        }
-//                    }
-//            );
-//        }
-//
-//        eventRunnerGroup.await();
-//
-//        System.out.println(rocksQueue.toString());
-//
-//        System.out.println(JSON.toJSON(rocksQueue.toArray()));
-//
-//        System.out.println("get " + rocksQueue.get(2));
 
-
-        assertEquals(rocksQueue.size(), 0);
+        assertEquals(rocksQueue.getContainer().size(), 0);
     }
 }

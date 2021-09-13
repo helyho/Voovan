@@ -64,31 +64,6 @@ public class RocksDelayQueueUnit extends TestCase {
 
     }
 
-    public void testRocksQueueTake() {
-        String cfName = "testdb1000";
-        RocksMap rocksMap = new RocksMap(cfName);
-        RocksDelayQueue rocksQueue = new RocksDelayQueue(rocksMap, "testDelayQueue");
-        rocksQueue.clear();
-
-        rocksQueue.add(new Rdqo(-3, "asdfasdfasdf"));
-        rocksQueue.add(new Rdqo(8, "asdfasdfasdf"));
-
-        System.out.println(TDateTime.now());
-        System.out.println("all data: " + JSON.toJSON(rocksQueue.getContainer().keySet()));
-        try {
-
-            Object value1 = rocksQueue.take(10, TimeUnit.SECONDS);
-            System.out.println("data1: " + JSON.toJSON(value1) + " " + TDateTime.now());
-            Object value2 = rocksQueue.take(10, TimeUnit.SECONDS);
-            System.out.println("data2: " + JSON.toJSON(value2) + " " + TDateTime.now());
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        }
-        ;
-
-        TEnv.sleep(100000);
-    }
-
     public void testConcurrentRocksQueue() {
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
