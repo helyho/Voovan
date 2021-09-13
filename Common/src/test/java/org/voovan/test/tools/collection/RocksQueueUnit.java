@@ -40,6 +40,7 @@ public class RocksQueueUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
         RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
+        rocksQueue.clear();
 
         System.out.println(rocksQueue.toString());
         System.out.println(JSON.toJSON(rocksQueue.toArray()));

@@ -33,8 +33,8 @@ public class RocksQueue<E> implements Queue<E> {
         this.root = rocksMap;
         this.container = rocksMap.duplicate(name);
         this.container.getReadOptions().setTotalOrderSeek(true);
-        this.firstSeq.set(container.firstKey() == null ? BASE_SEQ + 1 : firstSeq.get()); //加 1 的目的是初始化到 isEmpty() == true 的状态
-        this.lastSeq.set(container.lastKey() == null ? BASE_SEQ : lastSeq.get());
+        this.firstSeq.set(container.firstKey() == null ? BASE_SEQ + 1 : container.firstKey() ); //加 1 的目的是初始化到 isEmpty() == true 的状态
+        this.lastSeq.set(container.lastKey() == null ? BASE_SEQ : container.lastKey());
     }
 
     public RocksMap getRoot() {
