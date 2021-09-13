@@ -113,37 +113,6 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
         return poll();
     }
 
-    public E take(long timeout, TimeUnit unit) throws TimeoutException {
-        E e = poll();
-
-        long time = TimeUnit.SECONDS.convert(timeout, unit);
-        while(time>0) {
-            if (e == null) {
-                e = poll();
-            }
-
-            if(e!=null) {
-                break;
-            }
-
-            time--;
-            synchronized (this) {
-                try {
-                    this.wait(1000);
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-
-        if (e == null) {
-            throw new TimeoutException();
-        }
-
-        return e;
-
-    }
-
     @Override
     public E poll() {
         while(true) {
