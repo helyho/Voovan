@@ -24,15 +24,15 @@ public class RocksQueue<E> implements Queue<E> {
     private RocksMap root;
     private RocksMap<Long, E> container;
 
-    private volatile AtomicLong firstSeq = new AtomicLong();
-    private volatile AtomicLong lastSeq = new AtomicLong();
+    private volatile long firstSeq;
+    private volatile long  lastSeq;
 
     public RocksQueue(RocksMap rocksMap, String name) {
         this.root = rocksMap;
         this.container = rocksMap.duplicate(name);
         this.container.getReadOptions().setTotalOrderSeek(true);
-        this.firstSeq.set(container.firstKey() == null ? BASE_SEQ + 1 : container.firstKey() ); //加 1 的目的是初始化到 isEmpty() == true 的状态
-        this.lastSeq.set(container.lastKey() == null ? BASE_SEQ : container.lastKey());
+        this.firstSeq = container.firstKey() == null ? BASE_SEQ + 1 : container.firstKey(); //加 1 的目的是初始化到 isEmpty() == true 的状态
+        this.lastSeq = container.lastKey() == null ? BASE_SEQ : container.lastKey();
     }
 
     public RocksMap getRoot() {
@@ -44,25 +44,18 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     @Override
-    public boolean add(E e) {
+    public synchronized boolean add(E e) {
         if(e == null) {
             throw new NullPointerException();
         }
-
         boolean isEmpty = isEmpty();
         Long newLast = BASE_SEQ;
         if(isEmpty) {
-            firstSeq.set(newLast + 1);
-            lastSeq.set(newLast);
+            firstSeq = newLast + 1;
+            lastSeq = newLast;
         }
-
-        synchronized (lastSeq) {
-            lastSeq.updateAndGet(old -> {
-                long newSeq = old + 1;
-                container.put(newSeq, e);
-                return newSeq;
-            });
-        }
+        lastSeq = lastSeq + 1;
+        container.put(lastSeq, e);
 
         return true;
     }
@@ -76,12 +69,12 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public int size() {
-        return container.size();
+        return (int)(lastSeq - firstSeq + 1);
     }
 
     @Override
     public boolean isEmpty() {
-        return firstSeq.get() > lastSeq.get();
+        return firstSeq > lastSeq;
     }
 
     @Override
@@ -95,20 +88,17 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     @Override
-    public E poll() {
-        Object[] tmp = new Object[1];
+    public synchronized E poll() {
+        E e = null;
+
         if(!isEmpty()) {
-            synchronized (firstSeq) {
-                firstSeq.getAndUpdate(old -> {
-                    tmp[0] = container.remove(old);
-                    return old + 1;
-                });
-            }
+            e = container.remove(firstSeq);
+            firstSeq = firstSeq + 1;
         } else {
             return null;
         }
 
-        return tmp[0] == null ? null : (E)tmp[0];
+        return e;
     }
 
     @Override
@@ -121,7 +111,7 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     public E get(int offset) {
-        return container.get(firstSeq.get() + offset);
+        return container.get(firstSeq + offset);
     }
 
     @Override
@@ -132,8 +122,8 @@ public class RocksQueue<E> implements Queue<E> {
     @Override
     public void clear() {
         container.clear();
-        this.firstSeq.set(BASE_SEQ + 1); //加 1 的目的是初始化到 isEmpty() == true 的状态
-        this.lastSeq.set(BASE_SEQ);
+        this.firstSeq = BASE_SEQ + 1; //加 1 的目的是初始化到 isEmpty() == true 的状态
+        this.lastSeq = BASE_SEQ;
     }
 
     @Override
@@ -143,13 +133,13 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public Object[] toArray() {
-        Map map = container.subMap(firstSeq.get(), lastSeq.get());
+        Map map = container.subMap(firstSeq, lastSeq);
         return map.values().toArray();
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return container.subMap(firstSeq.get(), lastSeq.get()).values().toArray(a);
+        return container.subMap(firstSeq, lastSeq).values().toArray(a);
     }
 
 
@@ -195,6 +185,8 @@ public class RocksQueue<E> implements Queue<E> {
         return "RocksQueue{" +
                 "firstSeq=" + firstSeq +
                 ", lastSeq=" + lastSeq +
+                ", size=" + size() +
+                ", container_size=" + container.size() +
                 '}';
     }
 
