@@ -128,11 +128,12 @@ public class TSerialize {
         CLASS_AND_HASH.put(boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
-        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
+//        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
         CLASS_AND_HASH.put(ArrayList.class,    THash.HashFNV1(ArrayList.class.getName()));
         CLASS_AND_HASH.put(HashMap.class,    THash.HashFNV1(HashMap.class.getName()));
         CLASS_AND_HASH.put(HashSet.class,    THash.HashFNV1(HashSet.class.getName()));
         CLASS_AND_HASH.put(BigDecimal.class,    THash.HashFNV1(BigDecimal.class.getName()));
+//        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
 
         for(Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
 
@@ -156,7 +157,7 @@ public class TSerialize {
         Class clazz = HASH_AND_CLASS.get(hashcode);
 
         if(clazz == null) {
-            Logger.error("Class hash " + hashcode + " is not found, please register this class first");
+//            Logger.error("Class hash " + hashcode + " is not found, please register this class first");
             return null;
         }
 
