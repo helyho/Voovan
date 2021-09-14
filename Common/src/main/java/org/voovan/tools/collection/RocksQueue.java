@@ -1,14 +1,13 @@
 package org.voovan.tools.collection;
 
-import org.rocksdb.RocksIterator;
-import org.voovan.tools.serialize.ProtoStuffSerialize;
+import org.voovan.tools.TByte;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Queue;
 
 /**
  * RocksDB 的 Queue 封装
@@ -19,27 +18,39 @@ import java.util.concurrent.atomic.AtomicLong;
  * Licence: Apache v2 License
  */
 public class RocksQueue<E> implements Queue<E> {
-    private static long BASE_SEQ = 1000000000000000000L;
+    private static long BASE_SEQ = 0L;
 
     private RocksMap root;
-    private RocksMap<Long, E> container;
+    private RocksMap<byte[], E> container;
 
-    private volatile long firstSeq;
-    private volatile long  lastSeq;
+    private volatile Long firstSeq;
+    private volatile Long  lastSeq;
 
     public RocksQueue(RocksMap rocksMap, String name) {
         this.root = rocksMap;
         this.container = rocksMap.duplicate(name);
         this.container.getReadOptions().setTotalOrderSeek(true);
-        this.firstSeq = container.firstKey() == null ? BASE_SEQ + 1 : container.firstKey(); //加 1 的目的是初始化到 isEmpty() == true 的状态
-        this.lastSeq = container.lastKey() == null ? BASE_SEQ : container.lastKey();
+        this.firstSeq = container.firstKey() == null ? BASE_SEQ + 1 : TByte.getLong(container.firstKey()); //加 1 的目的是初始化到 isEmpty() == true 的状态
+        this.lastSeq = container.lastKey() == null ? BASE_SEQ : TByte.getLong(container.lastKey());
     }
 
     public RocksMap getRoot() {
         return root;
     }
 
-    public RocksMap<Long, E> getContainer() {
+    private void cPut(long seq, E e) {
+        container.put(TByte.getBytes(seq), e);
+    }
+
+    private E cGet(long seq) {
+        return container.get(TByte.getBytes(seq));
+    }
+
+    private E cRemove(long seq) {
+        return container.remove(TByte.getBytes(seq));
+    }
+
+    public RocksMap<byte[], E> getContainer() {
         return container;
     }
 
@@ -55,7 +66,7 @@ public class RocksQueue<E> implements Queue<E> {
             lastSeq = newLast;
         }
         lastSeq = lastSeq + 1;
-        container.put(lastSeq, e);
+        cPut(lastSeq, e);
 
         return true;
     }
@@ -92,7 +103,7 @@ public class RocksQueue<E> implements Queue<E> {
         E e = null;
 
         if(!isEmpty()) {
-            e = container.remove(firstSeq);
+            e = cRemove(firstSeq);
             firstSeq = firstSeq + 1;
         } else {
             return null;
@@ -111,12 +122,13 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     public E get(int offset) {
-        return container.get(firstSeq + offset);
+        Long seq = firstSeq + offset;
+        return cGet(seq);
     }
 
     @Override
     public E peek() {
-        return container.get(container.get(firstSeq));
+        return cGet(firstSeq);
     }
 
     @Override
@@ -133,15 +145,13 @@ public class RocksQueue<E> implements Queue<E> {
 
     @Override
     public Object[] toArray() {
-        Map map = container.subMap(firstSeq, lastSeq);
-        return map.values().toArray();
+        return container.values().toArray();
     }
 
     @Override
     public <T> T[] toArray(T[] a) {
-        return container.subMap(firstSeq, lastSeq).values().toArray(a);
+        return (T[])container.values().toArray(a);
     }
-
 
     @Override
     public boolean remove(Object o) {
