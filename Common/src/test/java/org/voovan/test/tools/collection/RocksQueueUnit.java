@@ -96,7 +96,7 @@ public class RocksQueueUnit extends TestCase {
                         for (int i = 1; i <= 16000; i++) {
                             Object v = rocksQueue.poll();
                             if(v==null) {
-                                i++;
+                                i--;
                             } else {
 //                                System.out.println(v + " " + System.currentTimeMillis());
                             }
@@ -118,7 +118,7 @@ public class RocksQueueUnit extends TestCase {
                         } else {
                             Object v = rocksQueue.poll();
                             if(v==null) {
-                                i++;
+                                i--;
                             } else {
 //                                System.out.println(v + " " + System.currentTimeMillis());
                             }

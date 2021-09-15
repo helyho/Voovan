@@ -1,16 +1,12 @@
 package org.voovan.tools.collection;
 
-import org.rocksdb.RocksIterator;
-import org.voovan.tools.TByte;
 import org.voovan.tools.TDateTime;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * RocksDB 的 DelayQueue 封装 <br>
@@ -66,11 +62,11 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
 
     private synchronized String offerSeq(long delayMilliSecond){
         delayMilliSecond = delayMilliSecond<0 ? 0 : delayMilliSecond;
-        String ret = TString.radixConvert((System.currentTimeMillis() + delayMilliSecond)/1000, 62) + TString.radixConvert(TDateTime.currentTimeNanos(), 62);
+        String ret = TString.radixConvert((System.currentTimeMillis() + delayMilliSecond)/1000, 62) + TString.radixConvert((System.currentTimeMillis() + delayMilliSecond)%1000 + TDateTime.currentTimeNanos(), 62);
         return ret;
     }
 
-    private synchronized String currentMilliTime(){
+    private synchronized String currentSecondTime(){
         String ret =  TString.radixConvert((System.currentTimeMillis())/1000, 62);
         return ret;
     }
@@ -136,7 +132,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
     }
 
     public Collection<E> get(long second) {
-        return container.startWith(currentMilliTime()).values();
+        return container.startWith(currentSecondTime()).values();
     }
 
     @Override
@@ -152,7 +148,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
 
     @Override
     public Iterator<E> iterator() {
-        return new RocksQueueIterator(this);
+        return new RocksDelayQueueIterator(this);
     }
 
     @Override
@@ -210,10 +206,10 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
     }
 
 
-    public class RocksQueueIterator<E extends Delayed> implements Iterator<E>, Closeable {
+    public class RocksDelayQueueIterator<E extends Delayed> implements Iterator<E>, Closeable {
         RocksMap.RocksMapIterator rocksMapIterator;
 
-        protected RocksQueueIterator(RocksDelayQueue<E> queue) {
+        protected RocksDelayQueueIterator(RocksDelayQueue<E> queue) {
             this.rocksMapIterator = queue.getContainer().iterator();
         }
 
