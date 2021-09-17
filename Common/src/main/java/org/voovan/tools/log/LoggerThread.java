@@ -37,7 +37,7 @@ public class LoggerThread implements Runnable {
 		this.logCacheQueue = new ConcurrentLinkedDeque<String>();
 		this.outputStreams = outputStreams;
 
-		TEnv.addShutDownHook(()->{
+		TEnv.addLastShutDownHook(()->{
 			while(!logQueue.isEmpty() || !logCacheQueue.isEmpty()) {
 				TEnv.sleep(10);
 				//如果日志输出关闭,则自动输出
