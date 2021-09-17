@@ -40,8 +40,17 @@ public class LoggerThread implements Runnable {
 		TEnv.addShutDownHook(()->{
 			while(!logQueue.isEmpty() || !logCacheQueue.isEmpty()) {
 				TEnv.sleep(10);
-				Logger.setEnable(false);
+				//如果日志输出关闭,则自动输出
+				if(!Logger.isEnable()) {
+					try {
+						output();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
+
+			Logger.setEnable(false);
 		});
 	}
 
