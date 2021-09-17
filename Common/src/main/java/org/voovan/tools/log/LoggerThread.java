@@ -44,6 +44,7 @@ public class LoggerThread implements Runnable {
 				if(!Logger.isEnable() || !thread.isAlive()) {
 					try {
 						output();
+						flush();
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
