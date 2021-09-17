@@ -41,7 +41,7 @@ public class LoggerThread implements Runnable {
 			while(!logQueue.isEmpty() || !logCacheQueue.isEmpty()) {
 				TEnv.sleep(10);
 				//如果日志输出关闭,则自动输出
-				if(!Logger.isEnable()) {
+				if(!Logger.isEnable() || !thread.isAlive()) {
 					try {
 						output();
 					} catch (IOException e) {
