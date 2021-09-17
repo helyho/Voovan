@@ -17,6 +17,8 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BooleanSupplier;
@@ -40,7 +42,7 @@ public class TEnv {
 	public static Thread MAIN_THREAD = getMainThread();
 	public static volatile boolean IS_SHUTDOWN = false;
 
-	public static Vector<Runnable> SHUT_DOWN_HOOKS = new Vector<Runnable>();
+	public static LinkedBlockingDeque<Runnable> SHUT_DOWN_HOOKS = new LinkedBlockingDeque<Runnable>();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -61,11 +63,20 @@ public class TEnv {
 	}
 
 	/**
-	 * 增加进程结束的 hook 操作
+	 * 增加进程结束的 hook 操作到头部
 	 * @param hook 进程结束时的操作对象
 	 */
-	public static void addShutDownHook(Runnable hook){
-		SHUT_DOWN_HOOKS.add(hook);
+	public static void addFirstShutDownHook(Runnable hook){
+		SHUT_DOWN_HOOKS.addFirst(hook);
+	}
+
+
+	/**
+	 * 增加进程结束的 hook 操作到尾部
+	 * @param hook 进程结束时的操作对象
+	 */
+	public static void addLastShutDownHook(Runnable hook){
+		SHUT_DOWN_HOOKS.addLast(hook);
 	}
 
 	public static Instrumentation instrumentation;

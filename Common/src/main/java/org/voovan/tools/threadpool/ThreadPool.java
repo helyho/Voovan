@@ -141,7 +141,7 @@ public class ThreadPool {
 			ThreadPoolExecutor finalThreadPoolInstance = threadPoolInstance;
 
 			//绑定进程结束,自动停止线程池
-			TEnv.addShutDownHook(()->{
+			TEnv.addFirstShutDownHook(()->{
 				finalThreadPoolInstance.shutdown();
 			});
 		}

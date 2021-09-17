@@ -554,7 +554,7 @@ public class WebServer {
 	public WebServer serve() {
 		//接受并处理 SIGTERM 消息结束进程
 		final WebServer innerWebServer = this;
-		Runtime.getRuntime().addShutdownHook(new Thread() {
+		TEnv.addFirstShutDownHook(new Runnable() {
 			@Override
 			public void run() {
 				innerWebServer.stop();
