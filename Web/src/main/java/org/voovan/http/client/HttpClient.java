@@ -716,13 +716,12 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	private void doWebSocketUpgrade(String location) throws SendMessageException, ReadMessageException {
 		socket.setReadTimeout(-1);
+
 		IoSession session = socket.getSession();
 
-		httpRequest.header().put("Host", hostString);
 		httpRequest.header().put("Connection","Upgrade");
 		httpRequest.header().put("Upgrade", "websocket");
-		httpRequest.header().put("Pragma","no-collection");
-		httpRequest.header().putIfAbsent("Origin", "http"+(isSSL?"s://":"//")+hostString);
+		httpRequest.header().putIfAbsent("Origin", "http"+(isSSL?"s://":"//")+ httpRequest.header().get("Host"));
 		httpRequest.header().put("Sec-WebSocket-Version","13");
 		httpRequest.header().put("Sec-WebSocket-Key","c1Mm+c0b28erlzCWWYfrIg==");
 		asyncSend(location, response -> {
