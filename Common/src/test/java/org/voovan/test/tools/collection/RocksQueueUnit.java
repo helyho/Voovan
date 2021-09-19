@@ -90,52 +90,52 @@ public class RocksQueueUnit extends TestCase {
 
 
 
-        for(int x = 0;x<16;x++) {
-            int finalX = x;
-            eventRunnerGroup.addEvent(()->{
-                        for (int i = 1; i <= 16000; i++) {
-                            Object v = rocksQueue.poll();
-                            if(v==null) {
-                                i--;
-                            } else {
-//                                System.out.println(v + " " + System.currentTimeMillis());
-                            }
-                        }
-                    }
-            );
-        }
-        TEnv.measure("get: ", ()->eventRunnerGroup.await());
-        System.out.println(rocksQueue.toString());
+//        for(int x = 0;x<16;x++) {
+//            int finalX = x;
+//            eventRunnerGroup.addEvent(()->{
+//                        for (int i = 1; i <= 16000; i++) {
+//                            Object v = rocksQueue.poll();
+//                            if(v==null) {
+//                                i--;
+//                            } else {
+////                                System.out.println(v + " " + System.currentTimeMillis());
+//                            }
+//                        }
+//                    }
+//            );
+//        }
+//        TEnv.measure("get: ", ()->eventRunnerGroup.await());
+//        System.out.println(rocksQueue.toString());
 
 
-        for(int x = 0;x<16;x++) {
-            int finalX = x;
-            eventRunnerGroup.addEvent(()->{
-                    for (int i = 1; i <= 16000; i++) {
-                        if(Math.random()<0.5) {
-//                        if(finalX%2 == 0) {
-                            rocksQueue.add(finalX + " " + i);
-                        } else {
-                            Object v = rocksQueue.poll();
-                            if(v==null) {
-                                i--;
-                            } else {
-//                                System.out.println(v + " " + System.currentTimeMillis());
-                            }
-
-                        }
-                    }
-                }
-            );
-        }
-
-        TEnv.measure("mixed: ", ()->eventRunnerGroup.await());
+//        for(int x = 0;x<16;x++) {
+//            int finalX = x;
+//            eventRunnerGroup.addEvent(()->{
+//                    for (int i = 1; i <= 16000; i++) {
+//                        if(Math.random()<0.5) {
+////                        if(finalX%2 == 0) {
+//                            rocksQueue.add(finalX + " " + i);
+//                        } else {
+//                            Object v = rocksQueue.poll();
+//                            if(v==null) {
+//                                i--;
+//                            } else {
+////                                System.out.println(v + " " + System.currentTimeMillis());
+//                            }
+//
+//                        }
+//                    }
+//                }
+//            );
+//        }
+//
+//        TEnv.measure("mixed: ", ()->eventRunnerGroup.await());
 
 
 
         TEnv.sleep(1000);
 
-        System.out.println(JSON.toJSON(rocksQueue.toArray()));
+//        System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
         System.out.println(rocksQueue.toString() + " size:" + rocksQueue.size());
 

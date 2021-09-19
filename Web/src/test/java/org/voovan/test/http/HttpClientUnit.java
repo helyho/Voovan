@@ -174,7 +174,7 @@ public class HttpClientUnit extends TestCase {
 	public static  WebSocketSession session ;
 
 	public void testWebSocket() throws Exception {
-		HttpClient httpClient = new HttpClient("ws://127.0.0.1:28080/websocket","GBK2312",60);
+		HttpClient httpClient = new HttpClient("ws://webserver.voovan.org/websocket","GBK2312",60);
 
 		httpClient.webSocket("/websocket", new WebSocketRouter() {
 
