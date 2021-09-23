@@ -414,7 +414,7 @@ public class WebServerHandler implements IoHandler {
 							Logger.error("WebSocket writeToChannel Ping frame error", e);
 						}
 					} else {
-						this.isCancel();
+						this.cancel();
 					}
 				}
 			}, 3);

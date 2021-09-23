@@ -60,7 +60,7 @@ public class HashWheelTimer {
     public HashWheelTimer(String name, int size, int tickStep){
         this.name = TObject.nullDefault(name, count.getAndIncrement()+"");
         wheel = new HashWheel(size);
-        timer = new Timer("WHEELTIMER-" + this.name, true);
+        timer = new Timer("WHEEL_TIMER_" + this.name, true);
         this.tickStep = tickStep!=-1 ? tickStep : this.tickStep;
     }
 
