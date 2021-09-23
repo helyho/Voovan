@@ -373,9 +373,10 @@ public class WebServerHandler implements IoHandler {
 		if(obj instanceof WebSocketFrame){
 			WebSocketFrame webSocketFrame = (WebSocketFrame)obj;
 
-			if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
-				session.close();
-			} else if (webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PING &&
+//			if(webSocketFrame.getOpcode() == WebSocketFrame.Opcode.CLOSING){
+//				session.close();
+//			} else
+			if (webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PING &&
 					webSocketFrame.getOpcode() != WebSocketFrame.Opcode.PONG) {
 				webSocketDispatcher.fireSentEvent(session, request, webSocketFrame.getFrameData());
 			}
