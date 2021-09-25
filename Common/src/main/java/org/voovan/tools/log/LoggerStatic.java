@@ -40,10 +40,11 @@ public class LoggerStatic {
 										TString.regexMatch(LOG_TEMPLATE, TOKEN_PREFIX_REGEX + "C" 	+ TOKEN_SUFFIX_REGEX) > 0;
 
 						public static boolean HAS_LEVEL 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX+"P"+TOKEN_SUFFIX_REGEX) > 0;
-	public static boolean HAS_DATE 		= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "D" + TOKEN_SUFFIX_REGEX) > 0;
-	public static boolean HAS_THREAD 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "T" + TOKEN_SUFFIX_REGEX) > 0;
-	public static boolean HAS_RUNTIME 	= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "R" + TOKEN_SUFFIX_REGEX) > 0;
-	public static boolean JSON_FORMAT  	= Boolean.valueOf(getLogConfig("JsonFormat", "true"));
+	public static boolean HAS_DATE 			= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "D" + TOKEN_SUFFIX_REGEX) > 0;
+	public static boolean HAS_THREAD 		= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "T" + TOKEN_SUFFIX_REGEX) > 0;
+	public static boolean HAS_RUNTIME 		= TString.regexMatch(LOG_TEMPLATE, 	TOKEN_PREFIX_REGEX + "R" + TOKEN_SUFFIX_REGEX) > 0;
+	public static boolean JSON_FORMAT  		= Boolean.valueOf(getLogConfig("JsonFormat", "true"));
+	public static boolean SHORT_PACKAGE_NAME  = Boolean.valueOf(getLogConfig("ShortPackageName", "true"));
 
 	/**
 	 * 获取日志配置项信息
