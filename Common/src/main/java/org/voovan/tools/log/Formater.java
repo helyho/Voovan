@@ -244,7 +244,22 @@ public class Formater {
             tokens.put("L", Integer.toString((stackTraceElement.getLineNumber())));			//行号
             tokens.put("M", stackTraceElement.getMethodName());								//方法名
             tokens.put("F", stackTraceElement.getFileName());								//源文件名
-            tokens.put("C", stackTraceElement.getClassName());								//类名
+
+            String className = stackTraceElement.getClassName();
+            if(LoggerStatic.SHORT_PACKAGE_NAME) {
+                String[] classNameSplites = className.split("\\.");
+                className = "";
+                for(int i =0;i<classNameSplites.length;i++) {
+                    String cns = classNameSplites[i];
+                    if(cns.length()>0) {
+                        cns = i < classNameSplites.length - 1 ? String.valueOf(cns.charAt(0)) : cns;
+                    }
+                    className = className + cns + ".";
+                }
+
+                className = TString.removeSuffix(className);
+            }
+            tokens.put("C", className);								//类名
         }
     }
 
