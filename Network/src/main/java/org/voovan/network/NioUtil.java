@@ -75,16 +75,18 @@ public class NioUtil {
 	public static Long DC_FD_FIELD_OFFSET = null;
 
 	static  {
-		try {
-			Class socketChannelClazz = Class.forName("sun.nio.ch.SocketChannelImpl");
-			Field scFDField = TReflect.findField(socketChannelClazz, "fd");
-			SC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(scFDField);
+		if(SocketContext.DIRECT_IO) {
+			try {
+				Class socketChannelClazz = Class.forName("sun.nio.ch.SocketChannelImpl");
+				Field scFDField = TReflect.findField(socketChannelClazz, "fd");
+				SC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(scFDField);
 
-			Class DatagramChannelClazz = Class.forName("sun.nio.ch.DatagramChannelImpl");
-			Field dcFDField = TReflect.findField(DatagramChannelClazz, "fd");
-			DC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(dcFDField);
-		} catch (Exception e) {
-			Logger.error(e);
+				Class DatagramChannelClazz = Class.forName("sun.nio.ch.DatagramChannelImpl");
+				Field dcFDField = TReflect.findField(DatagramChannelClazz, "fd");
+				DC_FD_FIELD_OFFSET = TUnsafe.getFieldOffset(dcFDField);
+			} catch (Exception e) {
+				Logger.error(e);
+			}
 		}
 	}
 
@@ -93,7 +95,7 @@ public class NioUtil {
 	 * @param socketContext SocketContext 对象
 	 */
 	public static void bindFileDescriptor(SocketContext socketContext) {
-		if(socketContext.connectModel != ConnectModel.LISTENER) {
+		if(SocketContext.DIRECT_IO && socketContext.connectModel != ConnectModel.LISTENER) {
 			long offset = socketContext.connectType == ConnectType.TCP ? SC_FD_FIELD_OFFSET : DC_FD_FIELD_OFFSET;
 			socketContext.setFileDescriptor((FileDescriptor) TUnsafe.getUnsafe().getObject(socketContext.socketChannel(), offset));
 		}
@@ -113,9 +115,7 @@ public class NioUtil {
 
 				Method write1 = TReflect.findMethod(fileDispatcherClazz, "write0", FileDescriptor.class, long.class, int.class);
 				WRITE_METHOD_HANDLE = MethodHandles.lookup().unreflect(write1);
-			}
 
-			if(SocketContext.DIRECT_IO && SELECTOR_METHOD_HANDLE == null) {
 				Selector selector = SelectorProvider.provider().openSelector();
 				Class clazz = selector.getClass();
 
