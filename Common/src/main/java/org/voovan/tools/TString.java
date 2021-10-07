@@ -416,6 +416,16 @@ public class TString {
 		}
 	}
 
+
+
+	public static void main(String[] args) {
+		String mm = "mm {}----{}";
+
+		System.out.println(TString.tokenReplace(mm, "11{}", "22"));
+	}
+
+
+	private static char SICHAR = (char)26;
 	/**
 	 * 按照标识符 Map 进行替换
 	 *
@@ -430,8 +440,15 @@ public class TString {
 
 		for (Entry<String, ?> entry : tokens.entrySet()) {
 			String value = entry.getValue() == null ? "null" : entry.getValue().toString();
+			//value 中的 TOKEN 符号转换
+			value = value.replaceAll(TOKEN_PREFIX_REGEX, TOKEN_PREFIX+SICHAR);
+			value = value.replaceAll(TOKEN_SUFFIX_REGEX, SICHAR+TOKEN_SUFFIX);
 			source = oneTokenReplace(source, entry.getKey(), value);
 		}
+
+		//value 中的 TOKEN 符号反向转换
+		source = source.replaceAll(TOKEN_PREFIX_REGEX+SICHAR, TOKEN_PREFIX);
+		source = source.replaceAll(SICHAR + TOKEN_SUFFIX_REGEX, TOKEN_SUFFIX);
 		return source;
 	}
 
