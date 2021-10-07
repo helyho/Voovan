@@ -416,15 +416,6 @@ public class TString {
 		}
 	}
 
-
-
-	public static void main(String[] args) {
-		String mm = "mm {}----{}";
-
-		System.out.println(TString.tokenReplace(mm, "11{}", "22"));
-	}
-
-
 	private static char SICHAR = (char)26;
 	/**
 	 * 按照标识符 Map 进行替换
