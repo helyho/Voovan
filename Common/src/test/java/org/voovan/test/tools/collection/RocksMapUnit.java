@@ -174,6 +174,9 @@ public class RocksMapUnit extends TestCase {
     }
 
     public void testAll() throws RocksDBException {
+
+        RocksMap.setRootPath("bingo");
+
         //测试列族区分,这个列族不写入任何数据
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);

@@ -36,7 +36,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     public final static String DEFAULT_DB_NAME = "Default";
 
-    private static byte[] DATA_BYTES = "data".getBytes();
     //缓存 db 和他对应的 TransactionDB
     private static Map<String, RocksDB> ROCKSDB_MAP = new ConcurrentHashMap<String, RocksDB>();
 
@@ -51,6 +50,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
 
     public static void setRootPath(String rootPath) {
+        rootPath = rootPath.endsWith(File.separator) ? rootPath : rootPath + File.separator;
         DEFAULT_DB_PATH     = rootPath + File.separator;
         DEFAULT_WAL_PATH    = rootPath + ".wal"    + File.separator;
         DEFAULT_BACKUP_PATH = rootPath + ".backup" + File.separator;
@@ -255,11 +255,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.dbOptions = dbOptions;
         }
 
-        this.dataPath = DEFAULT_DB_PATH + this.dbName + File.separator;
-        this.walPath = DEFAULT_WAL_PATH + this.dbName + File.separator;
-        this.backupPath = DEFAULT_BACKUP_PATH + this.dbName + File.separator;
-        this.walPath = DEFAULT_WAL_PATH + this.dbName + File.separator;
-        this.logPath = DEFAULT_LOG_PATH + this.dbName + File.separator;
+        this.dataPath   = DEFAULT_DB_PATH       + this.dbName + File.separator;
+        this.walPath    = DEFAULT_WAL_PATH      + this.dbName + File.separator;
+        this.backupPath = DEFAULT_BACKUP_PATH   + this.dbName + File.separator;
+        this.walPath    = DEFAULT_WAL_PATH      + this.dbName + File.separator;
+        this.logPath    = DEFAULT_LOG_PATH      + this.dbName + File.separator;
 
 
         TFile.mkdir(dataPath);
