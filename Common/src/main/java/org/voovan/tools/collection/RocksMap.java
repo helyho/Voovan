@@ -44,9 +44,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static Map<RocksDB, Map<String, ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, Map<String, ColumnFamilyHandle>>();
 
     //数据文件的默认保存路径
-    private static String DEFAULT_DB_PATH     = ".rocksdb"+ File.separator;
-    private static String DEFAULT_WAL_PATH    = DEFAULT_DB_PATH + ".wal"+ File.separator;
-    private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backup"+File.separator;
+    private static String DEFAULT_DB_PATH     = ".rocksdb" + File.separator;
+    private static String DEFAULT_WAL_PATH    = DEFAULT_DB_PATH + ".wal"    + File.separator;
+    private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backup" + File.separator;
+    private static String DEFAULT_LOG_PATH    = DEFAULT_DB_PATH + "logs"    + File.separator;
 
     /**
      * 获取默认数据存储路径
@@ -72,7 +73,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return DEFAULT_WAL_PATH;
     }
 
-
     /**
      * 设置WAL数据存储据路径
      * @param defaultWalPath WAL数存储据路径
@@ -96,6 +96,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public static void setDefaultBackupPath(String defaultBackupPath) {
         DEFAULT_BACKUP_PATH = defaultBackupPath.endsWith(File.separator) ? defaultBackupPath : defaultBackupPath + File.separator;;
+    }
+
+    /**
+     * 获取默认数据存储路径
+     * @return 默认数存储据路径
+     */
+    public static String getDefaultLogPath() {
+        return DEFAULT_DB_PATH;
+    }
+
+    /**
+     * 设置默认数据存储据路径
+     * @param defaultDbPath 默认数存储据路径
+     */
+    public static void setDefaultLogPath(String defaultDbPath) {
+        DEFAULT_DB_PATH = defaultDbPath.endsWith(File.separator) ? defaultDbPath : defaultDbPath + File.separator;
     }
 
     /**
@@ -142,6 +158,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient String dbName;
     private transient String dataPath;
     private transient String walPath;
+    private transient String logPath;
+
     private transient String backupPath;
     private transient String columnFamilyName;
     private transient Boolean readOnly;
@@ -232,14 +250,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.dataPath = DEFAULT_DB_PATH + this.dbName + File.separator;
         this.walPath = DEFAULT_WAL_PATH + this.dbName + File.separator;
         this.backupPath = DEFAULT_BACKUP_PATH + this.dbName + File.separator;
-
+        this.walPath = DEFAULT_WAL_PATH + this.dbName + File.separator;
+        this.logPath = DEFAULT_LOG_PATH + this.dbName + File.separator;
 
 
         TFile.mkdir(dataPath);
         TFile.mkdir(walPath);
         TFile.mkdir(backupPath);
+        TFile.mkdir(logPath);
 
         this.dbOptions.setWalDir(walPath);
+        this.dbOptions.setDbLogDir(dataPath);
+
         this.backupableDBOptions = new BackupableDBOptions(backupPath);
 
         rocksDB = ROCKSDB_MAP.get(this.dbName);
@@ -357,6 +379,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     public String getBackupPath() {
         return backupPath;
+    }
+
+    public String getLogPath() {
+        return logPath;
     }
 
     public String getColumnFamilyName() {
