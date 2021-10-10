@@ -640,7 +640,7 @@ public class TReflect {
     }
 
     private static int getFieldMark(Class<?> clazz, String fieldName) {
-        return clazz.hashCode() & THash.HashFNV1(fieldName);
+        return clazz.hashCode() | THash.HashFNV1(fieldName);
     }
 
     /**
@@ -885,9 +885,9 @@ public class TReflect {
         int hashCode = clazz.hashCode() ^ THash.HashFNV1(name);
         for(int i=0;i<paramTypes.length;i++){
             Class<?> paramType = paramTypes[i];
-            hashCode = hashCode & paramType.hashCode() & i;
+            hashCode = hashCode | paramType.hashCode() | i;
         }
-        return hashCode & paramTypes.length;
+        return hashCode | paramTypes.length;
     }
 
     /**
@@ -924,7 +924,7 @@ public class TReflect {
     }
 
     private static int getMethodParamCountMark(Class<?> clazz, String name, int paramCount) {
-        int hashCode = clazz.hashCode() & THash.HashFNV1(name) & paramCount;
+        int hashCode = clazz.hashCode() | THash.HashFNV1(name) | paramCount;
         return hashCode;
     }
 
@@ -996,7 +996,7 @@ public class TReflect {
     }
 
     private static int getMethodMark(Class<?> clazz, String name) {
-        return clazz.hashCode() & THash.HashFNV1(name);
+        return clazz.hashCode() | THash.HashFNV1(name);
     }
 
     /**
@@ -1146,13 +1146,13 @@ public class TReflect {
 
         for(int i=0;i<paramTypes.length;i++){
             Class<?> paramType = paramTypes[i];
-            hashCode = hashCode & paramType.hashCode() & i;
+            hashCode = hashCode | paramType.hashCode() | i;
         }
-        return hashCode & paramTypes.length;
+        return hashCode | paramTypes.length;
     }
 
     private static int getConstructorParamCountMark(Class<?> clazz, int paramCount) {
-        int hashCode =clazz.hashCode() & paramCount;
+        int hashCode =clazz.hashCode() | paramCount;
         return hashCode;
     }
 
