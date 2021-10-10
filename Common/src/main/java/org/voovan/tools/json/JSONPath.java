@@ -265,7 +265,7 @@ public class JSONPath {
      */
     public <T> List<T> mapToListObject(String pathQry, String keyFieldName, Class<?> elemClazz) {
         List<T> resultList = new ArrayList<T>();
-        Map<String,?> mapValue = value(pathQry,Map.class);
+        Map<String,?> mapValue = value(pathQry, Map.class);
 
         if(mapValue==null){
             return null;
@@ -275,20 +275,23 @@ public class JSONPath {
         for(Map.Entry<String,?> entry : mapValue.entrySet()){
             String key = entry.getKey();
             Object value = entry.getValue();
-            if(value instanceof Map){
-                map = (Map) value;
-            }else{
-                map = TObject.asMap("", value);
-            }
-            map.put(keyFieldName, key);
-            try {
-                T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
-                resultList.add(obj);
-            } catch (Exception e) {
-                Logger.error("Parse " + pathQry + "error", e);
-            }
 
-            return null;
+            if(TReflect.isSuper(elemClazz, Map.class)) {
+                resultList.add((T)TObject.asMap(key, value));
+            } else {
+                if (value instanceof Map) {
+                    map = (Map) value;
+                } else {
+                    map = TObject.asMap("", value);
+                }
+                map.put(keyFieldName, key);
+                try {
+                    T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
+                    resultList.add(obj);
+                } catch (Exception e) {
+                    Logger.error("Parse " + pathQry + "error", e);
+                }
+            }
         }
 
         return resultList;
