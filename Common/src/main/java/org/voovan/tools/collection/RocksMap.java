@@ -260,8 +260,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         TFile.mkdir(logPath);
 
         this.dbOptions.setWalDir(walPath);
-        this.dbOptions.setDbLogDir(logPath);
         this.backupableDBOptions = new BackupableDBOptions(backupPath);
+        this.dbOptions.setDbLogDir(logPath);
 
         rocksDB = ROCKSDB_MAP.get(this.dbName);
 
