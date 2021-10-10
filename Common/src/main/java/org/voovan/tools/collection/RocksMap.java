@@ -260,8 +260,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         TFile.mkdir(logPath);
 
         this.dbOptions.setWalDir(walPath);
-        this.dbOptions.setDbLogDir(dataPath);
-
+        this.dbOptions.setDbLogDir(logPath);
         this.backupableDBOptions = new BackupableDBOptions(backupPath);
 
         rocksDB = ROCKSDB_MAP.get(this.dbName);
@@ -273,7 +272,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
                 //加载已经存在的所有列族
                 {
-                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), DEFAULT_DB_PATH + this.dbName);
+                    List<byte[]> columnFamilyNameBytes = RocksDB.listColumnFamilies(new Options(), dataPath);
                     if (columnFamilyNameBytes.size() > 0) {
                         for (byte[] columnFamilyNameByte : columnFamilyNameBytes) {
                             ColumnFamilyDescriptor columnFamilyDescriptor = new ColumnFamilyDescriptor(columnFamilyNameByte, this.columnFamilyOptions);
@@ -290,9 +289,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
                 //打开 Rocksdb
                 if (this.readOnly) {
-                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, DEFAULT_DB_PATH + this.dbName, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                 } else {
-                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), DEFAULT_DB_PATH + this.dbName, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                     ROCKSDB_MAP.put(this.dbName, rocksDB);
                 }
 
