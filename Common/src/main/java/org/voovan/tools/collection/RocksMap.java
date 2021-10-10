@@ -49,6 +49,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backup" + File.separator;
     private static String DEFAULT_LOG_PATH    = DEFAULT_DB_PATH + "logs"    + File.separator;
 
+
+    public static void setRootPath(String rootPath) {
+        DEFAULT_DB_PATH     = rootPath + File.separator;
+        DEFAULT_WAL_PATH    = rootPath + ".wal"    + File.separator;
+        DEFAULT_BACKUP_PATH = rootPath + ".backup" + File.separator;
+        DEFAULT_LOG_PATH    = rootPath + "logs"    + File.separator;
+    }
+
     /**
      * 获取默认数据存储路径
      * @return 默认数存储据路径
@@ -99,19 +107,19 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
-     * 获取默认数据存储路径
+     * 获取默认日志路径
      * @return 默认数存储据路径
      */
     public static String getDefaultLogPath() {
-        return DEFAULT_DB_PATH;
+        return DEFAULT_LOG_PATH;
     }
 
     /**
-     * 设置默认数据存储据路径
+     * 设置默认日志路径
      * @param defaultDbPath 默认数存储据路径
      */
-    public static void setDefaultLogPath(String defaultDbPath) {
-        DEFAULT_DB_PATH = defaultDbPath.endsWith(File.separator) ? defaultDbPath : defaultDbPath + File.separator;
+    public static void setDefaultLogPath(String defaultLogPath) {
+        DEFAULT_LOG_PATH = defaultLogPath.endsWith(File.separator) ? defaultLogPath : defaultLogPath + File.separator;
     }
 
     /**
