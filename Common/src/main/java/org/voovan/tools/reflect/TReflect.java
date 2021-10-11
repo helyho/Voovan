@@ -281,7 +281,6 @@ public class TReflect {
 
         StringBuilder code = new StringBuilder();
 
-//        code.append("int paramLength = params==null ? 0 : params.length;\r\n\r\n");
         {
             int modifier = constructor.getModifiers();
             if (Modifier.isStatic(modifier) ||
@@ -379,8 +378,6 @@ public class TReflect {
 
         StringBuilder code = new StringBuilder();
         {
-//            code.append("int paramLength = params==null ? 0 : params.length;\r\n\r\n");
-
             String methodName = method.getName();
 
             int modifier = method.getModifiers();
@@ -803,19 +800,13 @@ public class TReflect {
     @SuppressWarnings("unchecked")
     static public <T> T getFieldValue(Object obj, String fieldName)
             throws ReflectiveOperationException {
-        //尝试 native 方法
-        T t = getFieldValueNatvie(obj, fieldName);
-        if(t==EMPTY) {
-            Field field = findField(obj.getClass(), fieldName);
+        Field field = findField(obj.getClass(), fieldName);
 
-            if(field==null) {
-                return null;
-            }
-
-            t = (T) field.get(obj);
+        if(field==null) {
+            return null;
         }
 
-        return t;
+        return (T) field.get(obj);
     }
 
 
@@ -845,16 +836,12 @@ public class TReflect {
      */
     public static void setFieldValue(Object obj, String fieldName, Object fieldValue)
             throws ReflectiveOperationException {
-        //尝试 native 方法
-        boolean isSucc = setFieldValueNatvie(obj, fieldName, fieldValue);
-        if(!isSucc) {
-            Field field = findField(obj.getClass(), fieldName);
-            if(field==null) {
-                Logger.warn("TReflect.setFieldValue Field not found: " + fieldName);
-                return;
-            }
-            setFieldValue(obj, field, fieldValue);
+        Field field = findField(obj.getClass(), fieldName);
+        if(field==null) {
+            Logger.warn("TReflect.setFieldValue Field not found: " + fieldName);
+            return;
         }
+        setFieldValue(obj, field, fieldValue);
     }
 
     /**
@@ -1064,9 +1051,6 @@ public class TReflect {
     public static <T> T invokeMethod(Object obj, Method method, Object... parameters)
             throws ReflectiveOperationException {
         T result = (T)method.invoke(obj, parameters);
-        if(Modifier.isPublic(method.getModifiers())) {
-            getMethodInvoker(method.getDeclaringClass(), method, false);
-        }
         return result;
     }
 
@@ -1083,13 +1067,6 @@ public class TReflect {
      */
     public static <T> T invokeMethod(Object obj, String methodName, Object... args)
             throws ReflectiveOperationException {
-        //尝试 native 方法
-        T t = invokeMethodNative(obj, methodName, args);
-
-        if(t != EMPTY){
-            return t;
-        }
-
         if(args==null){
             args = new Object[0];
         }
@@ -1252,9 +1229,6 @@ public class TReflect {
     public static <T> T newInstance(Constructor constructor, Object... parameters)
             throws ReflectiveOperationException {
         T result = (T)constructor.newInstance(parameters);
-        if(Modifier.isPublic(constructor.getModifiers())) {
-            getConstructorInvoker(constructor.getDeclaringClass(), constructor, false);
-        }
         return result;
     }
 
@@ -1293,21 +1267,6 @@ public class TReflect {
 
         T result = null;
         Exception exception = null;
-
-        //尝试 native 方法
-        try {
-            result = (T)newInstanceNative(targetClazz, args);
-        } catch (Exception e) {
-            Logger.warn("Constructor: " + getClassName(targetClazz) + "("+args.length+") native invoke, can be use strict parameter type to improve performance");
-
-            if(Global.IS_DEBUG_MODE) {
-                e.printStackTrace();
-            }
-        }
-
-        if(result!=EMPTY) {
-            return result;
-        }
 
         Class<?>[] paramTeypes = getArrayClasses(args);
         Constructor constructor = findConstructor(targetClazz, paramTeypes);
