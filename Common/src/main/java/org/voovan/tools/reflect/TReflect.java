@@ -420,7 +420,7 @@ public class TReflect {
         }
 
         {
-            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_Method", code.toString());
+            DynamicFunction dynamicFunction = new DynamicFunction(clazz.getSimpleName() + "_" + method.getName(), code.toString());
             dynamicFunction.addImport(clazz);
             dynamicFunction.addImport(TReflect.class);
             if(!Modifier.isStatic(method.getModifiers())) {
@@ -639,8 +639,8 @@ public class TReflect {
         return fields;
     }
 
-    private static int getFieldMark(Class<?> clazz, String fieldName) {
-        return clazz.hashCode() | THash.HashFNV1(fieldName);
+    private static Integer getFieldMark(Class<?> clazz, String fieldName) {
+        return xor(clazz.hashCode(), THash.HashFNV1(fieldName));
     }
 
     /**
@@ -882,12 +882,11 @@ public class TReflect {
     }
 
     private static int getMethodParamTypeMark(Class<?> clazz, String name, Class<?>... paramTypes) {
-        int hashCode = clazz.hashCode() ^ THash.HashFNV1(name);
-        for(int i=0;i<paramTypes.length;i++){
-            Class<?> paramType = paramTypes[i];
-            hashCode = hashCode | paramType.hashCode() | i;
+        int hashCode = xor(clazz.hashCode(), THash.HashFNV1(name));
+        for(Class<?> paramType : paramTypes){
+            hashCode = xor(hashCode, paramType.hashCode());
         }
-        return hashCode | paramTypes.length;
+        return hashCode;
     }
 
     /**
@@ -924,8 +923,8 @@ public class TReflect {
     }
 
     private static int getMethodParamCountMark(Class<?> clazz, String name, int paramCount) {
-        int hashCode = clazz.hashCode() | THash.HashFNV1(name) | paramCount;
-        return hashCode;
+        int hashCode = xor(clazz.hashCode(), THash.HashFNV1(name));
+        return xor(hashCode, paramCount);
     }
 
     /**
@@ -990,13 +989,14 @@ public class TReflect {
                 METHOD_ARRAYS.put(marker, methods);
                 methodList.clear();
             }
+
         }
 
         return methods;
     }
 
     private static int getMethodMark(Class<?> clazz, String name) {
-        return clazz.hashCode() | THash.HashFNV1(name);
+        return xor(clazz.hashCode(), THash.HashFNV1(name));
     }
 
     /**
@@ -1141,18 +1141,11 @@ public class TReflect {
         throw (ReflectiveOperationException)exception;
     }
 
-    private static int getConstructorParamTypeMark(Class<?> clazz, Class<?>... paramTypes) {
+    public static int getConstructorParamTypeMark(Class<?> clazz, Class<?>... paramTypes) {
         int hashCode = clazz.hashCode();
-
-        for(int i=0;i<paramTypes.length;i++){
-            Class<?> paramType = paramTypes[i];
-            hashCode = hashCode | paramType.hashCode() | i;
+        for(Class<?> paramType : paramTypes){
+            hashCode = xor(hashCode, paramType.hashCode());
         }
-        return hashCode | paramTypes.length;
-    }
-
-    private static int getConstructorParamCountMark(Class<?> clazz, int paramCount) {
-        int hashCode =clazz.hashCode() | paramCount;
         return hashCode;
     }
 
@@ -1187,6 +1180,10 @@ public class TReflect {
         return constructor == EMPTY_CONSTRUCTOR ? null : constructor;
     }
 
+    private static int getConstructorParamCountMark(Class<?> clazz, int paramCount) {
+        int hashCode = xor(clazz.hashCode(), paramCount);
+        return hashCode;
+    }
 
     /**
      * 查找类中的构造方法(使用参数数量)
@@ -2146,6 +2143,14 @@ public class TReflect {
         if(clazz == Character.class){return char.class;}
         if(clazz == Boolean.class){return boolean.class;}
         else{ return clazz; }
+    }
+
+    private static int xor(int var1, int var2) {
+        if(var1 == var2) {
+            return var1 ^ (var1<<1);
+        } else {
+            return var1 ^ var2;
+        }
     }
 }
 
