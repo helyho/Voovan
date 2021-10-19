@@ -10,6 +10,7 @@ import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiMod
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
+import org.voovan.http.server.module.annontationRouter.swagger.entity.Parameter;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Properties;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Schema;
 import org.voovan.tools.TFile;
@@ -19,11 +20,10 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -331,11 +331,11 @@ public class SwaggerApi {
      * @param swagger Swagger 对象
      * @param schema 需要填充范型的 schema
      * @param clazz  范型类型
-     * @param method 范型相关方法
+     * @param ao method 对象或者 Field 对象
      * @param name 不要填充范型的属性名称
      */
-    public static void generic(Swagger swagger, Schema schema, Class clazz, Method method, String name) {
-        ApiGeneric[] apiGenerics = method.getAnnotationsByType(ApiGeneric.class);
+    public static void generic(Swagger swagger, Schema schema, Class clazz, AccessibleObject ao, String name) {
+        ApiGeneric[] apiGenerics = ao.getAnnotationsByType(ApiGeneric.class);
         for(ApiGeneric apiGeneric : apiGenerics) {
             if(!apiGeneric.param().isEmpty() && !apiGeneric.param().equals(name)) {
                 continue;
@@ -593,6 +593,8 @@ public class SwaggerApi {
                     properties.getParent().getRequired().add(field.getName());
                 }
             }
+
+            generic(swagger, schema, field.getType(), field, field.getName());
 
             properties.getProperties().put(field.getName(), schema);
         }
