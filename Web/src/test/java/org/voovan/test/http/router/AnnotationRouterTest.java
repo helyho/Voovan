@@ -236,12 +236,18 @@ public class AnnotationRouterTest {
         String a_name;
         String str;
 
+        @ApiGeneric(clazz=G.class)
+        List<G> blist;
+        @ApiGeneric(clazz={Long.class})
+        Map<String, Long> mlist;
+
         @ApiProperty(hidden = true)
         String hiddes;
 
         public A(String a_name) {
             this.a_name = a_name;
         }
+
 
         @Override
         public String toString() {

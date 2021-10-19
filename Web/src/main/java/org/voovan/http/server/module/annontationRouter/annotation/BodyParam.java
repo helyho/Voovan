@@ -18,7 +18,10 @@ public @interface BodyParam {
     String value() default "";
     boolean isRequire() default true;
     String defaultVal() default "";
+
+    //当参数为 Map 类型时指定他的 key 的类型
     Class keyType() default Object.class;
+    //当参数为 Map 类型时指定他的 value 的类型
     Class valueType() default Object.class;
 
 
