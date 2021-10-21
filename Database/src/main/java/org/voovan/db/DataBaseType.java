@@ -9,5 +9,5 @@ package org.voovan.db;
  * Licence: Apache v2 License
  */
 public enum DataBaseType {
-    MySql, Mariadb, Postage, Oracle, UNKNOW
+    MySql, Mariadb, Postgre, Oracle, UNKNOW
 }

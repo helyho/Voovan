@@ -2,7 +2,6 @@ package org.voovan.tools;
 
 import org.voovan.db.CallType;
 import org.voovan.db.DataBaseType;
-import org.voovan.db.JdbcOperate;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -230,7 +229,7 @@ public class TSQL {
 	public static String assembleSQLWithMap(String sqlStr,Map<String ,Object> argMap) {
 		if(argMap!=null) {
 			for (Entry<String, Object> arg : argMap.entrySet()) {
-				sqlStr = TString.fastReplaceAll(sqlStr+" ", "::" + arg.getKey()+"\\b", getSQLString(argMap.get(arg.getKey()))+" ");
+				sqlStr = TString.fastReplaceAll(sqlStr+" ", "::" + arg.getKey()+"\\b", getSQLString(argMap.get(arg.getKey())));
 			}
 		}
 		return sqlStr.trim();
@@ -680,7 +679,7 @@ public class TSQL {
 				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("MARIADB") != -1) {
 					dataBaseType = DataBaseType.Mariadb;
 				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("POSTAGE") != -1) {
-					dataBaseType = DataBaseType.Postage;
+					dataBaseType = DataBaseType.Postgre;
 				} else if (connection.getMetaData().getDriverName().toUpperCase().indexOf("ORACLE") != -1) {
 					dataBaseType = DataBaseType.Oracle;
 				} else {
@@ -717,7 +716,7 @@ public class TSQL {
 			return "`"+sqlField+"`";
 		} else if (dataBaseType.equals(DataBaseType.Oracle)) {
 			return "\""+sqlField+"\"";
-		} else if (dataBaseType.equals(DataBaseType.Postage)) {
+		} else if (dataBaseType.equals(DataBaseType.Postgre)) {
 			return "`"+sqlField+"`";
 		} else {
 			return sqlField;

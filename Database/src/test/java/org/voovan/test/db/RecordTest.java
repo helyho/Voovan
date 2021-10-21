@@ -8,6 +8,7 @@ import org.voovan.db.recorder.Query;
 import org.voovan.db.recorder.Recorder;
 import org.voovan.db.recorder.annotation.Table;
 import org.voovan.db.recorder.exception.RecorderException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.log.Logger;
@@ -88,9 +89,24 @@ public class RecordTest extends TestCase{
         for(int i=0;i<100;i++) {
             //更新测试
             scriptEntity.setVersion(i);
+            scriptEntity.setId(i);
             System.out.println(new Recorder(JdbcOperate.newInstance(dataSource)).insert(scriptEntity));
+            TEnv.sleep(1);
         }
     }
+
+
+    public void testInsertOrUpdate() throws RecorderException {
+
+        ScriptEntity scriptEntity = new ScriptEntity();
+        scriptEntity.setPackagePath("org.hocate.test.main");
+        scriptEntity.setSourcePath("/Users/helyho/Work/BlockLink");
+        scriptEntity.setVersion(System.currentTimeMillis()%10000000);
+        scriptEntity.setId(100);
+
+        System.out.println(new Recorder(JdbcOperate.newInstance(dataSource)).insert(scriptEntity));
+    }
+
 
     /**
      * 测试方法

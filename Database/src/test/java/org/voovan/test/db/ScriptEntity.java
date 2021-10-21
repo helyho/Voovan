@@ -1,5 +1,7 @@
 package org.voovan.test.db;
 
+import org.voovan.db.DataBaseType;
+import org.voovan.db.recorder.annotation.InsertOrUpdate;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.db.recorder.annotation.Table;
@@ -16,10 +18,9 @@ import java.io.Serializable;
  * @author helyho
  *
  */
-@Table("sc_script")
+@Table(value = "sc_script")
 public class ScriptEntity implements Serializable{
 	@PrimaryKey
-	@NotInsert
 	private int id;
 
 	/**
@@ -30,7 +31,9 @@ public class ScriptEntity implements Serializable{
 	/**
 	 * 脚本版本
 	 */
+	@InsertOrUpdate
 	private float version;
+
 	/**
 	 * 源码路径
 	 */
@@ -55,6 +58,7 @@ public class ScriptEntity implements Serializable{
 	public ScriptEntity(){
 		//默认可重新加载
 		canReload = 1;
+		id = (int) (System.currentTimeMillis()%10000000);
 	}
 
 	/**
@@ -63,6 +67,7 @@ public class ScriptEntity implements Serializable{
 	 * @param sourceCode		脚本源文件路径
 	 */
 	public ScriptEntity(String packagePath,String sourceCode){
+		this();
 		this.packagePath = packagePath;
 		this.version = 1;
 		this.sourceCode = sourceCode;
@@ -76,6 +81,7 @@ public class ScriptEntity implements Serializable{
 	 * @param sourcePath	脚本源文件路径
 	 */
 	public ScriptEntity(String packagePath,float version,String sourcePath){
+		this();
 		this.packagePath = packagePath;
 		this.version = version;
 		this.sourcePath = sourcePath;

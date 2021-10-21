@@ -2,10 +2,7 @@ package org.voovan.db.recorder;
 
 import org.voovan.db.DataBaseType;
 import org.voovan.db.JdbcOperate;
-import org.voovan.db.recorder.annotation.NotInsert;
-import org.voovan.db.recorder.annotation.NotUpdate;
-import org.voovan.db.recorder.annotation.PrimaryKey;
-import org.voovan.db.recorder.annotation.Table;
+import org.voovan.db.recorder.annotation.*;
 import org.voovan.db.recorder.exception.RecorderException;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TSQL;
@@ -16,9 +13,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -449,7 +444,7 @@ public class Recorder {
                     resultSql = genMysqlPageSql(resultSql, query);
                 } else if (dataBaseType.equals(DataBaseType.Oracle)) {
                     resultSql = genOraclePageSql(resultSql, query);
-                } else if (dataBaseType.equals(DataBaseType.Postage)) {
+                } else if (dataBaseType.equals(DataBaseType.Postgre)) {
                     resultSql = genPostgrePageSql(resultSql, query);
                 }
             }
@@ -564,7 +559,7 @@ public class Recorder {
 
         if(resultSql == null) {
 
-            Table table = obj.getClass().getAnnotation(Table.class);
+            Table tableAnnotation = obj.getClass().getAnnotation(Table.class);
 
             //SQL模板准备
             String mainSql = TString.assembly("insert into ", tableName);
@@ -573,34 +568,95 @@ public class Recorder {
 
             //字段拼接 sql
             Field[] fields = TReflect.getFields(obj.getClass());
+            List<Field> avaliableFields = new ArrayList<Field>();
+            Field primaryField = null;
 
             for (Field field : fields) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     continue;
                 }
 
-                String sqlFieldName = getSqlFieldName(getDatabaseType(obj), field);
-                String fieldName = field.getName();
-
-                //如果主键为空则不插入主键字段
-                if (field.getAnnotation(NotInsert.class) == null) {
-                    try {
-                        Object fieldValue = TReflect.getFieldValue(obj, fieldName);
-                        if (fieldValue == null) {
-                            continue;
-                        }
-                    } catch (ReflectiveOperationException e) {
-                        Logger.error(e);
-                    }
-                } else {
+                if (field.getAnnotation(NotInsert.class) != null) {
                     continue;
                 }
 
-                fieldSql = fieldSql + sqlFieldName + ",";
-                fieldValueSql = TString.assembly(fieldValueSql, "::", fieldName, ",");
+                if(field.getAnnotation(PrimaryKey.class)!=null) {
+                    primaryField = field;
+                }
+
+                String sqlFieldName = getSqlFieldName(getDatabaseType(obj), field);
+                String fieldName = field.getName();
+
+                //如果Field value 为空则不插入该字段
+                try {
+                    Object fieldValue = TReflect.getFieldValue(obj, fieldName);
+                    if (fieldValue == null) {
+                        continue;
+                    }
+                } catch (ReflectiveOperationException e) {
+                    Logger.error(e);
+                }
+
+                fieldSql = fieldSql + sqlFieldName + ", ";
+                fieldValueSql = TString.assembly(fieldValueSql, "::", fieldName, ", ");
+
+                avaliableFields.add(field);
             }
 
-            resultSql = TString.assembly(mainSql, " (", TString.removeSuffix(fieldSql), ") ", "values (", TString.removeSuffix(fieldValueSql), ") ");
+            resultSql = TString.assembly(mainSql, " (", TString.removeSuffix(fieldSql.trim()), ") ", "values (", TString.removeSuffix(fieldValueSql.trim()), ") ");
+
+
+            //=============================== 拼装 insertOrUpdate ===============================
+            boolean hasInsertOrUpdate = false;
+            String updateSql = "";
+            if(primaryField == null) {
+                throw new RecorderException("insert or update must be have a primary key");
+            }
+
+            DataBaseType dataBaseType = getDatabaseType(obj);
+
+            switch (dataBaseType) {
+                case MySql : updateSql = updateSql + "ON DUPLICATE KEY UPDATE "; break;
+                case Postgre : updateSql = updateSql + "ON CONFLICT (" + getSqlFieldName(getDatabaseType(obj), primaryField) + ") DO UPDATE SET "; break;
+                default: throw new RecorderException("insert or update not support " + dataBaseType);
+            }
+
+            for (Field field : fields) {
+                //跳过不带注解的方法
+                if(field.getAnnotation(InsertOrUpdate.class)==null) {
+                    continue;
+                }
+
+                //跳过静态方法
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+
+                //跳过逐渐
+                if(field.getAnnotation(PrimaryKey.class)!=null) {
+                    continue;
+                }
+
+                String sqlFieldName = getSqlFieldName(getDatabaseType(obj), field);
+                String fieldName = field.getName();
+
+
+                switch (dataBaseType) {
+                    case MySql : updateSql = updateSql +  sqlFieldName + " = values(" + sqlFieldName + "), "; break;
+                    case Postgre : updateSql = updateSql + sqlFieldName + " = ::" + field.getName() + ", "; break;
+                    default: throw new RecorderException("insert or update not support " + dataBaseType);
+                }
+
+                hasInsertOrUpdate = true;
+            }
+
+            updateSql = TString.removeSuffix(updateSql.trim());
+
+
+            if(hasInsertOrUpdate) {
+                resultSql = resultSql + updateSql;
+            }
+
             SQL_TEMPLATE_CACHE.put(cacheKey, resultSql);
         }
 
