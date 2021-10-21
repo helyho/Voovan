@@ -1625,6 +1625,20 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapFromObject(Object obj, boolean allField) throws ReflectiveOperationException {
+        return getMapFromObject(obj, allField, false);
+    }
+
+    /**
+     * 将对象转换成 Map
+     * 			key 对象属性名称
+     * 			value 对象属性值
+     * @param obj      待转换的对象
+     * @param allField 是否序列化所有属性
+     * @param exceptNull null值属性 不加入到 结果Map中
+     * @return 转后的 Map
+     * @throws ReflectiveOperationException 反射异常
+     */
+    public static Map<String, Object> getMapFromObject(Object obj, boolean allField, boolean exceptNull) throws ReflectiveOperationException {
         if(obj instanceof ToMap) {
             return ((ToMap)obj).toMap();
         }
@@ -1729,6 +1743,10 @@ public class TReflect {
                     value = getFieldValue(obj, key);
                 } catch (Exception e) {
                     e.printStackTrace();
+                }
+
+                if(exceptNull && value == null) {
+                    continue;
                 }
 
                 /**
