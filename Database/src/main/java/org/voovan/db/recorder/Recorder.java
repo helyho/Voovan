@@ -32,14 +32,14 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class Recorder {
-    public Map<String, String> SQL_TEMPLATE_CACHE = new ConcurrentHashMap<String, String>();
+    public static Map<String, String> SQL_TEMPLATE_CACHE = new ConcurrentHashMap<String, String>();
+    public static DataBaseType DEFAULT_DATABASE_TYPE = DataBaseType.MySql;
 
     public static String getCacheKey(String type, String mark, Class clazz, Query query) {
         return type + (mark==null? "" : "_" + mark.hashCode()) + "_" + clazz.hashCode() + (query==null ? "" : "_" + query.hashCode());
     }
 
     private JdbcOperate jdbcOperate;
-    private boolean camelToUnderline = true;
 
     /**
      * 构造函数
@@ -47,19 +47,8 @@ public class Recorder {
      */
     public Recorder(JdbcOperate jdbcOperate){
         this.jdbcOperate = jdbcOperate;
-        this.camelToUnderline = true;
     }
 
-
-    /**
-     * 构造函数
-     * @param jdbcOperate DBAccess 数据库连接对象
-     * @param camelToUnderline 是否将驼峰转换为下划线形式
-     */
-    public Recorder(JdbcOperate jdbcOperate, boolean camelToUnderline){
-        this.jdbcOperate = jdbcOperate;
-        this.camelToUnderline = camelToUnderline;
-    }
 
     public JdbcOperate getJdbcOperate() {
         return jdbcOperate;
@@ -377,14 +366,14 @@ public class Recorder {
         return insert(null, obj);
     }
 
-    public <T> String buildQueryField(T obj, Query query) {
+    public static <T> String buildQueryField(T obj, Query query) {
         String mainSql = "";
         if(query==null || query.getDataFields().size()==0){
             mainSql = mainSql + "*";
         } else {
             for (String resultField : query.getDataFields()) {
                 if(TReflect.findFieldIgnoreCase(obj.getClass(), resultField)!=null) {
-                    mainSql = mainSql + TSQL.wrapSqlField(jdbcOperate, TString.camelToUnderline(resultField)) + ",";
+                    mainSql = mainSql + TSQL.wrapSqlField(getDatabaseType(obj), TString.camelToUnderline(resultField)) + ",";
                 }
             }
         }
@@ -404,7 +393,7 @@ public class Recorder {
      * @param <T> 范型类型
      * @return 拼装的 SQL
      */
-    public <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
+    public static <T> String buildQuerySqlTemplate(String tableName, T obj, Query query) {
         if (tableName == null) {
             tableName = getTableNameWithDataBase(obj);
         }
@@ -455,7 +444,7 @@ public class Recorder {
 
             //自动识别数据库类型选择不同的方言进行分页
             if (query != null) {
-                DataBaseType dataBaseType = jdbcOperate.getDataBaseType();
+                DataBaseType dataBaseType = getDatabaseType(obj);
                 if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
                     resultSql = genMysqlPageSql(resultSql, query);
                 } else if (dataBaseType.equals(DataBaseType.Oracle)) {
@@ -479,7 +468,7 @@ public class Recorder {
      * @param <T> 范型类型
      * @return 拼装的 SQL
      */
-    public <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) {
+    public static <T> String buildUpdateSqlTemplate(String tableName, T obj, Query query) {
         if(tableName == null){
             tableName = getTableNameWithDataBase(obj);
         }
@@ -502,7 +491,7 @@ public class Recorder {
                     continue;
                 }
 
-                String sqlFieldName = getSqlFieldName(jdbcOperate, field);
+                String sqlFieldName = getSqlFieldName(getDatabaseType(obj), field);
                 String fieldName = field.getName();
 
                 try {
@@ -565,7 +554,7 @@ public class Recorder {
      * @param <T> 范型类型
      * @return 拼装的 SQL
      */
-    public <T> String buildInsertSqlTemplate(String tableName, T obj) {
+    public static <T> String buildInsertSqlTemplate(String tableName, T obj) {
         if (tableName == null) {
             tableName = getTableNameWithDataBase(obj);
         }
@@ -590,7 +579,7 @@ public class Recorder {
                     continue;
                 }
 
-                String sqlFieldName = getSqlFieldName(jdbcOperate, field);
+                String sqlFieldName = getSqlFieldName(getDatabaseType(obj), field);
                 String fieldName = field.getName();
 
                 //如果主键为空则不插入主键字段
@@ -626,7 +615,7 @@ public class Recorder {
      * @param <T> 范型类型
      * @return 拼装的 SQL
      */
-    public <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) {
+    public static <T> String buildDeleteSqlTemplate(String tableName, T obj, Query query) {
         if(tableName == null){
             tableName = getTableNameWithDataBase(obj);
         }
@@ -658,7 +647,7 @@ public class Recorder {
      * @param query 查询对象
      * @return where 后面的 sql
      */
-    public String genWhereSql(Object obj, Query query) {
+    public static String genWhereSql(Object obj, Query query) {
         String cacheKey = getCacheKey("WHERE", null, obj.getClass(), query);
         String whereSql = SQL_TEMPLATE_CACHE.get(cacheKey);
 
@@ -681,7 +670,7 @@ public class Recorder {
 
                     //如果没有指定查询条件,则使用主键作为条件
                     if (field.getAnnotation(PrimaryKey.class) != null) {
-                        String sqlFieldName = getSqlFieldName(jdbcOperate, field);
+                        String sqlFieldName = getSqlFieldName(getDatabaseType(obj), field);
                         String fieldName = field.getName();
 
                         whereSql = TString.assembly(whereSql, " and ", sqlFieldName, " =::", fieldName);
@@ -691,9 +680,11 @@ public class Recorder {
             } else {
 
                 for (Map.Entry<String, Query.Operate> entry : query.getAndFields().entrySet()) {
-                    if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
+                    Field field = TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey());
+                    if (field != null) {
+                        org.voovan.db.recorder.annotation.Field fieldAnnoation = field.getAnnotation(org.voovan.db.recorder.annotation.Field.class);
                         String sqlField = entry.getKey();
-                        if (camelToUnderline) {
+                        if (fieldAnnoation!=null && fieldAnnoation.camelToUnderline()) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
                         whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
@@ -701,9 +692,12 @@ public class Recorder {
                 }
 
                 for (Map.Entry<String, Query.Operate> entry : query.getOrFields().entrySet()) {
-                    if (TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey()) != null) {
+                    Field field = TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey());
+                    if (field != null) {
+                        org.voovan.db.recorder.annotation.Field fieldAnnoation = field.getAnnotation(org.voovan.db.recorder.annotation.Field.class);
+
                         String sqlField = entry.getKey();
-                        if (camelToUnderline) {
+                        if (fieldAnnoation!=null && fieldAnnoation.camelToUnderline()) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
 
@@ -733,7 +727,7 @@ public class Recorder {
      * @param query 查询对象
      * @return 处理后的 sql 字符串
      */
-    public String genMysqlPageSql(String sql, Query query){
+    public static String genMysqlPageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
             return sql;
         }
@@ -747,7 +741,7 @@ public class Recorder {
      * @param query 查询对象
      * @return  处理后的 sql 字符串
      */
-    public String genPostgrePageSql(String sql, Query query){
+    public static String genPostgrePageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
             return sql;
         }
@@ -761,7 +755,7 @@ public class Recorder {
      * @param query 查询对象
      * @return  处理后的 sql 字符串
      */
-    public String genOraclePageSql(String sql, Query query){
+    public static String genOraclePageSql(String sql, Query query){
         if(query.getPageSize()<0 || query.getPageNumber()<0) {
             return sql;
         }
@@ -776,7 +770,7 @@ public class Recorder {
      * @param <T> 范型类型
      * @return 数据库名
      */
-    public <T> String getSqlDatabase(T obj){
+    public static <T> String getDatabase(T obj){
         Table tableAnnotation = obj.getClass().getAnnotation(Table.class);
 
         if(tableAnnotation==null){
@@ -788,13 +782,31 @@ public class Recorder {
         return databaseName;
     }
 
+
+    /**
+     * 获取数据库类型
+     * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
+     * @return 数据库名
+     */
+    public static <T> DataBaseType getDatabaseType(T obj){
+        Table tableAnnotation = obj.getClass().getAnnotation(Table.class);
+
+        if(tableAnnotation==null){
+            return DataBaseType.MySql;
+        }
+
+        //处理数据库名
+        return tableAnnotation.databaseType() == DataBaseType.UNKNOW ? DEFAULT_DATABASE_TYPE : tableAnnotation.databaseType();
+    }
+
     /**
      * 获取表名
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 表名
      */
-    public <T> String getSqlTableName(T obj){
+    public static <T> String getSqlTableName(T obj){
         Table tableAnnotation = obj.getClass().getAnnotation(Table.class);
 
         //处理表名
@@ -809,7 +821,7 @@ public class Recorder {
             tableName = obj.getClass().getSimpleName();
         }
 
-        if(camelToUnderline) {
+        if(tableAnnotation!=null && tableAnnotation.camelToUnderline()) {
             tableName = TString.camelToUnderline(tableName);
         }
 
@@ -831,9 +843,9 @@ public class Recorder {
      * @param obj 对象
      * @return 带有数据库名的表名字符串
      */
-    public String getTableNameWithDataBase(Object obj){
+    public static String getTableNameWithDataBase(Object obj){
         //处理数据库名
-        String databaseName = getSqlDatabase(obj);
+        String databaseName = getDatabase(obj);
 
         //处理表名
         String tableName = getSqlTableName(obj);
@@ -847,7 +859,7 @@ public class Recorder {
      * @param field 字段对象
      * @return 字段名
      */
-    public String getSqlFieldName(JdbcOperate jdbcOperate, Field field) {
+    public static String getSqlFieldName(DataBaseType dataBaseType, Field field) {
         String fieldName = "";
 
         org.voovan.db.recorder.annotation.Field fieldAnnotation = field.getAnnotation(org.voovan.db.recorder.annotation.Field.class);
@@ -862,7 +874,7 @@ public class Recorder {
             fieldName = field.getName();
         }
 
-        if(camelToUnderline) {
+        if(fieldAnnotation!=null && fieldAnnotation.camelToUnderline()) {
             fieldName = TString.camelToUnderline(fieldName);
         }
 
@@ -876,7 +888,7 @@ public class Recorder {
             }
         }
 
-        return TSQL.wrapSqlField(jdbcOperate, fieldName);
+        return TSQL.wrapSqlField(dataBaseType, fieldName);
     }
 
     /**

@@ -19,4 +19,5 @@ public @interface Field {
     boolean lowerCase() default false;
     boolean upperCase() default false;
     boolean upperCaseHead() default false;
+    boolean camelToUnderline() default false;
 }

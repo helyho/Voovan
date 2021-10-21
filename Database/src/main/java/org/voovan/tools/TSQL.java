@@ -708,12 +708,11 @@ public class TSQL {
 
 	/**
 	 * 包括 SQL 关键字
-	 * @param jdbcOperate jdbcOperate 对象
+	 * @param dataBaseType DataBaseType 枚举
 	 * @param sqlField sql 关键字
 	 * @return sql字符串
 	 */
-	public static String wrapSqlField(JdbcOperate jdbcOperate, String sqlField) {
-		DataBaseType dataBaseType = jdbcOperate.getDataBaseType();
+	public static String wrapSqlField(DataBaseType dataBaseType, String sqlField) {
 		if (dataBaseType.equals(DataBaseType.Mariadb) || dataBaseType.equals(DataBaseType.MySql)) {
 			return "`"+sqlField+"`";
 		} else if (dataBaseType.equals(DataBaseType.Oracle)) {

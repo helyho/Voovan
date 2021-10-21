@@ -1,5 +1,7 @@
 package org.voovan.db.recorder.annotation;
 
+import org.voovan.db.DataBaseType;
+
 import java.lang.annotation.*;
 
 /**
@@ -17,7 +19,9 @@ public @interface Table {
     String database() default "";
     String name() default "";
     String value() default "";
+    DataBaseType databaseType() default DataBaseType.UNKNOW;
     boolean lowerCase() default false;
     boolean upperCase() default false;
     boolean upperCaseHead() default false;
+    boolean camelToUnderline() default false;
 }

@@ -29,13 +29,11 @@ public class RecordTest extends TestCase{
     private static DruidDataSource dataSource = null;
     private String sql = "";
 
-
-    public RecordTest() {
+    public void setUp() {
         //只构建一次数据源
         if(dataSource==null) {
             try {
-                String druidpath = TFile.getSystemPath("/classes/database.properties");
-                Properties druidProperites = TProperties.getProperties(new File(druidpath));
+                Properties druidProperites = TProperties.getProperties("database.properties");
                 dataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(druidProperites);
                 dataSource.init();
                 Logger.info("Database connection pool init finished");
@@ -59,7 +57,7 @@ public class RecordTest extends TestCase{
 
         //查询测试
 //        System.out.println(new Recorder(new JdbcOperate(dataSource), false).query("sc_script", scriptEntity, query));
-        System.out.println(new Recorder(new JdbcOperate(dataSource), false).query(scriptEntity, query));
+        System.out.println(new Recorder(JdbcOperate.newInstance(dataSource)).query(scriptEntity, query));
 
     }
 
@@ -74,7 +72,7 @@ public class RecordTest extends TestCase{
         scriptEntity.setPackagePath("org.hocate.test.main");
 
         //更新测试
-        System.out.println(new Recorder(new JdbcOperate(dataSource), false).update(scriptEntity, Query.newInstance().data("packagePath").and("id")));
+        System.out.println(new Recorder(JdbcOperate.newInstance(dataSource)).update(scriptEntity, Query.newInstance().data("packagePath").and("id")));
     }
 
     /**
@@ -90,7 +88,7 @@ public class RecordTest extends TestCase{
         for(int i=0;i<100;i++) {
             //更新测试
             scriptEntity.setVersion(i);
-            System.out.println(new Recorder(new JdbcOperate(dataSource), false).insert(scriptEntity));
+            System.out.println(new Recorder(JdbcOperate.newInstance(dataSource)).insert(scriptEntity));
         }
     }
 
@@ -104,7 +102,7 @@ public class RecordTest extends TestCase{
         scriptEntity.setId(100);
 
         //更新测试
-        System.out.println(new Recorder(new JdbcOperate(dataSource), false).delete(scriptEntity, Query.newInstance().and("id")));
+        System.out.println(new Recorder(JdbcOperate.newInstance(dataSource)).delete(scriptEntity, Query.newInstance().and("id")));
     }
 }
 
