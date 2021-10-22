@@ -57,7 +57,7 @@ public class JSONEncode {
 
     /**
      * 转换法方法
-     * @param fieldName 属性冥
+     * @param fieldName 属性名
      * @param object 对象
      * @param allField 是否处理所有属性
      * @return 转换的结果
@@ -68,7 +68,7 @@ public class JSONEncode {
             //查找转换器并转换
             Convert convert = Convert.getConvert(JSON_CONVERT.get(object.getClass()));
             if (convert != null) {
-                return fromObject(convert.convert(null, object), true);
+                return fromObject(convert.convert(fieldName, object), true);
             } else {
                 return fromObject(object, allField);
             }
