@@ -1675,6 +1675,9 @@ public class TReflect {
         //对 Array 类型的处理
         else if(obj.getClass().isArray()){
             Class arrayClass = obj.getClass().getComponentType();
+            if(!TReflect.isBasicType(arrayClass)) {
+                arrayClass = Map.class;
+            }
             Object targetArray = Array.newInstance(arrayClass, Array.getLength(obj));
 
             for(int i=0;i<Array.getLength(obj);i++) {

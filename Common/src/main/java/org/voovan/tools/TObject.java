@@ -158,6 +158,27 @@ public class TObject {
 	}
 
 	/**
+	 * 将 Map 的值的某个属性转换成 List
+	 * @param map 需转换的 Map 对象
+	 * @param fieldName value 对象的 field 名称
+	 * @return 转后的 Value 的 list
+	 */
+	public static <T> List<T> mapValueToList(Map<?,T> map, String fieldName) throws ReflectiveOperationException {
+		ArrayList<T> result = new ArrayList<T>();
+		for(Map.Entry<?,?> entry : map.entrySet()){
+			Object t = entry.getValue();
+			try {
+				T value = (T) TReflect.getFieldValue(t, fieldName);
+				result.add(value);
+			} catch (ReflectiveOperationException e) {
+				throw new ReflectiveOperationException("field=" + fieldName + ", value="+t.toString(), e);
+			}
+		}
+		return result;
+	}
+
+
+	/**
 	 * 将 Map 的值转换成 List
 	 * @param map 需转换的 Map 对象
 	 * @return 转后的 key 的 list
@@ -189,7 +210,7 @@ public class TObject {
 	/**
 	 * 将 Collection 转换成 Map
 	 * 			key 位置坐标
-	 *          value 数组值
+	 *          value 元素值
 	 * @param objs    	待转换的 Collection 对象
 	 * @param <T> 范型
 	 * @return 转换后的 Map  [序号, 值]
@@ -201,6 +222,32 @@ public class TObject {
 			arrayMap.put(Integer.toString(++i), t);
 		}
 		return arrayMap;
+	}
+
+	/**
+	 * 将 Collection 转换成 Map
+	 * 	 		key   元组的 fieldName 属性的值
+	 * 	        value 元素值
+	 * @param objs  Collection 对象
+	 * @param fieldName field 名称
+	 * @param <K> 范型
+	 * @param <V> 范型
+	 * @return 转换后的 Map
+	 * @throws ReflectiveOperationException 反射异常
+	 */
+	public static <K, V> Map<K, V> collectionToMap(Collection<V> objs, String fieldName) throws ReflectiveOperationException {
+		Map<K ,V> map = new LinkedHashMap<K ,V>();
+		int i = 0;
+		for(V v : objs){
+			K key = null;
+			try {
+				key = (K) TReflect.getFieldValue(v, fieldName);
+				map.put(key, v);
+			} catch (ReflectiveOperationException e) {
+				throw new ReflectiveOperationException("field=" + fieldName + ", value="+v.toString(), e);
+			}
+		}
+		return map;
 	}
 
 	/**
