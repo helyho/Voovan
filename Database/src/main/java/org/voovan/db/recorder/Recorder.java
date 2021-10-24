@@ -352,13 +352,39 @@ public class Recorder {
     }
 
     /**
-     * 插入操作
+     * 批量插入操作
      * @param obj 数据 ORM 对象
      * @param <T> 范型类型
      * @return 更新数据条数
      */
     public <T> int insert(T obj) {
         return insert(null, obj);
+    }
+
+
+    public <T> int[] insertBatch(String tableName, List<T> obj) {
+        if(obj.isEmpty()) {
+            return new int[0];
+        }
+        try{
+            return jdbcOperate.batchObject(buildInsertSqlTemplate(tableName, obj.get(0)), obj);
+        }catch (Exception e){
+            if(e instanceof RecorderException){
+                throw (RecorderException)e;
+            } else {
+                throw new RecorderException("Recorder insert error: " + JSON.toJSON(obj), e);
+            }
+        }
+    }
+
+    /**
+     * 批量插入操作
+     * @param obj 数据 ORM 对象
+     * @param <T> 范型类型
+     * @return 更新数据条数
+     */
+    public <T> int[] insertBatch(List<T> obj) {
+        return insertBatch(null, obj);
     }
 
     public static <T> String buildQueryField(T obj, Query query) {
@@ -740,7 +766,7 @@ public class Recorder {
                     if (field != null) {
                         org.voovan.db.recorder.annotation.Field fieldAnnoation = field.getAnnotation(org.voovan.db.recorder.annotation.Field.class);
                         String sqlField = entry.getKey();
-                        if (fieldAnnoation!=null && fieldAnnoation.camelToUnderline()) {
+                        if (fieldAnnoation==null || fieldAnnoation.camelToUnderline()) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
                         whereSql = TString.assembly(whereSql, " and ", sqlField, Query.getActualOperate(entry.getValue()), "::", entry.getKey());
@@ -753,7 +779,7 @@ public class Recorder {
                         org.voovan.db.recorder.annotation.Field fieldAnnoation = field.getAnnotation(org.voovan.db.recorder.annotation.Field.class);
 
                         String sqlField = entry.getKey();
-                        if (fieldAnnoation!=null && fieldAnnoation.camelToUnderline()) {
+                        if (fieldAnnoation==null || fieldAnnoation.camelToUnderline()) {
                             sqlField = TString.camelToUnderline(sqlField);
                         }
 
@@ -877,7 +903,7 @@ public class Recorder {
             tableName = obj.getClass().getSimpleName();
         }
 
-        if(tableAnnotation!=null && tableAnnotation.camelToUnderline()) {
+        if(tableAnnotation==null || tableAnnotation.camelToUnderline()) {
             tableName = TString.camelToUnderline(tableName);
         }
 
@@ -930,7 +956,7 @@ public class Recorder {
             fieldName = field.getName();
         }
 
-        if(fieldAnnotation!=null && fieldAnnotation.camelToUnderline()) {
+        if(fieldAnnotation==null || fieldAnnotation.camelToUnderline()) {
             fieldName = TString.camelToUnderline(fieldName);
         }
 
