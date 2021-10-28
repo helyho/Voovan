@@ -230,19 +230,7 @@ public class Dao<T extends Dao> {
 
             try {
                 if(!ret) {
-                    //回滚内存对象
-                    for(String fieldName: updateFields) {
-
-                        java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
-
-                        if (field != null) {
-
-                            TReflect.setFieldValue(this, fieldName, snapshot.get(fieldName));
-
-                        } else {
-                            throw new UpdateFieldException("Dao.updateField failed rollback " + fieldName + " failed");
-                        }
-                    }
+                    rollbackInMemory();
                 }
             } catch (Exception e) {
                 throw new UpdateFieldException(e);
@@ -251,6 +239,22 @@ public class Dao<T extends Dao> {
 
         } else {
             return update(EMPTY_STRING_ARRAY);
+        }
+    }
+
+
+    public void rollbackInMemory() throws ReflectiveOperationException {
+        String[]  updateFields = getModifyField();
+        //回滚内存对象
+        for(String fieldName: updateFields) {
+
+            java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
+
+            if (field != null) {
+                TReflect.setFieldValue(this, fieldName, snapshot.get(fieldName));
+            } else {
+                throw new UpdateFieldException("Dao.updateField failed rollback " + fieldName + " failed");
+            }
         }
     }
 
