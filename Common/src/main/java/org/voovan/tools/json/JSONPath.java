@@ -8,6 +8,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
@@ -167,6 +168,8 @@ public class JSONPath {
                 if(TReflect.isSuper(value.getClass(), clazz)) {
                     obj = value;
                 } else if(TReflect.isBasicType(clazz)){
+                    obj = TReflect.newInstance(clazz, value.toString());
+                } else if (clazz.equals(BigDecimal.class)) {
                     obj = TReflect.newInstance(clazz, value.toString());
                 }
             }
