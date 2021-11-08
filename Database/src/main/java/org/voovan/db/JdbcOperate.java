@@ -1,7 +1,10 @@
 package org.voovan.db;
 
+import org.voovan.Global;
 import org.voovan.db.exception.UpdateCountException;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TPerformance;
 import org.voovan.tools.TSQL;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -12,10 +15,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -31,6 +31,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class JdbcOperate implements Closeable {
+	public final static boolean JDBC_LEAK_DETECT  = TEnv.getSystemProperty("JdbcLeakDetect", false);
+
+	public static ConcurrentHashMap<Connection, StackTraceElement[]> LEAK_STACK = new ConcurrentHashMap<Connection, StackTraceElement[]>();
+
+	static {
+		Logger.infof("JdbcLeakDetect: {}", JDBC_LEAK_DETECT);
+		if(JDBC_LEAK_DETECT) {
+			Global.getHashWheelTimer().addTask(() -> {
+				Logger.infof("JdbcLeakDetect size: {}", LEAK_STACK.size());
+			}, 5);
+		}
+	}
+
 	private static Map<Long, JdbcOperate> JDBC_OPERATE_THREAD_LIST = new ConcurrentHashMap<Long, JdbcOperate>();
 
 	private DataSource	dataSource;
@@ -142,6 +155,10 @@ public class JdbcOperate implements Closeable {
 			}
 
 			JDBC_OPERATE_THREAD_LIST.put(threadId, this);
+		}
+
+		if(JDBC_LEAK_DETECT) {
+			LEAK_STACK.put(connection, TEnv.getStackElements());
 		}
 
 		return connection;
@@ -1159,6 +1176,10 @@ public class JdbcOperate implements Closeable {
 			}
 		} catch (SQLException e) {
 			Logger.error(e);
+		} finally {
+			if(JDBC_LEAK_DETECT) {
+				LEAK_STACK.remove(connection);
+			}
 		}
 	}
 
