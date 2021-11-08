@@ -1177,7 +1177,7 @@ public class JdbcOperate implements Closeable {
 		} catch (SQLException e) {
 			Logger.error(e);
 		} finally {
-			if(JDBC_LEAK_DETECT) {
+			if(JDBC_LEAK_DETECT && connection != null) {
 				LEAK_STACK.remove(connection);
 			}
 		}
