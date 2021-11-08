@@ -1,4 +1,8 @@
-package org.voovan.tools;
+package org.voovan.test.tools;
+
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TSQL;
 
 /**
  * 类文字命名
