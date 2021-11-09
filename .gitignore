@@ -14,3 +14,4 @@ launcher/*
 voovan-framework.jar
 .rocksdb
 dependency-reduced-pom.xml
+Web/WEBAPP/VoovanMonitor/*
