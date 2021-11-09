@@ -481,9 +481,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void restoreLatestBackup(Boolean keepLogfile) {
         try {
-            String dataPath = this.dataPath + dbName;
-            String walPath =  this.walPath + dbName;
-
             RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
 
             BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
@@ -506,9 +503,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public void restore(int backupId, Boolean keepLogfile) {
         try {
-            String dataPath = this.dataPath + dbName;
-            String walPath =  this.walPath + dbName;
-
             RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
 
             BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
