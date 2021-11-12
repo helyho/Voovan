@@ -135,6 +135,7 @@ public class JSONDecode {
 			char currentChar = 0;
 			char nextChar = 0;
 			char prevChar = 0;
+			boolean isConvert = false; //是否处于转移字符状态
 
 			while (true) {
 				currentChar = (char) reader.read();
@@ -214,7 +215,7 @@ public class JSONDecode {
 				//分析字符串,如果是字符串不作任何处理
 				if (currentChar == Global.CHAR_QUOTE || currentChar == Global.CHAR_S_QUOTE) {
 					//非注释状态, 并且不是转移字符
-					if (isComment==0 && prevChar != Global.CHAR_SLASH) {
+					if (isComment==0 && isConvert && prevChar != Global.CHAR_SLASH) {
 						//字符串起始的 " 或 '
 						if (stringWarpFlag == Global.CHAR_EOF) {
 							stringWarpFlag = currentChar;
@@ -283,6 +284,14 @@ public class JSONDecode {
 				//如果为字符串则无条件拼装
 				//如果不是字符串,则只拼装可见字符
 				if (isString || (!isString && !Character.isWhitespace(currentChar))) {
+					if(currentChar == Global.CHAR_SLASH && !isConvert) {
+						isConvert = true;
+					}
+
+					if(prevChar == Global.CHAR_SLASH  && isConvert) {
+						isConvert = false;
+					}
+
 					itemString.append(currentChar);
 				}
 
