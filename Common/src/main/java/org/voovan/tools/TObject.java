@@ -162,6 +162,8 @@ public class TObject {
 	 * @param map 需转换的 Map 对象
 	 * @param fieldName value 对象的 field 名称
 	 * @return 转后的 Value 的 list
+	 * @throws ReflectiveOperationException 反射异常
+	 * @param <T> 泛型类型
 	 */
 	public static <T> List<T> mapValueToList(Map<?,T> map, String fieldName) throws ReflectiveOperationException {
 		ArrayList<T> result = new ArrayList<T>();

@@ -937,7 +937,7 @@ public class Recorder {
 
     /**
      * 获取字段名
-     * @param jdbcOperate JdbcOperate 对象
+     * @param dataBaseType dataBaseType 对象
      * @param field 字段对象
      * @return 字段名
      */

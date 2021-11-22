@@ -1233,7 +1233,11 @@ public class JdbcOperate implements Closeable {
 		}
 	}
 
-
+	/**
+	 * 构造函数
+	 * @param dataSource	数据源
+	 * @return  JdbcOperate 对象
+	 */
 	public static JdbcOperate newInstance(DataSource dataSource) {
 		return new JdbcOperate(dataSource);
 	}
@@ -1242,6 +1246,7 @@ public class JdbcOperate implements Closeable {
 	 * 构造函数
 	 * @param dataSource	数据源
 	 * @param isTrancation   是否启用事物支持, 默认使用的`NEST`(嵌套事务)的事物方式
+	 * @return  JdbcOperate 对象
 	 */
 	public static JdbcOperate newInstance(DataSource dataSource, boolean isTrancation){
 		return new JdbcOperate(dataSource, isTrancation);
@@ -1251,6 +1256,7 @@ public class JdbcOperate implements Closeable {
 	 * 构造函数
 	 * @param dataSource	数据源
 	 * @param transcationType    是否启用事务支持, 设置事务模式
+	 * @return  JdbcOperate 对象
 	 */
 	public static JdbcOperate newInstance(DataSource dataSource, TranscationType transcationType) {
 		return new JdbcOperate(dataSource, transcationType);

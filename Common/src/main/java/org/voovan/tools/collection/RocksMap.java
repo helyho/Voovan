@@ -100,7 +100,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 设置数据备份存储据路径
-     * @param defaultWalPath WAL数存储据路径
+     * @param defaultBackupPath WAL数存储据路径
      */
     public static void setDefaultBackupPath(String defaultBackupPath) {
         DEFAULT_BACKUP_PATH = defaultBackupPath.endsWith(File.separator) ? defaultBackupPath : defaultBackupPath + File.separator;;
@@ -116,7 +116,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 设置默认日志路径
-     * @param defaultDbPath 默认数存储据路径
+     * @param defaultLogPath 默认数存储据路径
      */
     public static void setDefaultLogPath(String defaultLogPath) {
         DEFAULT_LOG_PATH = defaultLogPath.endsWith(File.separator) ? defaultLogPath : defaultLogPath + File.separator;
@@ -463,7 +463,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取备份信息
-     * @param backupableDBOptions 备份选线
      * @return 备份信息清单
      */
     public List<BackupInfo> getBackupInfo() {
@@ -497,8 +496,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     /**
      * 从指定备份恢复数据
      * @param backupId 备份 id 标识
-     * @param dbName 数据库名, 用以确定恢复路径
-     * @param backupableDBOptions 备份选项
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
     public void restore(int backupId, Boolean keepLogfile) {
@@ -518,7 +515,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 清理备份
-     * @param dbName 数据库明城
      * @param number 保留的备份书
      */
     public void PurgeOldBackups(int number) {
@@ -1007,7 +1003,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取一个迭代器
-     * @param iterReadOptions readOptions 对象
      * @return RocksIterator 对象
      */
     public RocksIterator getIterator(){
