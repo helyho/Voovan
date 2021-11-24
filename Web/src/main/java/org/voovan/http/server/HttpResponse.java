@@ -136,6 +136,7 @@ public class HttpResponse extends Response {
 	 * @param obj body 对象
 	 */
 	public void writeObject(Object obj){
+		this.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
 		body().writeObject(obj);
 	}
 
@@ -145,6 +146,7 @@ public class HttpResponse extends Response {
 	 * @param charset 字符集
 	 */
 	public void writeObject(Object obj, String charset){
+		this.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.APPLICATION_JSON_STRING);
 		body().writeObject(obj, charset);
 	}
 

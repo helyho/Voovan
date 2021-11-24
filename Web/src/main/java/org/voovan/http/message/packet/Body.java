@@ -344,7 +344,7 @@ public class Body {
 	 * @param obj body 对象
 	 */
 	public void writeObject(Object obj){
-		write(JSON.toJSON(obj),"UTF-8");
+		write(JSON.toJSON(obj), "UTF-8");
 	}
 
 	/**
@@ -353,7 +353,7 @@ public class Body {
 	 * @param charset 字符集
 	 */
 	public void writeObject(Object obj, String charset){
-		write(JSON.toJSON(obj),charset);
+		write(JSON.toJSON(obj), charset);
 	}
 
 	/**
