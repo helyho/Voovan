@@ -76,19 +76,19 @@ public class RocksDelayQueueUnit extends TestCase {
         AtomicInteger pollCnt = new AtomicInteger();
         UniqueId uniqueId = new UniqueId();
 
-        TEnv.measure("add cost: ", ()->{
-            for (int x = 0; x < 50; x++) {
-                int finalX = x;
-                eventRunnerGroup.addEvent(() -> {
-                            for (int i = 0; i < 10000; i++) {
-                                rocksQueue.add(new Rdqo(i, uniqueId.nextNumber()));
-                            }
-                        }
-                );
-            }
-
-            eventRunnerGroup.await();
-        });
+//        TEnv.measure("add cost: ", ()->{
+//            for (int x = 0; x < 50; x++) {
+//                int finalX = x;
+//                eventRunnerGroup.addEvent(() -> {
+//                            for (int i = 0; i < 10000; i++) {
+//                                rocksQueue.add(new Rdqo(i, uniqueId.nextNumber()));
+//                            }
+//                        }
+//                );
+//            }
+//
+//            eventRunnerGroup.await();
+//        });
 //
 //
 //        System.out.println(rocksQueue.size());
@@ -114,30 +114,30 @@ public class RocksDelayQueueUnit extends TestCase {
 //        });
 
 
-//        TEnv.measure("mix cost: ", ()->{
-//            for (int x = 0; x < 100; x++) {
-//                int finalX = x;
-//                eventRunnerGroup.addEvent(() -> {
-//                            for (int i = 0; i < 1000; i++) {
-//                                if(finalX%2 == 0) {
-//                                    rocksQueue.add(new Rdqo(i, uniqueId.nextNumber()));
-//                                } else {
-//                                    Rdqo rdqo = (Rdqo) rocksQueue.poll();
-//                                    if (rdqo == null) {
-//                                        TEnv.sleep(100);
-//                                        i--;
-//                                    } else {
-//                                        System.out.println(TDateTime.now() + " " + rdqo.value);
-//                                        pollCnt.getAndIncrement();
-//                                        i++;
-//                                    }
-//                                }
-//                            }
-//                        }
-//                );
-//            }
-//            eventRunnerGroup.await();
-//        });
+        TEnv.measure("mix cost: ", ()->{
+            for (int x = 0; x < 100; x++) {
+                int finalX = x;
+                eventRunnerGroup.addEvent(() -> {
+                            for (int i = 0; i < 1000; i++) {
+                                if(finalX%2 == 0) {
+                                    rocksQueue.add(new Rdqo(i, uniqueId.nextNumber()));
+                                } else {
+                                    Rdqo rdqo = (Rdqo) rocksQueue.poll();
+                                    if (rdqo == null) {
+                                        TEnv.sleep(100);
+                                        i--;
+                                    } else {
+                                        System.out.println(TDateTime.now() + " " + rdqo.value);
+                                        pollCnt.getAndIncrement();
+                                        i++;
+                                    }
+                                }
+                            }
+                        }
+                );
+            }
+            eventRunnerGroup.await();
+        });
 
         System.out.println(TDateTime.now() + " " + pollCnt.get());
         System.out.println(rocksQueue.size());

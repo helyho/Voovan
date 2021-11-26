@@ -24,11 +24,11 @@ public class Rdqo implements Delayed {
     }
 
 
+    @Override
     public long getDelay(TimeUnit unit) {
         return unit.convert(delayTime, TimeUnit.SECONDS);
     }
 
-    @Override
     public int compareTo(Delayed o) {
         return 0;
     }
