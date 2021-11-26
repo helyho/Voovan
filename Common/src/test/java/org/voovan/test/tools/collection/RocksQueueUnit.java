@@ -70,26 +70,27 @@ public class RocksQueueUnit extends TestCase {
         String cfName = "testdb1000";
         RocksMap rocksMap = new RocksMap(cfName);
         RocksQueue rocksQueue = new RocksQueue(rocksMap, "testQueue");
+        System.out.println(rocksQueue.toString());
         rocksQueue.clear();
         System.out.println(rocksQueue.toString());
         System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
         EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
 
-        for(int x = 0;x<16;x++) {
-            int finalX = x;
-            eventRunnerGroup.addEvent(()->{
-                        for (int i = 1; i <= 16000; i++) {
-                            rocksQueue.add(finalX + " " + i);
-                        }
-                    }
-            );
-        }
-        TEnv.measure("put: ", ()->eventRunnerGroup.await());
-        System.out.println(rocksQueue.toString());
-
-
-
+//        for(int x = 0;x<16;x++) {
+//            int finalX = x;
+//            eventRunnerGroup.addEvent(()->{
+//                        for (int i = 1; i <= 16000; i++) {
+//                            rocksQueue.add(finalX + " " + i);
+//                        }
+//                    }
+//            );
+//        }
+//        TEnv.measure("put: ", ()->eventRunnerGroup.await());
+//        System.out.println(rocksQueue.toString());
+//
+//
+//
 //        for(int x = 0;x<16;x++) {
 //            int finalX = x;
 //            eventRunnerGroup.addEvent(()->{
@@ -108,28 +109,26 @@ public class RocksQueueUnit extends TestCase {
 //        System.out.println(rocksQueue.toString());
 
 
-//        for(int x = 0;x<16;x++) {
-//            int finalX = x;
-//            eventRunnerGroup.addEvent(()->{
-//                    for (int i = 1; i <= 16000; i++) {
-//                        if(Math.random()<0.5) {
-////                        if(finalX%2 == 0) {
-//                            rocksQueue.add(finalX + " " + i);
-//                        } else {
-//                            Object v = rocksQueue.poll();
-//                            if(v==null) {
-//                                i--;
-//                            } else {
-////                                System.out.println(v + " " + System.currentTimeMillis());
-//                            }
-//
-//                        }
-//                    }
-//                }
-//            );
-//        }
-//
-//        TEnv.measure("mixed: ", ()->eventRunnerGroup.await());
+        for(int x = 0;x<50;x++) {
+            int finalX = x;
+            eventRunnerGroup.addEvent(()->{
+                    for (int i = 1; i <= 20000; i++) {
+                        if(Math.random()<0.5) {
+                            rocksQueue.add(finalX + " " + i);
+                        } else {
+                            Object v = rocksQueue.poll();
+                            if(v==null) {
+                                i--;
+                            } else {
+//                                System.out.println(v + " " + System.currentTimeMillis());
+                            }
+
+                        }
+                    }
+                }
+            );
+        }
+        TEnv.measure("mixed: ", ()->eventRunnerGroup.await());
 
 
 

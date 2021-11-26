@@ -59,12 +59,12 @@ public class RocksQueue<E> implements Queue<E> {
         if(e == null) {
             throw new NullPointerException();
         }
-        boolean isEmpty = isEmpty();
-        Long newLast = BASE_SEQ;
-        if(isEmpty) {
-            firstSeq = newLast + 1;
-            lastSeq = newLast;
+
+        if(isEmpty()) {
+            firstSeq = BASE_SEQ + 1;
+            lastSeq = BASE_SEQ;
         }
+
         lastSeq = lastSeq + 1;
         cPut(lastSeq, e);
 
