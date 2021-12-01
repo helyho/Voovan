@@ -421,8 +421,7 @@ public class Request {
 
     public void release(){
         for (Part part : this.parts) {
-            //TODO: 使用 part.release();
-            part.body().release();
+            part.release();
         }
 
         body.release();
