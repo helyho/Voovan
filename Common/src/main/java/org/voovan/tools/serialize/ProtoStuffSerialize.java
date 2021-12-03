@@ -51,7 +51,6 @@ public class ProtoStuffSerialize implements Serialize {
                 if(obj instanceof Map) {
                     wrapObj = new ProtoStuffWrap((Map) obj);
                     schema = PROTOSTUFF_WARP;
-
                 }
 
                 if(obj instanceof Collection) {
