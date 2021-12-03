@@ -102,7 +102,6 @@ public class HttpDispatcher {
 	 */
 	public void addRouteMethod(String method) {
 		if (!methodRouters.containsKey(method)) {
-			//TODO: 尝试优化改成多级数组形式
 			Map<String, RouterWrap<HttpRouter>> routers = new TreeMap<String, RouterWrap<HttpRouter>>(new Comparator<String>() {
 				@Override
 				public int compare(String o1, String o2) {

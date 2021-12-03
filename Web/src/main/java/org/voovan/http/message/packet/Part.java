@@ -209,9 +209,9 @@ public class Part {
 
 	}
 
-//	public void release() {
-//		body.release();
-//	}
+	public void release() {
+		body.release();
+	}
 
 	@Override
 	public String toString(){

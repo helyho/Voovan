@@ -49,7 +49,7 @@ public class Swagger {
     private String swagger = "2.0";
     private Info info;
     private String host;
-    private String basePath = "/";      //TODO: 配置文件读取
+    private String basePath = "/"; 
     private List<Tag> tags = new ArrayList<Tag>();
     private List<String> schemes = new ArrayList<String>();
     //<url,<method, pathinfo>>
