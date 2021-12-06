@@ -260,15 +260,17 @@ public class HttpDispatcher {
 
 		if(routerWrap ==null) {
 			Map<String, RouterWrap<HttpRouter>> routers = methodRouters.get(requestMethod);
-			for (Map.Entry<String, RouterWrap<HttpRouter>> routeEntry : routers.entrySet()) {
-				RouterWrap tmpRouterWrap = routeEntry.getValue();
+			if(routers!=null) {
+				for (Map.Entry<String, RouterWrap<HttpRouter>> routeEntry : routers.entrySet()) {
+					RouterWrap tmpRouterWrap = routeEntry.getValue();
 
-				//寻找匹配的路由对象
-				if (matchPath(requestPath, tmpRouterWrap.getRoutePath(), tmpRouterWrap.getRegexPath(), webConfig.isMatchRouteIgnoreCase())) {
-					if(!tmpRouterWrap.getHasPathParam()) {
-						ROUTER_INFO_CACHE.get().put(routerMark, tmpRouterWrap);
+					//寻找匹配的路由对象
+					if (matchPath(requestPath, tmpRouterWrap.getRoutePath(), tmpRouterWrap.getRegexPath(), webConfig.isMatchRouteIgnoreCase())) {
+						if (!tmpRouterWrap.getHasPathParam()) {
+							ROUTER_INFO_CACHE.get().put(routerMark, tmpRouterWrap);
+						}
+						return tmpRouterWrap;
 					}
-					return tmpRouterWrap;
 				}
 			}
 		}
