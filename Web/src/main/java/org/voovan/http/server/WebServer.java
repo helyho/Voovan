@@ -826,7 +826,6 @@ public class WebServer {
 					"--add-opens=jdk.unsupported/sun.misc=ALL-UNNAMED " +
 					"--add-opens=java.base/sun.nio.ch=ALL-UNNAMED " +
 					"--add-opens=java.base/java.nio=ALL-UNNAMED " +
-					"--add-opens=java.base/java.tcp=ALL-UNNAMED " +
 					"--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED " +
 					"--add-opens=java.base/java.net=ALL-UNNAMED " +
 					"--add-opens=java.base/java.lang=ALL-UNNAMED " +
