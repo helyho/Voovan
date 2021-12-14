@@ -255,7 +255,7 @@ public class Body {
 				byteBuffer.put(fileContent);
 				byteBuffer.flip();
 				return readSize;
-			}else{
+			} else {
 				readSize = -1;
 			}
 		}
@@ -304,7 +304,7 @@ public class Body {
 					}
 				}
 			}
-		}else{
+		} else {
 			TFile.writeFile(bodyFile,true, body, offset, length);
 		}
 	}

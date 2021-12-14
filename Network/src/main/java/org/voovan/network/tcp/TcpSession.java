@@ -27,7 +27,7 @@ public class TcpSession extends IoSession<TcpSocket> {
 		super(tcpSocket);
 		if (tcpSocket != null) {
 			socketChannel = tcpSocket.socketChannel();
-		}else{
+		} else {
 			Logger.error("Socket is null, please check it.");
 		}
 

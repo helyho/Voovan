@@ -70,7 +70,7 @@ public class HttpMonitorFilter implements HttpFilter {
 		IPAnalysis ipAnalysis = null;
 		if(MonitorGlobal.IP_ANALYSIS.containsKey(ipAddress)){
 			ipAnalysis = MonitorGlobal.IP_ANALYSIS.get(ipAddress);
-		}else{
+		} else {
 			ipAnalysis = new IPAnalysis(ipAddress);
 			MonitorGlobal.IP_ANALYSIS.put(ipAddress, ipAnalysis);
 		}

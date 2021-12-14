@@ -304,17 +304,17 @@ public class TObject {
 					if( pos== -1){
 						i = i + mark.length + 1 - j;
 						j = 0 ;
-					}else{
+					} else {
 						i = i + mark.length - pos - j;
 						j = 0;
 					}
-				}else{
+				} else {
 					if(j == (mark.length - 1)){
 						i = i - j + 1 ;
 						j = 0;
 						index  = i-j - 1;
 						break;
-					}else{
+					} else {
 						i++;
 						j++;
 					}

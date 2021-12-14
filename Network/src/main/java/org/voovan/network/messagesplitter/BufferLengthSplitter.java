@@ -25,7 +25,7 @@ public class BufferLengthSplitter implements MessageSplitter {
 	public int canSplite(IoSession session, ByteBuffer byteBuffer) {
 		if(byteBuffer.limit()>=bufferLength){
 			return bufferLength;
-		}else{
+		} else {
 			return -1;
 		}
 	}

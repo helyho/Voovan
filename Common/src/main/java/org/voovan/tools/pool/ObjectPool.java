@@ -654,7 +654,7 @@ public class ObjectPool<T extends IPooledObject> {
             long currentAliveTime = System.currentTimeMillis() - lastVisiediTime;
             if (objectCachedPool.aliveTime>0 && currentAliveTime >= objectCachedPool.aliveTime*1000){
                 return false;
-            }else{
+            } else {
                 return true;
             }
         }

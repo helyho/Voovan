@@ -71,7 +71,7 @@ public class HttpClientWebSocketHandler implements IoHandler{
         WebSocketFrame respWebSocketFrame = null;
         if(obj instanceof WebSocketFrame) {
             reqWebSocketFrame = (WebSocketFrame)obj;
-        }else{
+        } else {
             return null;
         }
 
@@ -79,7 +79,7 @@ public class HttpClientWebSocketHandler implements IoHandler{
         if(!session.containAttribute("WebSocketByteBufferChannel")){
             byteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
             session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
-        }else{
+        } else {
             byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
         }
 

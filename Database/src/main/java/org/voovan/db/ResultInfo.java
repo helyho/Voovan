@@ -42,7 +42,7 @@ public class ResultInfo {
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 jdbcOperate.closeConnection(resultSet);
-            }else{
+            } else {
                 jdbcOperate.closeResult(resultSet);
             }
         }
@@ -59,7 +59,7 @@ public class ResultInfo {
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 jdbcOperate.closeConnection(resultSet);
-            }else{
+            } else {
                 jdbcOperate.closeResult(resultSet);
             }
         }
@@ -71,7 +71,7 @@ public class ResultInfo {
         try{
             if(resultSet.next()){
                 return (T) TSQL.getOneRowWithObject(t, this.resultSet);
-            }else{
+            } else {
                 return null;
             }
         }catch(SQLException | ReflectiveOperationException | ParseException e){
@@ -80,7 +80,7 @@ public class ResultInfo {
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 jdbcOperate.closeConnection(resultSet);
-            }else{
+            } else {
                 jdbcOperate.closeResult(resultSet);
             }
         }
@@ -91,7 +91,7 @@ public class ResultInfo {
         try{
             if(resultSet.next()){
                 return TSQL.getOneRowWithMap(this.resultSet);
-            }else{
+            } else {
                 return null;
             }
         }catch(SQLException | ReflectiveOperationException e){
@@ -100,7 +100,7 @@ public class ResultInfo {
             // 非事务模式执行
             if (jdbcOperate.getTranscationType() == TranscationType.NONE) {
                 jdbcOperate.closeConnection(resultSet);
-            }else{
+            } else {
                 jdbcOperate.closeResult(resultSet);
             }
         }

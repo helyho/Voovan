@@ -405,7 +405,7 @@ public class HttpRequest extends Request {
 					String name = parameterEqual.substring(0, equalFlagPos);
 					String value = parameterEqual.substring(equalFlagPos+1, parameterEqual.length());
 					parameters.put(name, value);
-				}else{
+				} else {
 					parameters.put(parameterEqual, null);
 				}
 			}

@@ -89,7 +89,7 @@ public class TConfig {
 				byte[] contentBytes = TFile.loadFile(file);
 				contentBytes = contentBytes == null ? new byte[0] : contentBytes;
 				content = new String(contentBytes);
-			}else{
+			} else {
 				String filePath = file.getPath();
 				String resourcePath = filePath.substring(filePath.lastIndexOf("!"+File.separator)+2, filePath.length());
 				content = new String(TFile.loadResource(resourcePath));

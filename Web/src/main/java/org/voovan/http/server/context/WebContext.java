@@ -206,7 +206,7 @@ public class WebContext {
 		File configFile = new File(configFileFullPath);
 		if(configFile.exists()) {
 			return buildConfigFromMap(loadJsonFromFile(configFile));
-		}else{
+		} else {
 			Logger.warn("Use the config file: " + configFilePath + " is not exists, now use default config.");
 			return null;
 		}
@@ -234,7 +234,7 @@ public class WebContext {
 			Response response = httpClient.send(url.getPath());
 			if(response.protocol().getStatus() == 200) {
 				return WebContext.buildConfigFromJSON(response.body().getBodyString());
-			}else{
+			} else {
 				throw new IOException("Get the config url: \" + args[i] + \" error");
 			}
 		} catch (Exception e) {

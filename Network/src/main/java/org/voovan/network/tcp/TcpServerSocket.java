@@ -159,7 +159,7 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 	public boolean isConnected() {
 		if(serverSocketChannel!=null){
 			return serverSocketChannel.isOpen();
-		}else{
+		} else {
 			return false;
 		}
 	}

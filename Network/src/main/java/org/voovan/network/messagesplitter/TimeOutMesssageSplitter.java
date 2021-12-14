@@ -23,7 +23,7 @@ public class TimeOutMesssageSplitter implements MessageSplitter {
 		
 		if(currentTime-initTime >= timeOut){
 			return byteBuffer.limit();
-		}else{
+		} else {
 			return -1;
 		}
 	}

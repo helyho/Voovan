@@ -355,7 +355,7 @@ public class Formater {
                     System.out.println("Logger file directory error!");
                 }
             }
-        }else{
+        } else {
             filePath = null;
         }
         return filePath;
@@ -398,7 +398,7 @@ public class Formater {
                     break;
             }
         }
-        return outputStreams;
 
+        return outputStreams;
     }
 }

@@ -133,7 +133,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
     public boolean isOpen() {
         if(datagramChannel!=null){
             return datagramChannel.isOpen();
-        }else{
+        } else {
             return false;
         }
     }
@@ -142,7 +142,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
     public boolean isConnected() {
         if(datagramChannel!=null){
             return datagramChannel.isOpen();
-        }else{
+        } else {
             return false;
         }
     }
@@ -161,7 +161,7 @@ public class UdpServerSocket extends SocketContext<DatagramChannel, UdpSession> 
                 Logger.error("Close SocketChannel failed",e);
                 return false;
             }
-        }else{
+        } else {
             return true;
         }
     }

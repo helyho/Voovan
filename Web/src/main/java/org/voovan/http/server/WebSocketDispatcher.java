@@ -180,7 +180,7 @@ public class WebSocketDispatcher {
 			return null;
 		} else if(result instanceof ByteBuffer) {
 			return (ByteBuffer)result;
-		}else{
+		} else {
 			throw new WebSocketFilterException("Send object must be ByteBuffer, " +
 					"please check you filter be sure the latest filter return Object's type is ByteBuffer.");
 		}

@@ -21,7 +21,7 @@ public class HttpFilterTest implements HttpFilter {
 		if(prevFilterResult == null){
 //			request.redirect("/img/logo.jpg");  //转向请求用于拦截非法请求并志向其他
 			prevFilterResult = 1;
-		}else{
+		} else {
 			prevFilterResult = (int)prevFilterResult+1;
 		}
 		Logger.simplef("ON_REQUEST: {1},filter sequence: {2}", msg, prevFilterResult);
@@ -39,7 +39,7 @@ public class HttpFilterTest implements HttpFilter {
 
 		if(!(prevFilterResult instanceof Integer) || prevFilterResult == null){
 			prevFilterResult = 1;
-		}else{
+		} else {
 			prevFilterResult = (int)prevFilterResult+1;
 		}
 		Logger.simplef("ON_RESPONSE: {1} ,filter sequence: {2}", msg, prevFilterResult);

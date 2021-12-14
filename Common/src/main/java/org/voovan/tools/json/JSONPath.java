@@ -83,7 +83,7 @@ public class JSONPath {
                         currentPathObject = (List) ((Map) currentPathObject).get(pathElemSegms[i]);
                     }
                 }
-            }else{
+            } else {
                 if(currentPathObject instanceof List) {
                     //遍历list中的元素
                     StringJoiner stringJoiner = new StringJoiner("/");

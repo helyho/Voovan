@@ -137,7 +137,7 @@ public class WebServer {
 
 			if(!method.equals("WEBSOCKET")) {
 				otherMethod(method, route, httpRouterConfig.getHttpRouterInstance());
-			}else{
+			} else {
 				socket(route, httpRouterConfig.getWebSocketRouterInstance());
 			}
 		}
@@ -331,7 +331,7 @@ public class WebServer {
 
 		if(config!=null) {
 			return new WebServer(config);
-		}else{
+		} else {
 			Logger.error("Create WebServer failed: WebServerConfig object is null.");
 		}
 
@@ -348,7 +348,7 @@ public class WebServer {
 
 		if(json!=null) {
 			return new WebServer(WebContext.buildConfigFromJSON(json));
-		}else{
+		} else {
 			Logger.error("Create WebServer failed: WebServerConfig object is null.");
 		}
 
@@ -366,7 +366,7 @@ public class WebServer {
 		try {
 			if(configFile!=null && configFile.exists()) {
 				return new WebServer(WebContext.buildConfigFromFile(configFile.getCanonicalPath()));
-			}else{
+			} else {
 				Logger.error("Create WebServer failed: WebServerConfig object is null.");
 			}
 		} catch (IOException e) {
@@ -523,7 +523,7 @@ public class WebServer {
 				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
 				webServerLifeCycle.init(webServer);
 
-			}else{
+			} else {
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
 			}
 		} catch (Exception e) {

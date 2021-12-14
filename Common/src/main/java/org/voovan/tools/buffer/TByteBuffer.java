@@ -178,7 +178,7 @@ public class TByteBuffer {
                 long address = getAddress(byteBuffer);
                 long newAddress = UNSAFE.reallocateMemory(address, newSize);
                 setAddress(byteBuffer, newAddress);
-            }else{
+            } else {
                 byte[] hb = byteBuffer.array();
                 byte[] newHb = Arrays.copyOf(hb, newSize);
                 TReflect.setFieldValue(byteBuffer, "hb", newHb);
@@ -230,7 +230,7 @@ public class TByteBuffer {
                     }
                     UNSAFE.copyMemory(startAddress, targetAddress, byteBuffer.remaining());
                 }
-            }else{
+            } else {
                 byte[] hb = byteBuffer.array();
                 System.arraycopy(hb, byteBuffer.position(), hb, newPosition, byteBuffer.remaining());
             }
@@ -387,7 +387,7 @@ public class TByteBuffer {
             bytebuffer.get(buffers);
             bytebuffer.reset();
             return buffers;
-        }else{
+        } else {
             return Arrays.copyOfRange(bytebuffer.array(), 0, bytebuffer.limit());
         }
     }
@@ -454,17 +454,17 @@ public class TByteBuffer {
                 if( pos== -1){
                     i = i + mark.length + 1 - j;
                     j = 0 ;
-                }else{
+                } else {
                     i = i + mark.length - pos - j;
                     j = 0;
                 }
-            }else{
+            } else {
                 if(j == (mark.length - 1)){
                     i = i - j + 1 ;
                     j = 0;
                     index  = i-j - 1;
                     break;
-                }else{
+                } else {
                     i++;
                     j++;
                 }

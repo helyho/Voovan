@@ -38,7 +38,7 @@ public class MonitorRouter implements HttpRouter {
             fileName = "sysout."+ TDateTime.now("yyyyMMdd")+".log";
         }else if("ACCESS".equals(type)){
             fileName = "access.log";
-        }else{
+        } else {
             return null;
         }
 

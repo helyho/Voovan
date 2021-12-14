@@ -112,7 +112,7 @@ public class WebServerFilter implements IoFilter {
 				Request request = HttpParser.parseRequest(session, byteBufferChannel, session.socketContext().getReadTimeout(), MAX_REQUEST_SIZE);
 				if(request!=null){
 					return request;
-				}else{
+				} else {
 					session.close();
 				}
 			} catch (Exception e) {
@@ -158,7 +158,7 @@ public class WebServerFilter implements IoFilter {
 
 				if(webSocketFrame.getErrorCode()==0){
 					return webSocketFrame;
-				}else{
+				} else {
 					session.close();
 				}
 			} else {

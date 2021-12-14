@@ -122,7 +122,7 @@ public class Part {
 	public PartType getType(){
 		if("binary".equals(header.get("Content-Transfer-Encoding"))){
 			return PartType.BINARY;
-		}else{
+		} else {
 			return PartType.TEXT;
 		}
 	}

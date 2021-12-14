@@ -448,7 +448,7 @@ public class TEnv {
 					JarEntry jarEntry = jarFile.getJarEntry(classNamePath);
 					if(jarEntry!=null) {
 						return jarEntry.getTime();
-					}else{
+					} else {
 						return -1;
 					}
 				}
@@ -456,7 +456,7 @@ public class TEnv {
 				File classFile = new File(location+classNamePath);
 				if(classFile!=null && classFile.exists()) {
 					return classFile.lastModified();
-				}else{
+				} else {
 					return -1;
 				}
 			} else {

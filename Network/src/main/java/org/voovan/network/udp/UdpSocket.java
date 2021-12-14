@@ -209,7 +209,7 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 				waitObj.notify();
 			}
 			return true;
-        }else{
+        } else {
             synchronized (waitObj) {
                 waitObj.notify();
             }

@@ -188,7 +188,7 @@ public class ByteBufferChannel {
     public boolean isReleased(){
         if(address == 0 || byteBuffer == null){
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -371,7 +371,7 @@ public class ByteBufferChannel {
 
                 size = size - Math.abs(shrinkSize);
                 return true;
-            }else{
+            } else {
                 //收缩失败了,重置原 position 的位置
                 byteBuffer.position(position);
                 return false;
@@ -1082,7 +1082,7 @@ public class ByteBufferChannel {
             if (TByteBuffer.reallocate(byteBuffer, newSize)) {
                 resetAddress();
                 return true;
-            }else{
+            } else {
                 return false;
             }
         } finally {

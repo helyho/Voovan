@@ -213,7 +213,7 @@ public class TPerformance {
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
 		} else if(memType== MemType.HEAP_COMMIT){
 			return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getCommitted();
-		}else{
+		} else {
 			throw new RuntimeException("getMemoryInfo function arg error!");
 		}
 	}
@@ -292,7 +292,7 @@ public class TPerformance {
 
 		if(headCount==null || headCount<0){
 			headCount = consoleLines.length;
-		}else{
+		} else {
 			headCount=headCount+3;
 		}
 

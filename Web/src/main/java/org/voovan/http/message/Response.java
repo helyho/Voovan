@@ -274,7 +274,7 @@ public class Response {
 	private byte[] readEnd(){
 		if (isCompress) {
 			return TString.toAsciiBytes("0" + HttpStatic.BODY_MARK_STRING);
-		}else{
+		} else {
 			return TByte.EMPTY_BYTES;
 		}
 	}

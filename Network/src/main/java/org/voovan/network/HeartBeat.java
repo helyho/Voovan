@@ -177,7 +177,7 @@ public class HeartBeat {
         if(session.getHeartBeat()==null) {
             heartBeat = new HeartBeat("PING", "PONG");
             session.setHeartBeat(heartBeat);
-        }else{
+        } else {
             heartBeat = session.getHeartBeat();
         }
 

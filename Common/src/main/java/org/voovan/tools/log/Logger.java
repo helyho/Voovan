@@ -45,7 +45,7 @@ public class Logger {
 
 		if(formater.getLogLevel().contains(logLevel)){
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}

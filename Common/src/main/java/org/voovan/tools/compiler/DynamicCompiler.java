@@ -144,7 +144,7 @@ public class DynamicCompiler {
 			MemFileManager memFileManager = (MemFileManager)fileManager;
 			JavaMemClass javaMemClass = memFileManager.getJavaMemClass();
 			clazz = javaMemClass.loadThisClass();
-		}else{
+		} else {
 			clazz = null;
 			String message = "";
 			for(Diagnostic diagnostics : diagnosticCollector.getDiagnostics()) {

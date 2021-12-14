@@ -627,7 +627,7 @@ public class TFile {
 		try {
 			if(filePath.lastIndexOf(".")>0) {
 				return filePath.substring(filePath.lastIndexOf(".") + 1);
-			}else{
+			} else {
 				return null;
 			}
 		}catch(IndexOutOfBoundsException e){
@@ -661,7 +661,7 @@ public class TFile {
 		File classFile = new File(filePath);
 		if(classFile!=null && classFile.exists()) {
 			return classFile.lastModified();
-		}else{
+		} else {
 			return -1L;
 		}
 	}

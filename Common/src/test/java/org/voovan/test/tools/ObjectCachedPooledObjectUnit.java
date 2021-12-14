@@ -86,7 +86,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
             TestPoolObject item = new TestPoolObject("element " + i);
             if(pooledId==null) {
                 pooledId = objectPool.add(item);
-            }else{
+            } else {
                 objectPool.add(item);
             }
         }

@@ -355,7 +355,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 
 		if(socketContext.handler() instanceof SynchronousHandler) {
 			synchronousHandler = (SynchronousHandler) socketContext.handler();
-		}else{
+		} else {
 			throw new ReadMessageException("Use the syncRead method must set an object of SynchronousHandler into the socket handler ");
 		}
 

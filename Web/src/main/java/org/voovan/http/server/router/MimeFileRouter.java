@@ -66,10 +66,10 @@ public class MimeFileRouter implements HttpRouter {
 
 			if(isNotModify(responseFile,request,response)){
 				return ;
-			}else{
+			} else {
 				fillMimeFile(responseFile, request, response);
 			}
-		}else{
+		} else {
 			throw new ResourceNotFound(urlPath);
 		}
 	}

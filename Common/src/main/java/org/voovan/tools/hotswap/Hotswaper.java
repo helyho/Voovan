@@ -314,7 +314,7 @@ public class Hotswaper {
             if(currentModified != lastModified){
                 lastModified = currentModified;
                 return true;
-            }else{
+            } else {
                 return false;
             }
         }

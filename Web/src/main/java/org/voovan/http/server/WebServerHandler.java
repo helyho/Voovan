@@ -308,7 +308,7 @@ public class WebServerHandler implements IoHandler {
 		if(!session.containAttribute("WebSocketByteBufferChannel")){
 			byteBufferChannel = new ByteBufferChannel(session.socketContext().getReadBufferSize());
 			session.setAttribute("WebSocketByteBufferChannel",byteBufferChannel);
-		}else{
+		} else {
 			byteBufferChannel = (ByteBufferChannel)session.getAttribute("WebSocketByteBufferChannel");
 		}
 
@@ -345,7 +345,7 @@ public class WebServerHandler implements IoHandler {
 					byteBufferChannel.clear();
 				}
 
-			}else{
+			} else {
 				//解析时出现异常,返回关闭消息
 				respWebSocketFrame = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.CLOSING, false, ByteBuffer.wrap(WebSocketTools.intToByteArray(webSocketFrame.getErrorCode(), 2)));
 			}

@@ -1031,7 +1031,7 @@ public class TReflect {
 
         if(parameterIndex == -1){
             parameterType = method.getGenericReturnType();
-        }else{
+        } else {
             parameterType = method.getGenericParameterTypes()[parameterIndex];
         }
 
@@ -1497,7 +1497,7 @@ public class TReflect {
                     Object valueObj = getObjectFromMap(genericType[1], valueOfMap, ignoreCase);
                     mapObject.put(keyObj, valueObj);
                 }
-            }else{
+            } else {
                 mapObject.putAll(mapArg);
             }
             obj = (T)mapObject;
@@ -1519,7 +1519,7 @@ public class TReflect {
                         Object item = getObjectFromMap(genericType[0], valueOfMap, ignoreCase);
                         collectionObject.add(item);
                     }
-                }else{
+                } else {
                     collectionObject.addAll((Collection)singleValue);
                 }
             }
@@ -1546,7 +1546,7 @@ public class TReflect {
                 if(ignoreCase) {
                     //忽略大小写匹配
                     field = findFieldIgnoreCase(clazz, key);
-                }else{
+                } else {
                     //精确匹配属性
                     field = findField(clazz, key);
                 }
@@ -1585,7 +1585,7 @@ public class TReflect {
                                 } else {
                                     value = getObjectFromMap(fieldType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
                                 }
-                            }else{
+                            } else {
                                 throw new ReflectiveOperationException("Conver field object error! Exception type: " +
                                         fieldType.getName() +
                                         ", Object type: "+
@@ -1805,7 +1805,7 @@ public class TReflect {
                         Map resultMap = getMapFromObject(value, allField);
                         if(resultMap.size()==1 && resultMap.containsKey(null)){
                             mapResult.put(key, resultMap.get(null));
-                        }else{
+                        } else {
                             mapResult.put(key, resultMap);
                         }
                     }
@@ -1896,7 +1896,7 @@ public class TReflect {
 
         if(matchCount < filters.length){
             return false;
-        }else{
+        } else {
             return true;
         }
     }

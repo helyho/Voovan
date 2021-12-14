@@ -543,7 +543,7 @@ public class JdbcOperate implements Closeable {
 	public int update(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
 		if(TReflect.isBasicType(arg.getClass())){
 			return update(sqlText, arg, null);
-		}else{
+		} else {
 			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			return this.baseUpdate(sqlText, paramsMap);
 		}
@@ -697,7 +697,7 @@ public class JdbcOperate implements Closeable {
 	public <T> List<T> queryObjectList(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException{
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryObjectList(sqlText, t, arg,null);
-		}else{
+		} else {
 			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
@@ -782,7 +782,7 @@ public class JdbcOperate implements Closeable {
 	public List<Map<String, Object>> queryMapList(String sqlText, Object arg) throws SQLException, ReflectiveOperationException  {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryMapList(sqlText, arg, null);
-		}else{
+		} else {
 			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
@@ -870,7 +870,7 @@ public class JdbcOperate implements Closeable {
 	public <T> T queryObject(String sqlText, Class<T> t, Object arg) throws SQLException, ReflectiveOperationException, ParseException {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryObject(sqlText,t,arg,null);
-		}else{
+		} else {
 			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
@@ -960,7 +960,7 @@ public class JdbcOperate implements Closeable {
 	public Map<String, Object> queryMap(String sqlText, Object arg) throws SQLException, ReflectiveOperationException {
 		if(TReflect.isBasicType(arg.getClass())){
 			return queryMap(sqlText,arg,null);
-		}else{
+		} else {
 			Map<String, Object> paramsMap = TReflect.getMapFromObject(arg, true);
 			ResultInfo resultInfo = this.baseQuery(sqlText, paramsMap);
 			if(resultInfo!=null){
@@ -1107,7 +1107,7 @@ public class JdbcOperate implements Closeable {
 	public List<Object> call(String sqlText, CallType[] callTypes, Object arg) throws SQLException, ReflectiveOperationException {
 		if(TReflect.isBasicType(arg.getClass())){
 			return call(sqlText, callTypes, arg, null);
-		}else{
+		} else {
 			Map<String, Object> paramsMap  = TReflect.getMapFromObject(arg, true);
 			return this.baseCall(sqlText,callTypes, paramsMap);
 		}

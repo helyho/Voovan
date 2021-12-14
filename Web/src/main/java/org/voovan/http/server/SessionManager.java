@@ -51,7 +51,7 @@ public class SessionManager{
 	public ICacheMap<String, Object> getSessionContainer(){
 		if(httpSessions!=null){
 			return httpSessions;
-		}else{
+		} else {
 			try {
 				String sessionContainerClassName = webConfig.getSessionContainer();
 				//根据 Class 构造一个 Session 容器
@@ -159,7 +159,7 @@ public class SessionManager{
 
 		if(request.header().get("Host") != null) {
 			session = new HttpSession(webConfig, this, request.getSocketSession());
-		}else{
+		} else {
 			Logger.warn("Create session cookie error, the request haven't an header of host.");
 		}
 

@@ -1052,7 +1052,7 @@ public class TString {
 			if (Character.isUpperCase(c)){
 				sb.append("_");
 				sb.append(Character.toLowerCase(c));
-			}else{
+			} else {
 				sb.append(c);
 			}
 		}
@@ -1077,7 +1077,7 @@ public class TString {
 				if (++i<len){
 					sb.append(Character.toUpperCase(param.charAt(i)));
 				}
-			}else{
+			} else {
 				sb.append(c);
 			}
 		}

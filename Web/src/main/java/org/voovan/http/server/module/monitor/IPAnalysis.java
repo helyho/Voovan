@@ -55,14 +55,14 @@ public class IPAnalysis {
             synchronized (data) {
                 data.put(requestPath, data.get(requestPath) + 1);
             }
-        }else{
+        } else {
             data.put(requestPath, 1);
         }
 
         int currentMinute = TDateTime.getDateElement(null, Calendar.MINUTE);
         if(currentMinute == minute){
             lastMinuteCount ++;
-        }else{
+        } else {
             minute = currentMinute;
             lastMinuteCount = 1;
         }
