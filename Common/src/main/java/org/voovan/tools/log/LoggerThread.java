@@ -192,7 +192,7 @@ public class LoggerThread implements Runnable {
 	 * @throws IOException IO 异常
 	 */
 	public boolean output() throws IOException {
-		Object obj = logQueue.poll();
+		Object obj = logQueue.peek();
 		String formatedMessage = renderMessage(obj);
 
 		if (formatedMessage != null && this.outputStreams != null) {
@@ -225,7 +225,7 @@ public class LoggerThread implements Runnable {
 					outputStream.write(formatedMessage.getBytes());
 				}
 			}
-
+			logQueue.poll();
 			return true;
 		} else {
 			return false;
