@@ -498,6 +498,8 @@ public class RocksMapUnit extends TestCase {
         List<BackupInfo> mm = rocksMap1.getBackupInfo();
         System.out.println(JSON.toJSONWithFormat(mm));
 
+        rocksMap1.deleteBackup(mm.get(0).backupId());
+
         //恢复到指定 Id 的备份
         rocksMap1.restore(mm.get(3).backupId());
     }

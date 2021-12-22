@@ -513,6 +513,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         restore(backupId, false);
     }
 
+
+
+    public void deleteBackup(int backupId) throws RocksDBException {
+        try {
+            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+            backupEngine.deleteBackup(backupId);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap deleteBackup failed , " + e.getMessage(), e);
+        }
+    }
+
+
     /**
      * 清理备份
      * @param number 保留的备份书
