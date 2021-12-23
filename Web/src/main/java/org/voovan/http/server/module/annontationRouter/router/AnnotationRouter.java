@@ -383,7 +383,7 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(param.toString(), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @Param [" + paramName + "] required " + request.getParameters(), e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @Param [" + paramName + "] required: " + request.getParameters(), e).setPath(path);
                     }
                 }
 
