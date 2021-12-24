@@ -174,6 +174,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient Boolean isDuplicate = false;
     private transient int transactionLockTimeout = 5000;
     private transient Serialize serialize;
+    private boolean useSingleRemove = false;
 
     /**
      * 构造方法
@@ -436,6 +437,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.serialize = serialize;
     }
 
+    public boolean isUseSingleRemove() {
+        return useSingleRemove;
+    }
+
+    public void setUseSingleRemove(boolean useSingleRemove) {
+        this.useSingleRemove = useSingleRemove;
+    }
 
     public RocksDB getRocksDB(){
         return rocksDB;
@@ -1386,9 +1394,17 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             if (!isRetVal || valueBytes != null) {
                 Transaction transaction = threadLocalTransaction.get();
                 if (transaction != null) {
-                    transaction.delete(dataColumnFamilyHandle, keyBytes);
+                    if(useSingleRemove) {
+                        transaction.singleDelete(dataColumnFamilyHandle, keyBytes);
+                    } else {
+                        transaction.delete(dataColumnFamilyHandle, keyBytes);
+                    }
                 } else {
-                    rocksDB.delete(dataColumnFamilyHandle, writeOptions, keyBytes);
+                    if(useSingleRemove) {
+                        rocksDB.singleDelete(dataColumnFamilyHandle, keyBytes);
+                    } else {
+                        rocksDB.delete(dataColumnFamilyHandle, writeOptions, keyBytes);
+                    }
                 }
             }
         } catch (RocksDBException e) {
@@ -1436,7 +1452,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     }
 
                     try {
-                        writeBatch.delete(dataColumnFamilyHandle, serialize(key));
+                        if(useSingleRemove) {
+                            writeBatch.singleDelete(dataColumnFamilyHandle, serialize(key));
+                        } else {
+                            writeBatch.delete(dataColumnFamilyHandle, serialize(key));
+                        }
                     } catch (RocksDBException e) {
                         throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
                     }
@@ -1449,7 +1469,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     }
 
                     try {
-                        transaction.delete(dataColumnFamilyHandle, serialize(key));
+                        if(useSingleRemove) {
+                            transaction.singleDelete(dataColumnFamilyHandle, serialize(key));
+                        } else {
+                            transaction.delete(dataColumnFamilyHandle, serialize(key));
+                        }
                     } catch (RocksDBException e) {
                         throw new RocksMapException("RocksMap removeAll " + key + " failed", e);
                     }
