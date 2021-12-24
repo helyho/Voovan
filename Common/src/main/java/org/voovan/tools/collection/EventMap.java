@@ -17,6 +17,7 @@ import java.util.function.BiFunction;
 public class EventMap<K, V> implements Map {
     public enum EventType {
         CREATE,
+        GET,
         PUT,
         PUT_ALL,
         REMOVE,
@@ -126,7 +127,12 @@ public class EventMap<K, V> implements Map {
 
     @Override
     public V get(Object key) {
-        return conatiner.get(key);
+        if(event.apply(EventType.GET, new EventItem<K, V>(this, (K)key))) {
+            return conatiner.get(key);
+        } else {
+            return null;
+        }
+
     }
 
     @Override
