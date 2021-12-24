@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -108,18 +109,20 @@ public class RocksQueueUnit extends TestCase {
 //        TEnv.measure("get: ", ()->eventRunnerGroup.await());
 //        System.out.println(rocksQueue.toString());
 
-
+        AtomicInteger remainCount = new AtomicInteger();
         for(int x = 0;x<50;x++) {
             int finalX = x;
             eventRunnerGroup.addEvent(()->{
                     for (int i = 1; i <= 20000; i++) {
                         if(Math.random()<0.5) {
                             rocksQueue.add(finalX + " " + i);
+                            remainCount.incrementAndGet();
                         } else {
                             Object v = rocksQueue.poll();
                             if(v==null) {
                                 i--;
                             } else {
+                                remainCount.decrementAndGet();
 //                                System.out.println(v + " " + System.currentTimeMillis());
                             }
 
@@ -136,8 +139,10 @@ public class RocksQueueUnit extends TestCase {
 
 //        System.out.println(JSON.toJSON(rocksQueue.toArray()));
 
-        System.out.println(rocksQueue.toString() + " size:" + rocksQueue.size());
+        System.out.println(rocksQueue.toString() + " size:" + rocksQueue.size() + " remain: " + remainCount);
 
         assertEquals(rocksQueue.getContainer().size(), rocksQueue.size());
+        assertEquals(rocksQueue.getContainer().size(), remainCount.get());
+        assertEquals(rocksQueue.size(), remainCount.get());
     }
 }

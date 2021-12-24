@@ -32,6 +32,7 @@ public class RocksQueue<E> implements Queue<E> {
         this.container.getReadOptions().setTotalOrderSeek(true);
         this.firstSeq = container.firstKey() == null ? BASE_SEQ + 1 : TByte.getLong(container.firstKey()); //加 1 的目的是初始化到 isEmpty() == true 的状态
         this.lastSeq = container.lastKey() == null ? BASE_SEQ : TByte.getLong(container.lastKey());
+        container.setUseSingleRemove(true);
     }
 
     public RocksMap getRoot() {
@@ -60,10 +61,10 @@ public class RocksQueue<E> implements Queue<E> {
             throw new NullPointerException();
         }
 
-        if(isEmpty()) {
-            firstSeq = BASE_SEQ + 1;
-            lastSeq = BASE_SEQ;
-        }
+//        if(isEmpty()) {
+//            firstSeq = BASE_SEQ + 1;
+//            lastSeq = BASE_SEQ;
+//        }
 
         lastSeq = lastSeq + 1;
         cPut(lastSeq, e);
@@ -132,7 +133,7 @@ public class RocksQueue<E> implements Queue<E> {
     }
 
     @Override
-    public void clear() {
+    public synchronized void clear() {
         container.clear();
         this.firstSeq = BASE_SEQ + 1; //加 1 的目的是初始化到 isEmpty() == true 的状态
         this.lastSeq = BASE_SEQ;
