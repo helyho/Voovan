@@ -32,6 +32,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
+                //创建迭代器
                 RocksMap.RocksMapIterator iterator0 = null;
                 synchronized (container) {
                     String fromKey = lastKey == null ? null : container.containsKey(lastKey) ? lastKey : null;
@@ -39,7 +40,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
                     iterator0 = container.iterator(fromKey, toKey, fromKey == null ? 0 : 1, 0);
                 }
 
-
+                //将所有的 key 数据加载至内存缓冲中
                 try (RocksMap.RocksMapIterator iterator = iterator0) {
                     RocksMap.RocksMapEntry rocksMapEntry = null;
                     while ((rocksMapEntry = iterator.next()) != null) {
@@ -62,6 +63,8 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
 
     private synchronized String offerSeq(long delayMilliSecond){
         delayMilliSecond = delayMilliSecond<0 ? 0 : delayMilliSecond;
+
+        //计算实际执行时间作为key, 当前时间(秒) + 延时(秒) + 当前纳秒
         String ret = TString.radixConvert((System.currentTimeMillis() + delayMilliSecond)/1000, 62) + TString.radixConvert((System.currentTimeMillis() + delayMilliSecond)%1000 + TDateTime.currentTimeNanos(), 62);
         return ret;
     }
@@ -131,7 +134,7 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
         return e;
     }
 
-    public Collection<E> get(long second) {
+    public Collection<E> get() {
         return container.startWith(currentSecondTime()).values();
     }
 
