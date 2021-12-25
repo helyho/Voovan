@@ -1683,7 +1683,7 @@ public class TReflect {
             for(int i=0;i<Array.getLength(obj);i++) {
                 Object arrayItem = Array.get(obj, i);
                 Map<String, Object> item = getMapFromObject(arrayItem, allField);
-                Array.set(targetArray, i, (item.size()==1 && item.containsKey(null)) ? item.get(null) : item);
+                Array.set(targetArray, i, (item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
             }
             mapResult.put(null, targetArray);
         }
@@ -1707,11 +1707,16 @@ public class TReflect {
             Iterator iterator = mapObject.entrySet().iterator();
             while (iterator.hasNext()) {
                 Entry<?, ?> entry = (Entry<?, ?>) iterator.next();
-                Map<String, Object> keyItem = getMapFromObject(entry.getKey(), allField);
-                Map<String, Object> valueItem = getMapFromObject(entry.getValue(), allField);
-                Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
-                Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
-                map.put(key, value);
+                try {
+                    Map<String, Object> keyItem = getMapFromObject(entry.getKey(), allField);
+                    Map<String, Object> valueItem = getMapFromObject(entry.getValue(), allField);
+                    Object key = (keyItem.size() == 1 && keyItem.containsKey(null)) ? keyItem.get(null) : keyItem;
+                    Object value = (valueItem.size() == 1 && valueItem.containsKey(null)) ? valueItem.get(null) : valueItem;
+                    map.put(key, value);
+                } catch (Exception e) {
+                    Logger.errorf("TReflect.getMapFromObject(Map) failed, {}, {}", entry.getKey().toString(), entry.getValue().toString());
+                    throw e;
+                }
             }
             mapResult.put(null, map);
         }
@@ -1802,11 +1807,16 @@ public class TReflect {
                         }
                     }else {
                         //如果是复杂类型则递归调用
-                        Map resultMap = getMapFromObject(value, allField);
-                        if(resultMap.size()==1 && resultMap.containsKey(null)){
-                            mapResult.put(key, resultMap.get(null));
-                        } else {
-                            mapResult.put(key, resultMap);
+                        try {
+                            Map resultMap = getMapFromObject(value, allField);
+                            if (resultMap.size() == 1 && resultMap.containsKey(null)) {
+                                mapResult.put(key, resultMap.get(null));
+                            } else {
+                                mapResult.put(key, resultMap);
+                            }
+                        } catch (Exception e) {
+                            Logger.errorf("TReflect.getMapFromObject(ComplexObj) failed, {}, {}", key, value.toString());
+                            throw e;
                         }
                     }
                 }
