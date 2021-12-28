@@ -1,6 +1,7 @@
 package org.voovan.tools.hashwheeltimer;
 
 import org.voovan.tools.collection.MultiMap;
+import org.voovan.tools.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -131,10 +132,14 @@ public class HashWheel {
 
             if (tasks != null) {
                 for (HashWheelTask task : tasks.toArray(new HashWheelTask[tasks.size()])) {
-                    if(task!=null) {
-                        task.doTask();
-                    } else {
-                        tasks.remove(task);
+                    try {
+                        if (task != null) {
+                            task.doTask();
+                        } else {
+                            tasks.remove(task);
+                        }
+                    } catch (Exception e) {
+                        Logger.errorf("HashWheelTimer tick task error, task: ", e, task.getClass().getCanonicalName());
                     }
                 }
             }
