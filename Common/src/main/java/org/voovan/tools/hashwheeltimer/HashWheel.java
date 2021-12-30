@@ -139,7 +139,7 @@ public class HashWheel {
                             tasks.remove(task);
                         }
                     } catch (Exception e) {
-                        Logger.errorf("HashWheelTimer tick task error, task: ", e, task.getClass().getCanonicalName());
+                        Logger.errorf("HashWheelTimer tick task error, task: {}", e, task.getClass().getCanonicalName());
                     }
                 }
             }
