@@ -511,7 +511,7 @@ public class HttpDispatcher {
 			if (!(e instanceof ResourceNotFound || e instanceof RouterNotFound)) {
 				response.protocol().setStatus(500);
 				error.put("StatusCode", 500);
-				Logger.error(e);
+				Logger.errorf("", e, request.getSession());
 			} else {
 				response.protocol().setStatus(404);
 				error.put("StatusCode", 404);
