@@ -338,6 +338,7 @@ public class Response {
 					if (isCompress() && avaliableSize != 0) {
 						String chunkedLengthLine = Integer.toHexString(avaliableSize) + HttpStatic.LINE_MARK_STRING;
 						byteBuffer.put(TString.toAsciiBytes(chunkedLengthLine));
+						avaliableSize = avaliableSize - chunkedLengthLine.length();
 					}
 
 					//重置 Bytebuffer 可用字节数为 readSize
@@ -347,6 +348,8 @@ public class Response {
 					if (bodyReadSize == -1) {
 						break;
 					}
+
+					totalBodySize = (int) body.size();
 
 					//重置写入位置
 					byteBuffer.position(byteBuffer.limit());
@@ -362,9 +365,12 @@ public class Response {
 						byteBufferChannel.compact();
 						session.flush();
 					}
+
+
 				}
 
 				//发送报文结束符
+				byteBuffer.limit(byteBuffer.capacity());
 				byteBuffer.put(readEnd());
 				byteBuffer.flip();
 			} catch (Throwable e) {
