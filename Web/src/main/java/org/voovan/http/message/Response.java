@@ -341,7 +341,7 @@ public class Response {
 						avaliableSize = avaliableSize - chunkedLengthLine.length();
 					}
 
-					//重置 Bytebuffer 可用字节数为 readSize
+					//重置 Bytebuffer 可用字节数
 					byteBuffer.limit(byteBuffer.position() + avaliableSize);
 					int bodyReadSize = body.read(byteBuffer);
 
