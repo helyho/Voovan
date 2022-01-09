@@ -359,7 +359,7 @@ public class HttpDispatcher {
 		routeRegexPath = TString.fastReplaceAll(routeRegexPath, "/", "\\/+");
 		routeRegexPath = TString.fastReplaceAll(routeRegexPath, ":[^:?/]*", "[^:?/]*");
 		routeRegexPath = TString.assembly(routeRegexPath, "\\/?$");
-		return routeRegexPath;
+		return "^"+routeRegexPath;
 	}
 
 	/**
