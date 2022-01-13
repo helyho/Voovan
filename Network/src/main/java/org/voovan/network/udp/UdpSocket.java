@@ -152,12 +152,14 @@ public class UdpSocket extends SocketContext<DatagramChannel, UdpSession> {
 	    init();
         datagramChannel.connect(new InetSocketAddress(this.host, this.port));
         datagramChannel.configureBlocking(false);
+        IoPlugin.initChain(this);
         bindToSocketSelector(SelectionKey.OP_READ);
         hold();
     }
 
     @Override
     public void acceptStart() throws IOException {
+        IoPlugin.initChain(this);
 		bindToSocketSelector(0);
     }
 

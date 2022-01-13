@@ -229,12 +229,12 @@ public class Socks5Plugin implements IoPlugin {
     }
 
     @Override
-    public ByteBuffer warp(IoSession session, ByteBuffer byteBuffer) {
+    public ByteBuffer wrap(IoSession session, ByteBuffer byteBuffer) {
         return null;
     }
 
     @Override
-    public void unwarp(IoSession session) {
+    public void unwrap(IoSession session) {
 
     }
 

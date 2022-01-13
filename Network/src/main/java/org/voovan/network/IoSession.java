@@ -494,7 +494,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	public int send(ByteBuffer buffer, boolean flush){
 		try {
             int position = buffer.position();
-            IoPlugin.warpChain(socketContext, buffer);
+            IoPlugin.wrapChain(socketContext, buffer);
             return buffer.position() - position;
         } finally {
 			if(flush) {

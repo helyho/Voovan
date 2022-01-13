@@ -7,12 +7,10 @@ import org.voovan.network.udp.UdpServerSocket;
 import org.voovan.network.udp.UdpSession;
 import org.voovan.network.udp.UdpSocket;
 import org.voovan.tools.TEnv;
-import org.voovan.tools.TPerformance;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventTask;
-import org.voovan.tools.exception.LargerThanMaxSizeException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 
@@ -512,7 +510,7 @@ public class SocketSelector implements Closeable {
 	public int udpReadFromChannel(SocketContext<DatagramChannel, UdpSession> socketContext, DatagramChannel datagramChannel) throws IOException {
 		UdpSession session = socketContext.getSession();
 
-		ByteBufferChannel byteBufferChannel = session.getReadByteBufferChannel();
+		ByteBufferChannel byteBufferChannel = IoPlugin.getReadBufferChannelChain(socketContext);
 
 		int readSize = -1;
 		boolean isBufferFull = false;
@@ -613,7 +611,7 @@ public class SocketSelector implements Closeable {
 		session.socketContext().updateLastTime();
 
 		if (readSize > 0) {
-			IoPlugin.unwarpChain(session.socketContext());
+			IoPlugin.unwrapChain(session.socketContext());
 
 			if (!session.getState().isReceive() && session.getReadByteBufferChannel().size() > 0) {
 				// 触发 onReceive 事件

@@ -31,7 +31,7 @@ public class DefaultPlugin implements IoPlugin {
     }
 
     @Override
-    public ByteBuffer warp(IoSession session, ByteBuffer byteBuffer) {
+    public ByteBuffer wrap(IoSession session, ByteBuffer byteBuffer) {
         if(byteBuffer!=null && byteBuffer.hasRemaining()) {
             session.sendToBuffer(byteBuffer);
         }
@@ -40,7 +40,7 @@ public class DefaultPlugin implements IoPlugin {
     }
 
     @Override
-    public void unwarp(IoSession session) {
+    public void unwrap(IoSession session) {
 
     }
 

@@ -72,7 +72,7 @@ public class SSLPlugin implements IoPlugin {
     }
 
     @Override
-    public ByteBuffer warp(IoSession session, ByteBuffer byteBuffer) {
+    public ByteBuffer wrap(IoSession session, ByteBuffer byteBuffer) {
 
         try {
             sslParser.warp(byteBuffer);
@@ -84,7 +84,7 @@ public class SSLPlugin implements IoPlugin {
     }
 
     @Override
-    public void unwarp(IoSession session) {
+    public void unwrap(IoSession session) {
         //将 SSLParser 的缓冲区转换到 IoSession 的缓冲区
         try {
             sslParser.unwarpByteBufferChannel();
