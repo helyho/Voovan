@@ -330,26 +330,25 @@ public class Response {
 
 				while ( totalBodySize > 0) {
 					//预留写入 chunked 结束符的位置
-					byteBuffer.limit(byteBuffer.capacity() - 10); //预留协议字节, 换行符确认4个,长度描述符1-6个
+					byteBuffer.limit(byteBuffer.capacity() - 50); //预留协议字节和 chunk长度行, 换行符确认4个,长度描述符1-6个
 					avaliableSize = byteBuffer.remaining() > totalBodySize ? totalBodySize : byteBuffer.remaining();
-					totalBodySize = totalBodySize - avaliableSize;
 
 					//判断是否需要发送 chunked 段长度
 					if (isCompress() && avaliableSize != 0) {
+						byteBuffer.limit(byteBuffer.limit() + 10);
 						String chunkedLengthLine = Integer.toHexString(avaliableSize) + HttpStatic.LINE_MARK_STRING;
 						byteBuffer.put(TString.toAsciiBytes(chunkedLengthLine));
-						avaliableSize = avaliableSize - chunkedLengthLine.length();
 					}
 
 					//重置 Bytebuffer 可用字节数
 					byteBuffer.limit(byteBuffer.position() + avaliableSize);
 					int bodyReadSize = body.read(byteBuffer);
 
+					totalBodySize = totalBodySize - avaliableSize;
+
 					if (bodyReadSize == -1) {
 						break;
 					}
-
-					totalBodySize = (int) body.size();
 
 					//重置写入位置
 					byteBuffer.position(byteBuffer.limit());
@@ -360,13 +359,11 @@ public class Response {
 						byteBuffer.put(HttpStatic.LINE_MARK.getBytes());
 					}
 
-					if(byteBuffer.remaining() <= 10) {
+					if(byteBuffer.remaining() <= 50) {
 						byteBuffer.flip();
 						byteBufferChannel.compact();
 						session.flush();
 					}
-
-
 				}
 
 				//发送报文结束符
