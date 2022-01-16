@@ -31,12 +31,12 @@ public class CacheMapTest extends TestCase{
         CacheMap cacheMap = new CacheMap()
                 .maxSize(100)
                 .interval(1)
-                .expire(1)
+//                .expire(1000)
                 .supplier((t)-> t + "_"+ System.currentTimeMillis())
                 .autoRemove(true)
                 .create();
 
-        for(int i=0;i<100;i++) {
+        for(int i=0;i<300;i++) {
             cacheMap.put("key_" + i, "value_" + i);
         }
 
