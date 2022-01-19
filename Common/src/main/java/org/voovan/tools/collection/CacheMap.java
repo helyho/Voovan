@@ -306,21 +306,23 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         if (timeMark == null) {
             synchronized (cacheMark) {
                 timeMark = cacheMark.get(key);
-                if(timeMark==null) {
-                    if(createCache((K) key, appointedSupplier, createExpire)) {
+                if (timeMark == null) {
+                    if (createCache((K) key, appointedSupplier, createExpire)) {
                         timeMark = new TimeMark(this, key, createExpire);
                         cacheMark.put((K) key, timeMark);
                     }
                 }
             }
         } else {
-            if (!timeMark.isExpire()) {
-                timeMark.refresh(refresh);
-            } else {
-                if(checkAndDoExpire(timeMark)){
-                    if(appointedSupplier!=null) {
-                        timeMark.refresh(true);
-                        createCache((K) key, appointedSupplier, createExpire);
+            synchronized (timeMark) {
+                if (!timeMark.isExpire()) {
+                    timeMark.refresh(refresh);
+                } else {
+                    if (checkAndDoExpire(timeMark)) {
+                        if (appointedSupplier != null) {
+                            timeMark.refresh(true);
+                            createCache((K) key, appointedSupplier, createExpire);
+                        }
                     }
                 }
             }
@@ -505,18 +507,22 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     @Override
     public V remove(Object key){
-        cacheMark.remove(key);
-        return cacheData.remove(key);
+        synchronized (key) {
+            cacheMark.remove(key);
+            return cacheData.remove(key);
+        }
     }
 
     @Override
-    public boolean remove(Object key, Object value){
-        cacheMark.remove(key);
-        return cacheData.remove(key, value);
+    public boolean remove(Object key, Object value) {
+        synchronized (key) {
+            cacheMark.remove(key);
+            return cacheData.remove(key, value);
+        }
     }
 
     @Override
-    public void clear() {
+    public synchronized void clear() {
         cacheMark.clear();
         cacheData.clear();
     }
