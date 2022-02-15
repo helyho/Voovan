@@ -82,7 +82,6 @@ public class WebServerHandler implements IoHandler {
 					if(timeoutValue < currentTimeValue){
 						//如果超时则结束当前连接
 						session.close();
-
 						keepAliveSessionList.remove(session);
 						i--;
 					}
@@ -256,7 +255,7 @@ public class WebServerHandler implements IoHandler {
 	 * @param httpResponse HTTP 响应对象
 	 * @return HTTP 响应对象
 	 */
-	private static String upgradeStatusCode = "Switching Protocols";
+	private static String UPGRADE_STATUS_CODE = "Switching Protocols";
 	public HttpResponse disposeUpgrade(IoSession session, HttpRequest httpRequest, HttpResponse httpResponse) {
 		HttpSessionState httpSessionState = getSessionState(session);
 
@@ -266,7 +265,7 @@ public class WebServerHandler implements IoHandler {
 
 			//初始化响应消息
 			httpResponse.protocol().setStatus(101);
-			httpResponse.protocol().setStatusCode(upgradeStatusCode);
+			httpResponse.protocol().setStatusCode(UPGRADE_STATUS_CODE);
 			httpResponse.header().put(HttpStatic.CONNECTION_STRING, HttpStatic.UPGRADE_STRING);
 
 			//WebSocket 升级响应
@@ -438,8 +437,12 @@ public class WebServerHandler implements IoHandler {
 			refreshTimeout(session);
 
 		} else {
-			keepAliveSessionList.remove(session);
-			session.close();
+			//在 `HTTP1.0` 或 `keepAlive: false` 时, 为确保 tcp 缓冲发送完成, 在50毫秒后通过 keepAliveTimeout关闭连接
+			long timeoutValue = System.currentTimeMillis() + 50;
+			httpSessionState.setKeepAliveTimeout(timeoutValue);
+
+//			keepAliveSessionList.remove(session);
+//			session.close();
 		}
 	}
 
