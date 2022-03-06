@@ -719,25 +719,25 @@ public class TString {
 
 		if (clazz == int.class || clazz == Integer.class) {
 			value = value == null ? "0" : value;
-			return (T) Integer.valueOf(value);
+			return (T) Integer.valueOf(value.trim());
 		} else if (clazz == float.class || clazz == Float.class) {
 			value = value == null ? "0" : value;
-			return (T) Float.valueOf(value);
+			return (T) Float.valueOf(value.trim());
 		} else if (clazz == double.class || clazz == Double.class) {
 			value = value == null ? "0" : value;
-			return (T) Double.valueOf(value);
+			return (T) Double.valueOf(value.trim());
 		} else if (clazz == boolean.class || clazz == Boolean.class) {
 			value = value == null ? "false" : value;
-			return (T) Boolean.valueOf(value);
+			return (T) Boolean.valueOf(value.trim());
 		} else if (clazz == long.class || clazz == Long.class) {
 			value = value == null ? "0" : value;
-			return (T) Long.valueOf(value);
+			return (T) Long.valueOf(value.trim());
 		} else if (clazz == short.class || clazz == Short.class) {
 			value = value == null ? "0" : value;
-			return (T) Short.valueOf(value);
+			return (T) Short.valueOf(value.trim());
 		} else if (clazz == byte.class || clazz == Byte.class) {
 			value = value == null ? "0" : value;
-			return (T) Byte.valueOf(value);
+			return (T) Byte.valueOf(value.trim());
 		} else if (clazz == char.class || clazz == Character.class) {
 			Object tmpValue = value != null ? value.charAt(0) : null;
 			return (T) tmpValue;
@@ -759,7 +759,7 @@ public class TString {
 		} else if (value.startsWith("\"") && value.endsWith("\"")) {
 			return (T) value.substring(1, value.length() - 1);
 		} else if(clazz == BigDecimal.class){
-			return (T)new BigDecimal(value);
+			return (T)new BigDecimal(value.trim());
 		} else {
 			return (T) value;
 		}
