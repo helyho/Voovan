@@ -51,10 +51,10 @@ public class RecordTest extends TestCase{
     public void test_Query() throws RecorderException {
 
         ScriptEntity scriptEntity = new ScriptEntity();
-        scriptEntity.setPackagePath("org.hocate.test");
+//        scriptEntity.setPackagePath("org.hocate.test");
 
         //构造查询条件
-        Query query = Query.newInstance().data("version").and("packagePath").order(true, "id").page(2,10);
+        Query query = Query.newInstance().data("version").order(true, "id").page(2,10);
 
         //查询测试
 //        System.out.println(new Recorder(new JdbcOperate(dataSource), false).query("sc_script", scriptEntity, query));
