@@ -188,17 +188,16 @@
 
     <scm>
         <connection>
-            scm:git:https://git.oschina.net/helyho/Voovan.git
+            scm:git:https://github.com/helyho/Voovan
         </connection>
         <developerConnection>
-            scm:git:https://git.oschina.net/helyho/Voovan.git
+            scm:git:https://github.com/helyho/Voovan
         </developerConnection>
-        <url>https://git.oschina.net/helyho/Voovan</url>
     </scm>
 
     <issueManagement>
-        <url>https://git.oschina.net/helyho/Voovan/issues</url>
-        <system>Git@OSC</system>
+        <url>https://github.com/helyho/Voovan/issues</url>
+        <system>github</system>
     </issueManagement>
 
     <developers>
@@ -206,7 +205,7 @@
             <name>helyho</name>
             <email>helyho@gmail.com</email>
             <organization>voovan</organization>
-            <organizationUrl>https://git.oschina.net/helyho/Voovan</organizationUrl>
+            <organizationUrl>https://www.voovan.org</organizationUrl>
         </developer>
     </developers>
 

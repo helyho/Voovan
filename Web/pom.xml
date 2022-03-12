@@ -5,7 +5,7 @@
     <artifactId>voovan-web</artifactId>
     <packaging>jar</packaging>
     <name>Voovan-web</name>
-    <url>https://git.oschina.net/helyho/Voovan</url>
+    <url>https://github.com/helyho/Voovan</url>
     <description>Voovan is a java framwork and it not depends on any third-party framework.</description>
 
     <parent>
