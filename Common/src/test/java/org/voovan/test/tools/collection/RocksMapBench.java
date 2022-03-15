@@ -64,7 +64,7 @@ public class RocksMapBench {
 
         dbOptions.setWalFilter(new RocksDBWalFilter());
 
-        RocksMap rocksMap = new RocksMap("berch", "benchCF", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        RocksMap rocksMap = new RocksMap("berch", "benchCF", columnFamilyOptions, dbOptions, readOptions, writeOptions, null);
         //Rocksdb 数据库配置
         String lockkey1 = "lockkey1";
         rocksMap.put(lockkey1, 1);

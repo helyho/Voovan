@@ -51,7 +51,7 @@ public class RocksMapUnit extends TestCase {
         UniqueId uniqueId = new UniqueId(200, 10);
 
 
-        RocksMap rocksMap2 = new RocksMap("cppComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        RocksMap rocksMap2 = new RocksMap("cppComparator", "Default", cppColumnFamilyOptions, dbOptions, readOptions, writeOptions, null);
         TEnv.measure("cppComparator: ", ()->{
             for (int i = 0; i < 30000; i++) {
                 rocksMap2.put(uniqueId.nextNumber(), i, false);
@@ -60,7 +60,7 @@ public class RocksMapUnit extends TestCase {
         TEnv.sleep(500);
 
 
-        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        RocksMap rocksMap1 = new RocksMap("javaComparator", "Default", javaColumnFamilyOptions, dbOptions, readOptions, writeOptions, null);
         TEnv.measure("javaComparator: ", ()->{
             for (int i = 0; i < 30000; i++) {
                 rocksMap1.put(uniqueId.nextNumber(), i, false);
@@ -92,7 +92,7 @@ public class RocksMapUnit extends TestCase {
         //设置 MemTable 大小
 //        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
 
-        RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, false);
+        RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, null);
         for(int i=0;i<30;i++){
             rocksMap.put(i, i);
         }
@@ -141,7 +141,7 @@ public class RocksMapUnit extends TestCase {
         String cfName = "testdb_re";
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
         columnFamilyOptions.setCompactionFilter(new RemoveEmptyValueCompactionFilter());
-        RocksMap rocksMap = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, false);
+        RocksMap rocksMap = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, null);
 
         rocksMap.clear();
 
@@ -169,7 +169,6 @@ public class RocksMapUnit extends TestCase {
     }
 
     public void testAll() throws RocksDBException {
-
         RocksMap.setRootPath("bingo");
 
         //测试列族区分,这个列族不写入任何数据
@@ -186,7 +185,7 @@ public class RocksMapUnit extends TestCase {
         }
 
         RocksMap rocksMap = new RocksMap("testdb");
-        rocksMap.clear();
+        rocksMap.clearOneByOne();
         System.out.println(rocksMap.get("name"));
         rocksMap.put("11", "11");
 
@@ -195,7 +194,7 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println("isKeyExists 11: " + rocksMap.isKeyExists("11"));
         System.out.println("isKeyExists 22: " + rocksMap.isKeyExists("22"));
-        rocksMap.clear();
+        rocksMap.clearOneByOne();
 
         System.out.println("isEmpty: " + rocksMap.isEmpty());
         System.out.println("size: " + rocksMap.size());
@@ -406,7 +405,8 @@ public class RocksMapUnit extends TestCase {
         System.out.println("=================================================");
 
         //clear
-        rocksMap.clear();
+        rocksMap.clearOneByOne();
+
         System.out.println("size: "+ rocksMap.size());
         System.out.println("clear get: " + rocksMap.get("aaaa"));
 
@@ -474,6 +474,22 @@ public class RocksMapUnit extends TestCase {
             }
         });
 
+        System.out.println("KeySet: "+ rocksMap.keySet());
+        System.out.println("done");
+
+    }
+
+    public void testSecondary() {
+        RocksMap.setRootPath("bingo");
+
+        RocksMap rocksMap = new RocksMap("testdb", RocksMap.Type.SECONDARY);
+        System.out.println(rocksMap.get("aaaa"));
+        System.out.println(rocksMap.get("aaaa"));
+        rocksMap.tryCatchUpWithPrimary();
+        System.out.println(rocksMap.get("aaaa"));
+        rocksMap.tryCatchUpWithPrimary();
+        System.out.println(rocksMap.get("aaaa"));
+
     }
 
     public void testBackup() throws RocksDBException {
@@ -527,4 +543,6 @@ public class RocksMapUnit extends TestCase {
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.restore(6);
     }
+
+
 }

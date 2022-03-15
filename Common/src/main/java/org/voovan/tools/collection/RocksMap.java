@@ -2,6 +2,7 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TString;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.exception.RocksMapException;
@@ -29,6 +30,11 @@ import java.util.function.Function;
  * Licence: Apache v2 License
  */
 public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
+
+    public enum Type {
+        READ_ONLY, SECONDARY, TRANSACTION;
+    }
+
     //--------------------- 公共静态变量 --------------------
     static {
         RocksDB.loadLibrary();
@@ -43,18 +49,20 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static Map<RocksDB, Map<String, ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, Map<String, ColumnFamilyHandle>>();
 
     //数据文件的默认保存路径
-    private static String DEFAULT_DB_PATH     = ".rocksdb" + File.separator;
-    private static String DEFAULT_WAL_PATH    = DEFAULT_DB_PATH + ".wal"    + File.separator;
-    private static String DEFAULT_BACKUP_PATH = DEFAULT_DB_PATH + ".backup" + File.separator;
-    private static String DEFAULT_LOG_PATH    = DEFAULT_DB_PATH + "logs"    + File.separator;
+    private static String DEFAULT_DB_PATH           = ".rocksdb" + File.separator;
+    private static String DEFAULT_WAL_PATH          = DEFAULT_DB_PATH + ".wal"    + File.separator;
+    private static String DEFAULT_BACKUP_PATH       = DEFAULT_DB_PATH + ".backup" + File.separator;
+    private static String DEFAULT_LOG_PATH          = DEFAULT_DB_PATH + "logs"    + File.separator;
+    private static String DEFAULT_SECONDARY_DB_PATH = ".rocksdb.secondary" + File.separator;
 
 
     public static void setRootPath(String rootPath) {
         rootPath = rootPath.endsWith(File.separator) ? rootPath : rootPath + File.separator;
-        DEFAULT_DB_PATH     = rootPath + File.separator;
+        DEFAULT_DB_PATH     = rootPath;
         DEFAULT_WAL_PATH    = rootPath + ".wal"    + File.separator;
         DEFAULT_BACKUP_PATH = rootPath + ".backup" + File.separator;
         DEFAULT_LOG_PATH    = rootPath + "logs"    + File.separator;
+        DEFAULT_SECONDARY_DB_PATH = TString.removeSuffix(DEFAULT_DB_PATH) + ".sec";
     }
 
     /**
@@ -71,6 +79,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      */
     public static void setDefaultDbPath(String defaultDbPath) {
         DEFAULT_DB_PATH = defaultDbPath.endsWith(File.separator) ? defaultDbPath : defaultDbPath + File.separator;
+        DEFAULT_SECONDARY_DB_PATH  = TString.removeSuffix(DEFAULT_DB_PATH) + ".sec" + File.separator;;
     }
 
     /**
@@ -123,6 +132,22 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
+     * 获取副本打开的路径
+     * @return
+     */
+    public static String getDefaultSecondaryDbPath() {
+        return DEFAULT_SECONDARY_DB_PATH;
+    }
+
+    /**
+     * 设置副本打开的路径
+     * @return
+     */
+    public static void setDefaultSecondaryDbPath(String defaultSecondaryDbPath) {
+        DEFAULT_SECONDARY_DB_PATH = defaultSecondaryDbPath.endsWith(File.separator) ? defaultSecondaryDbPath : defaultSecondaryDbPath + File.separator;
+    }
+
+    /**
      * 根据名称获取列族
      * @param rocksDB RocksDB 对象
      * @param columnFamilyName 列族名称
@@ -167,10 +192,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private transient String dataPath;
     private transient String walPath;
     private transient String logPath;
+    private transient String secondaryPath;
 
     private transient String backupPath;
     private transient String columnFamilyName;
-    private transient Boolean readOnly;
+    private transient Type type;
     private transient Boolean isDuplicate = false;
     private transient int transactionLockTimeout = 5000;
     private transient Serialize serialize;
@@ -202,29 +228,29 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 构造方法
-     * @param readOnly 是否以只读模式打开
+     * @param type Rocksdb 开启的模式 参考: RocksMap.Type
      */
-    public RocksMap(boolean readOnly) {
-        this(null, null, null, null, null, null, readOnly);
+    public RocksMap(Type type) {
+        this(null, null, null, null, null, null, type);
     }
 
     /**
      * 构造方法
      * @param columnFamilyName 列族名称
-     * @param readOnly 是否以只读模式打开
+     * @param type Rocksdb 开启的模式 参考: RocksMap.Type
      */
-    public RocksMap(String columnFamilyName, boolean readOnly) {
-        this(null, columnFamilyName, null, null, null, null, readOnly);
+    public RocksMap(String columnFamilyName, Type type) {
+        this(null, columnFamilyName, null, null, null, null, type);
     }
 
     /**
      * 构造方法
      * @param dbName 数据库的名称, 基于数据保存目录的相对路径
      * @param columnFamilyName 列族名称
-     * @param readOnly 是否以只读模式打开
+     * @param type Rocksdb 开启的模式 参考: RocksMap.Type
      */
-    public RocksMap(String dbName, String columnFamilyName, boolean readOnly) {
-        this(dbName, columnFamilyName, null, null, null, null, readOnly);
+    public RocksMap(String dbName, String columnFamilyName, Type type) {
+        this(dbName, columnFamilyName, null, null, null, null, type);
     }
 
     /**
@@ -235,15 +261,16 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param readOptions ReadOptions 配置对象
      * @param writeOptions WriteOptions 配置对象
      * @param columnFamilyOptions 列族配置对象
-     * @param readOnly 是否以只读模式打开
+     * @param type Rocksdb 开启的模式 参考: RocksMap.Type
      */
-    public RocksMap(String dbName, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Boolean readOnly) {
+    public RocksMap(String dbName, String columnFamilyName, ColumnFamilyOptions columnFamilyOptions, DBOptions dbOptions, ReadOptions readOptions, WriteOptions writeOptions, Type type) {
+
         this.dbName = dbName == null ? DEFAULT_DB_NAME : dbName;
         this.columnFamilyName = columnFamilyName == null ? "voovan_default" : columnFamilyName;
         this.readOptions = readOptions == null ? new ReadOptions() : readOptions;
         this.writeOptions = writeOptions == null ? new WriteOptions() : writeOptions;
         this.columnFamilyOptions = columnFamilyOptions == null ? new ColumnFamilyOptions() : columnFamilyOptions;
-        this.readOnly = readOnly == null ? false : readOnly;
+        this.type = type == null ? Type.TRANSACTION : type;
 
         Options options = new Options();
         options.setCreateIfMissing(true);
@@ -256,17 +283,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             this.dbOptions = dbOptions;
         }
 
-        this.dataPath   = DEFAULT_DB_PATH       + this.dbName + File.separator;
-        this.walPath    = DEFAULT_WAL_PATH      + this.dbName + File.separator;
-        this.backupPath = DEFAULT_BACKUP_PATH   + this.dbName + File.separator;
-        this.walPath    = DEFAULT_WAL_PATH      + this.dbName + File.separator;
-        this.logPath    = DEFAULT_LOG_PATH      + this.dbName + File.separator;
+        this.dataPath       = DEFAULT_DB_PATH           + this.dbName + File.separator;
+        this.walPath        = DEFAULT_WAL_PATH          + this.dbName + File.separator;
+        this.backupPath     = DEFAULT_BACKUP_PATH       + this.dbName + File.separator;
+        this.walPath        = DEFAULT_WAL_PATH          + this.dbName + File.separator;
+        this.logPath        = DEFAULT_LOG_PATH          + this.dbName + File.separator;
+
+        this.secondaryPath  = DEFAULT_SECONDARY_DB_PATH + File.separator + this.dbName + File.separator;
 
 
         TFile.mkdir(dataPath);
         TFile.mkdir(walPath);
         TFile.mkdir(backupPath);
         TFile.mkdir(logPath);
+        TFile.mkdir(secondaryPath);
+
 
         this.dbOptions.setWalDir(walPath);
         this.backupableDBOptions = new BackupableDBOptions(backupPath);
@@ -275,7 +306,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         rocksDB = ROCKSDB_MAP.get(this.dbName);
 
         try {
-            if (rocksDB == null || this.readOnly) {
+            if (rocksDB == null) {
                 //默认列族列表
                 List<ColumnFamilyDescriptor> DEFAULT_CF_DESCRIPTOR_LIST = new ArrayList<ColumnFamilyDescriptor>();
 
@@ -296,12 +327,23 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                 }
                 //用来接收ColumnFamilyHandle
                 List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList<ColumnFamilyHandle>();
+
                 //打开 Rocksdb
-                if (this.readOnly) {
-                    rocksDB = TransactionDB.openReadOnly(this.dbOptions, dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
-                } else {
-                    rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
-                    ROCKSDB_MAP.put(this.dbName, rocksDB);
+                switch(this.type) {
+                    case READ_ONLY: {
+                        rocksDB = TransactionDB.openReadOnly(this.dbOptions, dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                        break;
+                    }
+                    case TRANSACTION: {
+                        this.dbOptions.setMaxOpenFiles(-1);
+                        rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                        ROCKSDB_MAP.put(this.dbName, rocksDB);
+                        break;
+                    }
+                    case SECONDARY: {
+                        rocksDB = RocksDB.openAsSecondary(this.dbOptions, dataPath, secondaryPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                        break;
+                    }
                 }
 
                 Map<String, ColumnFamilyHandle> columnFamilyHandleMap = new ConcurrentHashMap<String, ColumnFamilyHandle>();
@@ -337,7 +379,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         this.dbName =  rocksMap.dbName;
         this.columnFamilyName = columnFamilyName;
-        this.readOnly = rocksMap.readOnly;
+        this.type = rocksMap.type;
         this.transactionLockTimeout = rocksMap.transactionLockTimeout;
         this.isDuplicate = true;
 
@@ -397,8 +439,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return columnFamilyName;
     }
 
-    public Boolean getReadOnly() {
-        return readOnly;
+    public Type getType() {
+        return type;
     }
 
     public int savePointCount() {
@@ -878,7 +920,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     private Transaction createTransaction(WriteOptions transWriteOptions, long expire, boolean deadlockDetect, boolean withSnapShot) {
-        if(readOnly){
+        if(type == Type.READ_ONLY || type == Type.SECONDARY){
             throw new RocksMapException("RocksMap Not supported operation in read only mode");
         }
 
@@ -1013,6 +1055,21 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             throw new RocksMapException("RocksMap is not in transaction model");
         }
 
+    }
+
+    /**
+     * Secondary 追赶主实例的数据
+     */
+    public void tryCatchUpWithPrimary() {
+        if(type != Type.SECONDARY){
+            throw new RocksMapException("RocksMap Not supported operation in not secondary mode");
+        }
+
+        try {
+            rocksDB.tryCatchUpWithPrimary();
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap try catch up with primary failed", e);
+        }
     }
 
     @Override
@@ -1643,9 +1700,20 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         flushWal(true);
     }
 
+    /**
+     * 逐个清理数据
+     */
+    public void clearOneByOne() {
+        Iterator iterator = this.iterator();
+        while(iterator.hasNext()) {
+            iterator.next();
+            iterator.remove();
+        }
+    }
+
     @Override
     public void clear() {
-        if(readOnly){
+        if(type == Type.READ_ONLY || type == Type.SECONDARY){
             Logger.error("Clear failed, ", new RocksDBException("Not supported operation in read only mode"));
             return;
         }
