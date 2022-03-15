@@ -78,6 +78,7 @@ public class RocksMapUnit extends TestCase {
 
     public void testWal() throws RocksDBException {
         DBOptions dbOptions = new DBOptions();
+        dbOptions.setUnorderedWrite(true);
         ReadOptions readOptions = new ReadOptions();
         WriteOptions writeOptions = new WriteOptions();
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
@@ -105,10 +106,16 @@ public class RocksMapUnit extends TestCase {
         m.put(11, 111);
         m.put(12, 122);
         m.put(13, 133);
+
         rocksMap.putAll(m);
+
+        rocksMap.put(11, 222);
 
         rocksMap.withTransaction((map)->{
             ((RocksMap)map).put(10, 31);
+            ((RocksMap)map).put(10, 32);
+            ((RocksMap)map).put(10, 33);
+            ((RocksMap)map).put(10, 34);
             return true;
         });
 

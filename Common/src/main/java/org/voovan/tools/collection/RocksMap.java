@@ -296,8 +296,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         TFile.mkdir(walPath);
         TFile.mkdir(backupPath);
         TFile.mkdir(logPath);
-        TFile.mkdir(secondaryPath);
 
+        if(type == Type.SECONDARY) {
+            TFile.mkdir(secondaryPath);
+        }
 
         this.dbOptions.setWalDir(walPath);
         this.backupableDBOptions = new BackupableDBOptions(backupPath);
@@ -336,7 +338,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     }
                     case TRANSACTION: {
                         this.dbOptions.setMaxOpenFiles(-1);
-                        rocksDB = TransactionDB.open(this.dbOptions, new TransactionDBOptions(), dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
+                        TransactionDBOptions transactionDBOptions = new TransactionDBOptions();
+                        if(dbOptions.unorderedWrite() == true) {
+                            dbOptions.setTwoWriteQueues(true);
+                            transactionDBOptions.setWritePolicy(TxnDBWritePolicy.WRITE_PREPARED);
+                        }
+                        rocksDB = TransactionDB.open(this.dbOptions, transactionDBOptions, dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
                         ROCKSDB_MAP.put(this.dbName, rocksDB);
                         break;
                     }
