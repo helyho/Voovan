@@ -68,10 +68,10 @@ public class RocksMapUnit extends TestCase {
         });
         TEnv.sleep(500);
 
-//        rocksMap2.scan(null, "6652262218912382986", entry->{
-//            System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
-//            return true;
-//        }, true);
+        rocksMap2.scan(null, "6652262218912382986", entry->{
+            System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
+            return true;
+        }, true);
 
         System.out.println(1);
     }
@@ -145,14 +145,11 @@ public class RocksMapUnit extends TestCase {
 
         rocksMap.clear();
 
-        rocksMap.withTransaction(rm->{
-            RocksMap rocksMap1 = (RocksMap)rm;
-            rocksMap1.put("1111", new byte[]{(byte)1, (byte)2});
-            rocksMap1.empty("1111");
-            System.out.println(rocksMap1.get("1111"));
-            return true;
-        });
+        rocksMap.put("1111", new byte[]{(byte)1, (byte)2});
+        System.out.println(rocksMap.get("1111"));
 
+        rocksMap.empty("1111");
+        System.out.println(rocksMap.get("1111"));
 
         List<RocksMap.RocksWalRecord> rocksWalRecords = rocksMap.getWalSince(0l, false);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
@@ -161,9 +158,7 @@ public class RocksMapUnit extends TestCase {
             System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + value);
         }
 
-        System.out.println("compact before: " + rocksMap.get("1111"));
         rocksMap.compact();
-        System.out.println("compact after: " + rocksMap.get("1111"));
 
         rocksWalRecords = rocksMap.getWalSince(0l, true);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
@@ -182,11 +177,12 @@ public class RocksMapUnit extends TestCase {
         RocksMap rocksMap1 = new RocksMap(cfName);
         RocksMap rocksMapx = new RocksMap(cfName);
         if(rocksMap1.get("name") == null){
-            System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName));
-            System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName));
+            System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName+"_1"));
+            System.out.println("putIfAbsent: "+ rocksMap1.putIfAbsent("name", cfName+"_2"));
 
-            System.out.println("replace: "+ rocksMap1.replace("name1", cfName));
-            System.out.println("replace: "+ rocksMap1.replace("name1", cfName));
+            System.out.println("replace: "+ rocksMap1.replace("name", cfName+"_3"));
+            System.out.println("replace: "+ rocksMap1.replace("name", cfName+"_4"));
+            System.out.println("get: "+ rocksMap1.get("name"));
         }
 
         RocksMap rocksMap = new RocksMap("testdb");
@@ -249,18 +245,19 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println("===============withTransaction inner rollback outer commit ==================");
         //测试事务隔离
-        rocksMap.remove("commit");
+        rocksMap.remove("outer");
+        rocksMap.remove("inner");
         rocksMap.beginTransaction();
+        rocksMap.put("outer", "outer");
         rocksMap.withTransaction(map ->{
             RocksMap rocksMapT = (RocksMap)map;
-            rocksMapT.put("commit", "ffdasf");
+            rocksMapT.put("inner", "inner");
             //测试事务隔离
             rocksMapT.rollback(false);
-            System.out.println("withTransaction: " + rocksMapT.get("commit"));
             return true;
         });
-
-        System.out.println("withTransaction commit: " + rocksMap.get("commit"));
+        System.out.println("withTransaction commit: " + rocksMap.get("outer"));
+        System.out.println("withTransaction inner: " + rocksMap.get("inner"));
 
         //rollback
         System.out.println("===============withTransaction inner commit outer rollback  ==================");
@@ -273,7 +270,7 @@ public class RocksMapUnit extends TestCase {
             //测试事务隔离
             rocksMap.commit();
             System.out.println("withTransaction: " + rocksMapT.get("rollback"));
-            return null;
+            return null; // outer rollback
         });
         System.out.println("withTransaction rollback: " + rocksMap.get("rollback"));
 
@@ -310,15 +307,18 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println("===============nest==================");
         rocksMap.beginTransaction();
-        rocksMap.put("transaction44", "rocksMap.value");
         {
-            rocksMap.beginTransaction();
-            rocksMap.put("transaction55", "rocksMap.value");
-            rocksMap.rollback();
-        }
+            rocksMap.put("transaction44", "rocksMap.value");
+            {
+                rocksMap.beginTransaction();
+                rocksMap.put("transaction55", "rocksMap.value");
+                rocksMap.rollback(false);
+            }
 
-        System.out.println("rocksMap nest commit get: "+ rocksMap.get("transaction44"));
-        System.out.println("rocksMap2 nest rollback get: "+ rocksMap2.get("transaction55"));
+            System.out.println("rocksMap nest commit get: " + rocksMap.get("transaction44"));
+            System.out.println("rocksMap2 nest rollback get: " + rocksMap2.get("transaction55"));
+        }
+        rocksMap.rollback();
 
 
         //put
@@ -334,11 +334,13 @@ public class RocksMapUnit extends TestCase {
         rocksMap.put("2222", "2222");
         rocksMap.put("3333", "3333");
         rocksMap.put("4444", "4444");
+        rocksMap.put("5555", "5555");
+        rocksMap.put("6666", "6666");
 
         System.out.println("===============removeRange==================");
-        System.out.println("removeRange: " + rocksMap.entrySet());
-        rocksMap.removeRange("aaaa", "transact");
-        System.out.println("removeRange: " + rocksMap.entrySet());
+        System.out.println("removeRange before: " + rocksMap.entrySet());
+        rocksMap.removeRange("aaaa", "transaction33");
+        System.out.println("removeRange after: " + rocksMap.entrySet());
 
 
         //get
@@ -346,9 +348,8 @@ public class RocksMapUnit extends TestCase {
         System.out.println("size: "+ rocksMap.size());
 
         //remove
-        System.out.println("remove cccc: "+ rocksMap.remove("cccc"));
-        System.out.println("get cccc: "+ rocksMap.get("cccc"));
-        System.out.println("remove cccc: "+ rocksMap.remove("cccc"));
+        System.out.println("remove transaction33: "+ rocksMap.remove("transaction33"));
+        System.out.println("get transaction33: "+ rocksMap.get("transaction33"));
         System.out.println("size: "+ rocksMap.size());
 
         //keySet
@@ -379,8 +380,17 @@ public class RocksMapUnit extends TestCase {
             System.out.println(iterator.key() + " " + iterator.value());
         }
 
-        System.out.println("=================iterator range 3333->transaction================");
-        iterator = rocksMap.iterator("3", "tr");
+        System.out.println("=================iterator range 3333->5555================");
+        iterator = rocksMap.iterator("3", "5555");
+        while(iterator.hasNext()) {
+            iterator.next();
+            System.out.println(iterator.key() + " " + iterator.value());
+        }
+        System.out.println("=================================================");
+
+
+        System.out.println("=================iterator range start->5555================");
+        iterator = rocksMap.iterator(null, "5555");
         while(iterator.hasNext()) {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
@@ -389,14 +399,6 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println("=================iterator range 3333->end================");
         iterator = rocksMap.iterator("3333", null);//"eeee", "transaction11"
-        while(iterator.hasNext()) {
-            iterator.next();
-            System.out.println(iterator.key() + " " + iterator.value());
-        }
-        System.out.println("=================================================");
-
-        System.out.println("=================iterator range start->transaction================");
-        iterator = rocksMap.iterator(null, "tr");
         while(iterator.hasNext()) {
             iterator.next();
             System.out.println(iterator.key() + " " + iterator.value());
@@ -460,7 +462,7 @@ public class RocksMapUnit extends TestCase {
         System.out.println("startWith hh one row: " + JSON.toJSON(rocksMap.startWith("hh", 0, 1).keySet()));
         System.out.println("range remove before KeySet: "+ rocksMap.keySet());
         rocksMap.removeRange("hhhh3", "hhhh5");
-        System.out.println("range remove [hhhh3->hhhh5) after KeySet: "+ rocksMap.keySet());
+        System.out.println("range removed [hhhh3->hhhh5) after KeySet: "+ rocksMap.keySet());
 
         rocksMap.scan("hhhh0", "hhhh9", entry->{
             String key = ((RocksMap.RocksMapEntry)entry).getKey().toString();
@@ -505,6 +507,7 @@ public class RocksMapUnit extends TestCase {
     }
 
     public void testBackupInfo() throws RocksDBException {
+        RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         List mm = rocksMap1.getBackupInfo();
@@ -512,30 +515,16 @@ public class RocksMapUnit extends TestCase {
     }
 
     public void testRestoreLastBackup() throws RocksDBException {
+        RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.restoreLatestBackup();
     }
 
     public void testRestoreBackup() throws RocksDBException {
+        RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.restore(6);
-    }
-
-    public void testOther() {
-        String cfName = "testOther";
-        RocksMap rocksMap = new RocksMap(cfName);
-        rocksMap.clear();
-        for( int i=0;i<100; i++ ) {
-//            String x = Long.valueOf(TDateTime.currentTimeNanos()).toString();
-            String x = TString.radixConvert(System.currentTimeMillis()/1000, 62) + TString.radixConvert(TDateTime.currentTimeNanos(), 62);
-            System.out.println(x);
-            System.out.println(System.currentTimeMillis()/1000);
-            rocksMap.put(x, "testIther-"+i);
-        }
-
-        System.out.println("done");
-
     }
 }

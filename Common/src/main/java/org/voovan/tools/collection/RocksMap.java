@@ -1278,12 +1278,12 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     public Object put(Object key, Object value, boolean isRetVal) {
-        return put(serialize(key), serialize(value), isRetVal);
+        return unserialize(put(serialize(key), serialize(value), isRetVal));
     }
 
     @Override
     public Object put(Object key, Object value) {
-        return put(serialize(key), serialize(value), true);
+        return unserialize(put(serialize(key), serialize(value), true));
     }
 
     @Override
