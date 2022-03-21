@@ -176,7 +176,7 @@ public class LoggerThread implements Runnable {
 
 			msg.format();
 
-			if("SIMPLE".equals(msg.getLevel())){
+			if("SIMPLE".equals(msg.getLevel()) || TString.isNullOrEmpty(msg.getLevel())){
 				formatedMessage = Logger.formater.simpleFormat(msg)+"\r\n";
 			} else {
 				formatedMessage = Logger.formater.format(msg);

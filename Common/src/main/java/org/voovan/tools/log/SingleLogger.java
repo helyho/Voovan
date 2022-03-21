@@ -99,21 +99,35 @@ public class SingleLogger {
 		loggerThread.addLogMessage(msg);
 	}
 
-	public void logf(Object msg, Throwable e, Object ... args){
-		Message message = Message.newInstance(Global.EMPTY_STRING, msg, args, e);
+	public void logf(String level, Object msg, Throwable e, Object ... args){
+		Message message = Message.newInstance(level == null?"SIMPLE":level, msg, args, e);
 		loggerThread.addLogMessage(message);
 	}
 
+	//log msg without level
 	public void logf(Object msg, Object ... args) {
-		logf(msg, null, args);
+		logf(null, msg, null, args);
 	}
 
 	public void log(Object msg) {
-		logf(msg, null, null);
+		logf(null, msg, null, null);
 	}
 
-	public void log(Throwable e) {
-		logf(null, e, null);
+	public void log(String msg, Throwable e) {
+		logf(null, msg, e, null);
+	}
+
+	//log msg with level
+	public void logf(String level, Object msg, Object ... args) {
+		logf(level, msg, null, args);
+	}
+
+	public void log(String level, Object msg) {
+		logf(level, msg, null, null);
+	}
+
+	public void log(String level, String msg, Throwable e) {
+		logf(level, msg, e, null);
 	}
 
 	public static SingleLogger writeLog(String fileName, String msg) {
