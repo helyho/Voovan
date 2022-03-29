@@ -23,7 +23,7 @@ public class TokenBucket extends Bucket{
     /**
      * 令牌桶构造函数
      * @param tokenSize 令牌桶默认大小, 每个时间周期新增的量
-     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
+     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 秒
      * @param releaseTime 令牌桶失效并自动移除的时间
      */
     public TokenBucket(int tokenSize, int interval, int releaseTime){
@@ -33,7 +33,7 @@ public class TokenBucket extends Bucket{
     /**
      * 令牌桶构造函数
      * @param tokenSize 令牌桶默认大小
-     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
+     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 秒
      */
     public TokenBucket(int tokenSize, int interval){
         init(tokenSize, interval, Integer.MAX_VALUE);
@@ -42,7 +42,7 @@ public class TokenBucket extends Bucket{
     /**
      * 令牌桶构造函数
      * @param tokenSize 令牌桶默认大小
-     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 毫秒
+     * @param interval 令牌桶的新增周期, 每次触发新增一个令牌到令牌桶, 单位: 秒
      * @param releaseTime 令牌存活自动释放时间
      */
     public void init(int tokenSize, int interval, int releaseTime){

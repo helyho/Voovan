@@ -23,7 +23,7 @@ public class LeakBucket extends Bucket {
     /**
      * 令牌桶构造函数
      * @param tokenSize 漏桶的初始数量
-     * @param interval 漏桶的新增周期, 每次触发将重置漏桶的数量, 单位: 毫秒
+     * @param interval 漏桶的新增周期, 每次触发将重置漏桶的数量, 单位: 秒
      * @param releaseTime 漏桶失效并自动移除的时间
      */
     public LeakBucket(int tokenSize, int interval, int releaseTime){
@@ -33,7 +33,7 @@ public class LeakBucket extends Bucket {
     /**
      * 令牌桶构造函数
      * @param tokenSize 漏桶的初始数量
-     * @param interval 漏桶的新增周期, 每次触发将重置漏桶的数量, 单位: 毫秒
+     * @param interval 漏桶的新增周期, 每次触发将重置漏桶的数量, 单位: 秒
      */
     public LeakBucket(int tokenSize, int interval){
         init(tokenSize, interval, Integer.MAX_VALUE);
