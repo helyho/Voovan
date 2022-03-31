@@ -12,11 +12,9 @@ import org.voovan.tools.json.JSONPath;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.security.THash;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 
 /**
  * HTTP的内容对象
@@ -109,6 +107,7 @@ public class Body {
 		this.bodyFile = bodyFile;
 
 		if(byteBufferChannel != null){
+			byteBufferChannel.release();
 			byteBufferChannel = null;
 		}
 
@@ -289,15 +288,30 @@ public class Body {
 			if(!byteBufferChannel.isReleased()) {
 				if(byteBufferChannel.size() + length <= byteBufferChannel.getMaxSize()) {
 					byteBufferChannel.writeEnd(body, offset, length);
-				}
-				//超过缓冲区大小使用文件作为缓冲
-				else {
+				} else { //超过缓冲区大小使用文件作为缓冲
 					File tmpFile = new File(TMP_RESPONSE  + File.separator + TString.generateId() + ".tmp");
 					try {
-						TFile.writeFile(tmpFile, true, byteBufferChannel.array(), 0, byteBufferChannel.size());
-						TFile.writeFile(tmpFile, true, body, offset, length);
-						byteBufferChannel.clear();
-						changeToFile(tmpFile.getAbsolutePath());
+						RandomAccessFile randomAccessFile = null;
+						try {
+							randomAccessFile = new RandomAccessFile(tmpFile, "rwd");
+							if(byteBufferChannel.available()>0) {
+								randomAccessFile.getChannel().write(byteBufferChannel.getByteBuffer());
+							}
+							randomAccessFile.write(body, offset, length);
+							byteBufferChannel.compact();
+							byteBufferChannel.clear();
+							changeToFile(tmpFile.getAbsolutePath());
+						} catch (IOException e) {
+							Logger.error("Body.write!", e);
+						} finally {
+							if (randomAccessFile != null) {
+								try {
+									randomAccessFile.close();
+								} catch (Exception e) {
+									Logger.error("Body.write close failed", e);
+								}
+							}
+						}
 					} catch (Exception e) {
 						TFile.deleteFile(tmpFile);
 						Logger.error("Body large buffer change to file failed : " + tmpFile.getAbsolutePath(), e);
