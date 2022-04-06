@@ -317,9 +317,13 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             }
         } else {
             synchronized (timeMark) {
-                if (!timeMark.isExpire()) {
+                V value = cacheData.get(key);
+
+                if (value!=null && !timeMark.isExpire()) {
                     timeMark.refresh(refresh);
-                } else {
+                }
+
+                if (value == null || timeMark.isExpire()) {
                     if (checkAndDoExpire(timeMark)) {
                         if (appointedSupplier != null) {
                             timeMark.refresh(true);
@@ -510,18 +514,14 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     @Override
     public V remove(Object key){
-        synchronized (key) {
-            cacheMark.remove(key);
-            return cacheData.remove(key);
-        }
+        cacheMark.remove(key);
+        return cacheData.remove(key);
     }
 
     @Override
     public boolean remove(Object key, Object value) {
-        synchronized (key) {
-            cacheMark.remove(key);
-            return cacheData.remove(key, value);
-        }
+        cacheMark.remove(key);
+        return cacheData.remove(key, value);
     }
 
     @Override
