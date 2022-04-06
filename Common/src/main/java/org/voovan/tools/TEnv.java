@@ -311,6 +311,11 @@ public class TEnv {
 				continue;
 			}
 
+			if(!classPath.startsWith(".") && !classPath.startsWith(userDir)) {
+				Logger.infof("{}, {}", classPath, userDir);
+				continue;
+			}
+
 			File classPathFile = new File(classPath);
 			if(classPathFile.exists() && classPathFile.isDirectory()){
 				clazzes.addAll( getDirectorClass(classPathFile, pattern, filters));

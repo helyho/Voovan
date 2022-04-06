@@ -1878,9 +1878,9 @@ public class TReflect {
 
             if(filterClazz.isAnnotation() && clazz.isAnnotationPresent(filterClazz)){
                 matchCount++;
-            }else if(filterClazz.isInterface() && TReflect.isImp(clazz, filterClazz)){
+            } else if(filterClazz.isInterface() && TReflect.isImp(clazz, filterClazz)){
                 matchCount++;
-            }else if(TReflect.isExtends(clazz, filterClazz)){
+            } else if(TReflect.isExtends(clazz, filterClazz)){
                 matchCount++;
             }
         }

@@ -70,6 +70,15 @@ public class WeaveUtils {
         List<String> classPaths = TEnv.getClassPath();
         ArrayList<CtClass> clazzes = new ArrayList<CtClass>();
         for(String classPath : classPaths){
+
+            if(TString.isNullOrEmpty(classPath)){
+                continue;
+            }
+
+            if(!classPath.startsWith(userDir)) {
+                continue;
+            }
+
             File classPathFile = new File(classPath);
             if(classPathFile.exists() && classPathFile.isDirectory()){
                 clazzes.addAll(getDirectorCtClass(classPathFile, pattern));
