@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 2, time = 1, timeUnit = TimeUnit.SECONDS)
-@Measurement(iterations = 2, time = 2, timeUnit = TimeUnit.SECONDS)
-@Threads(3)
+@Measurement(iterations = 3, time = 2, timeUnit = TimeUnit.SECONDS)
+@Threads(8)
 @Fork(1)
 //@OutputTimeUnit(TimeUnit.)
 public class JMH {

@@ -96,8 +96,8 @@ public class TReflect {
             TReflect.genAllConstructorInvoker(clazz, override);
             TReflect.genAllMethodInvoker(clazz, override);
             return true;
-        } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Logger.errorf("Register failed: {}", e, clazz.getCanonicalName());
             return false;
         }
     }
@@ -132,9 +132,8 @@ public class TReflect {
      * @param field 目标 Field 对象
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
-     * @throws ReflectiveOperationException 反射异常
      */
-    public static DynamicFunction getFieldGetter(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
+    public static DynamicFunction getFieldGetter(Class clazz, Field field, boolean override) {
         if(!override){
             DynamicFunction dynamicFunction = FIELD_READER.get(getFieldMark(clazz, field.getName()));
             if(dynamicFunction!=null) {
@@ -168,7 +167,6 @@ public class TReflect {
         dynamicFunction.addImport(clazz);
         dynamicFunction.addImport(TReflect.class);
         dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
-        dynamicFunction.compileCode();
 
         FIELD_READER.put(getFieldMark(clazz, field.getName()), dynamicFunction);
 
@@ -183,9 +181,8 @@ public class TReflect {
      * 生成对象的读取的动态编译方法
      * @param clazz 目标对象类
      * @param override 是否覆盖注册
-     * @throws ReflectiveOperationException 反射异常
      */
-    private static void genAllFieldGetter(Class clazz, boolean override) throws ReflectiveOperationException {
+    private static void genAllFieldGetter(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
         for(Field field : getFields(clazz)) {
             getFieldGetter(clazz, field, override);
@@ -198,9 +195,8 @@ public class TReflect {
      * @param field 目标 Field 对象
      * @param override 是否覆盖注册
      * @return DynamicFunction 对象
-     * @throws ReflectiveOperationException 反射异常
      */
-    public static DynamicFunction getFieldSetter(Class clazz, Field field, boolean override) throws ReflectiveOperationException {
+    public static DynamicFunction getFieldSetter(Class clazz, Field field, boolean override) {
         if(!override){
             DynamicFunction dynamicFunction = FIELD_WRITER.get(getFieldMark(clazz, field.getName()));
             if(dynamicFunction!=null) {
@@ -232,7 +228,6 @@ public class TReflect {
         dynamicFunction.addImport(TReflect.class);
         dynamicFunction.addPrepareArg(0, clazz, "obj");     //目标对象
         dynamicFunction.addPrepareArg(1, Object.class, "value");     //写入数据
-        dynamicFunction.compileCode();
 
         FIELD_WRITER.put(getFieldMark(clazz, field.getName()), dynamicFunction);
 
@@ -248,9 +243,8 @@ public class TReflect {
      * 生成对象的读取的动态编译方法
      * @param clazz 目标对象类
      * @param override 是否覆盖注册
-     * @throws ReflectiveOperationException 反射异常
      */
-    private static void genAllFieldSetter(Class clazz, boolean override) throws ReflectiveOperationException {
+    private static void genAllFieldSetter(Class clazz, boolean override) {
         StringBuilder code = new StringBuilder();
         for(Field field : getFields(clazz)) {
             getFieldSetter(clazz, field, override);
@@ -313,13 +307,7 @@ public class TReflect {
                 dynamicFunction.addPrepareArg(0, Object[].class, "params");     //写入数据
             }
 
-            try {
-                //编译代码
-                dynamicFunction.compileCode();
-                CONSTRUCTOR_INVOKE.put(mark, dynamicFunction);
-            } catch (ReflectiveOperationException e) {
-                Logger.error("TReflect.genMethodInvoker error", e);
-            }
+            CONSTRUCTOR_INVOKE.put(mark, dynamicFunction);
 
             if (Global.IS_DEBUG_MODE) {
                 Logger.debug(code);
@@ -427,14 +415,7 @@ public class TReflect {
                 dynamicFunction.addPrepareArg(1, Object[].class, "params");     //写入数据
             }
 
-            try {
-                //编译代码
-                dynamicFunction.compileCode();
-
-                METHOD_INVOKE.put(mark, dynamicFunction);
-            } catch (ReflectiveOperationException e) {
-                Logger.error("TReflect.genMethodInvoker error", e);
-            }
+            METHOD_INVOKE.put(mark, dynamicFunction);
 
             if (Global.IS_DEBUG_MODE) {
                 Logger.debug(code);
