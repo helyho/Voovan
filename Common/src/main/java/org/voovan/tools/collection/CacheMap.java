@@ -221,41 +221,43 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
      * @return true: 已过期, false: 未过期, 有可能已经通过 supplier 重置
      */
     private boolean checkAndDoExpire(TimeMark<K> timeMark){
-        if (timeMark!=null && timeMark.isExpire()) {
-            if(getSupplier() != null) {
-                if(createCache(timeMark.getKey(), supplier, timeMark.getExpireTime())) {
-                    timeMark.refresh(true);
-                    return false;
-                } else {
-                    return true;
-                }
-            } else if(autoRemove) {
-                if(destory!= null) {
-                    V data = cacheData.get(timeMark.getKey());
-                    if(data == null) {
-                        this.remove(timeMark.getKey());
-                    }
-
-                    // 1.返回 null 则刷新为默认超时时间
-                    // 2.小于0 的数据, 则移除对象
-                    // 3.大于0的数据则重新设置返回值为新的超时时间
-                    Long value = destory.apply(timeMark.getKey(), data);
-                    if(value == null){
+        synchronized (timeMark) {
+            if (timeMark != null && timeMark.isExpire()) {
+                if (getSupplier() != null) {
+                    if (createCache(timeMark.getKey(), supplier, timeMark.getExpireTime())) {
                         timeMark.refresh(true);
-                    } else if (value < 0) {
-                        remove(timeMark.getKey());
+                        return false;
                     } else {
-                        timeMark.setExpireTime(value);
+                        return true;
                     }
-                } else {
-                    remove(timeMark.getKey());
+                } else if (autoRemove) {
+                    if (destory != null) {
+                        V data = cacheData.get(timeMark.getKey());
+                        if (data == null) {
+                            this.remove(timeMark.getKey());
+                        }
+
+                        // 1.返回 null 则刷新为默认超时时间
+                        // 2.小于0 的数据, 则移除对象
+                        // 3.大于0的数据则重新设置返回值为新的超时时间
+                        Long value = destory.apply(timeMark.getKey(), data);
+                        if (value == null) {
+                            timeMark.refresh(true);
+                        } else if (value < 0) {
+                            remove(timeMark.getKey());
+                        } else {
+                            timeMark.setExpireTime(value);
+                        }
+                    } else {
+                        remove(timeMark.getKey());
+                    }
                 }
+
+                return true;
             }
 
-            return true;
+            return false;
         }
-
-        return false;
     }
 
     private boolean createCache(K key, Function<K, V> supplier, Long createExpire){
@@ -310,6 +312,8 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                         cacheMark.put((K) key, timeMark);
                     }
                 }
+
+                return cacheData.get(key);
             }
         } else {
             synchronized (timeMark) {
@@ -323,10 +327,12 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                         }
                     }
                 }
+
+                return cacheData.get(key);
             }
         }
 
-        return cacheData.get(key);
+
     }
 
     @Override
