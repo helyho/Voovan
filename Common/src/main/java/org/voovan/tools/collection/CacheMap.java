@@ -307,10 +307,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             synchronized (cacheMark) {
                 timeMark = cacheMark.get(key);
                 if (timeMark == null) {
-                    if (createCache((K) key, appointedSupplier, createExpire)) {
-                        timeMark = new TimeMark(this, key, createExpire);
-                        cacheMark.put((K) key, timeMark);
-                    }
+                    createCache((K) key, appointedSupplier, createExpire);
                 }
 
                 return cacheData.get(key);
