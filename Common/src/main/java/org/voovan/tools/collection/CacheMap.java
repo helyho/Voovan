@@ -28,7 +28,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     protected final static HashWheelTimer CACHE_MAP_WHEEL_TIMER = new HashWheelTimer("CacheMap", 60, 1000);
     private Function<K, V> supplier = null;
-    private int interval = 1;
+    private int interval = 5;
     private boolean autoRemove = true;
     private BiFunction<K, V, Long> destory;
 
