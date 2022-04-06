@@ -2,6 +2,7 @@ package org.voovan.test.tools.cache;
 
 import junit.framework.TestCase;
 import org.voovan.Global;
+import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.collection.CacheMap;
 
@@ -31,7 +32,7 @@ public class CacheMapTest extends TestCase{
         CacheMap cacheMap = new CacheMap()
                 .maxSize(100)
                 .interval(1)
-//                .expire(1000)
+                .expire(1)
                 .supplier((t)-> t + "_"+ System.currentTimeMillis())
                 .autoRemove(true)
                 .create();
@@ -75,7 +76,7 @@ public class CacheMapTest extends TestCase{
                 public void run() {
                     for(int x=0; x<500; x++) {
                         TEnv.sleep(10);
-                        System.out.println(fi + " " + x + " " + cacheMap.putIfAbsent("test", "value" + fi+"_" +x));
+                        System.out.println(fi + " " + x + " " + cacheMap.put("test", "value" + fi+"_" +x) + "   " + cacheMap.get("test"));
                     }
                 }
             });
@@ -85,7 +86,7 @@ public class CacheMapTest extends TestCase{
     }
 
     public void testSuppler(){
-        CacheMap cacheMap = new CacheMap().autoRemove(true).create();
+        CacheMap cacheMap = new CacheMap().autoRemove(true).supplier(key-> key+ " " + TDateTime.now()).create();
 
         final AtomicInteger x = new AtomicInteger(0);
 
@@ -121,4 +122,20 @@ public class CacheMapTest extends TestCase{
         }
 
     }
-}
+
+
+    public void testSupplerM1() {
+        CacheMap cacheMap = new CacheMap().autoRemove(true).expire(1).supplier(key -> key + " " + TDateTime.now()).create();
+
+        for(int x = 0; x<10000000;x++) {
+            for (int i = 0; i < 100; i++) {
+                Object obj = cacheMap.get("key" + i);
+                if(obj == null) {
+                    System.out.println("key" + i + " -> " + obj);
+                }
+            }
+        }
+
+    }
+
+ }
