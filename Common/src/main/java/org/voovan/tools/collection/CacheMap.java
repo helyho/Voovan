@@ -222,9 +222,15 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
      */
     private boolean checkAndDoExpire(TimeMark<K> timeMark){
         if (timeMark!=null && timeMark.isExpire()) {
-            if (autoRemove) {
+            if(getSupplier() != null) {
+                if(createCache(timeMark.getKey(), supplier, timeMark.getExpireTime())) {
+                    timeMark.refresh(true);
+                    return false;
+                } else {
+                    return true;
+                }
+            } else if(autoRemove) {
                 if(destory!= null) {
-
                     V data = cacheData.get(timeMark.getKey());
                     if(data == null) {
                         this.remove(timeMark.getKey());
@@ -243,14 +249,6 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                     }
                 } else {
                     remove(timeMark.getKey());
-                }
-
-            } else if (getSupplier() != null) {
-                if(createCache(timeMark.getKey(), supplier, timeMark.getExpireTime())) {
-                    timeMark.refresh(true);
-                    return false;
-                } else {
-                    return true;
                 }
             }
 
