@@ -28,7 +28,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     protected final static HashWheelTimer CACHE_MAP_WHEEL_TIMER = new HashWheelTimer("CacheMap", 60, 1000);
     private Function<K, V> supplier = null;
-    private int interval = 30;
+    private int interval = 1;
     private boolean autoRemove = true;
     private BiFunction<K, V, Long> destory;
 
@@ -454,25 +454,26 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                     .search()
                     .toArray(new TimeMark[0]);
             for (TimeMark<K> timeMark : removedTimeMark) {
-                if(destory!=null) {
+                synchronized (timeMark) {
+                    if (destory != null) {
+                        V data = cacheData.get(timeMark.getKey());
+                        if (data == null) {
+                            this.remove(timeMark.getKey());
+                            continue;
+                        }
 
-                    V data = cacheData.get(timeMark.getKey());
-                    if(data == null) {
-                        this.remove(timeMark.getKey());
-                        continue;
-                    }
+                        Long value = destory.apply(timeMark.getKey(), data);
 
-                    Long value = destory.apply(timeMark.getKey(), data);
-
-                    if(value == null){
-                        timeMark.refresh(true);
-                    } else if (value < 0) {
-                        remove(timeMark.getKey());
+                        if (value == null) {
+                            timeMark.refresh(true);
+                        } else if (value < 0) {
+                            remove(timeMark.getKey());
+                        } else {
+                            timeMark.setExpireTime(value);
+                        }
                     } else {
-                        timeMark.setExpireTime(value);
+                        this.remove(timeMark.getKey());
                     }
-                } else {
-                    this.remove(timeMark.getKey());
                 }
             }
         }
