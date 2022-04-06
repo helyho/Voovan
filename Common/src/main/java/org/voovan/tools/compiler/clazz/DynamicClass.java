@@ -187,7 +187,7 @@ public class DynamicClass {
      *
      * @throws ReflectiveOperationException 反射异常
      */
-    public void compileCode() throws ReflectiveOperationException {
+    public synchronized void compileCode() throws ReflectiveOperationException {
 
         if (this.clazz != Object.class && codeFile != null) {
             checkFileChanged();
