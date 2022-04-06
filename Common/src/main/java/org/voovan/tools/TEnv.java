@@ -312,7 +312,6 @@ public class TEnv {
 			}
 
 			if(!classPath.startsWith(".") && !classPath.startsWith(userDir)) {
-				Logger.infof("{}, {}", classPath, userDir);
 				continue;
 			}
 

@@ -75,7 +75,7 @@ public class WeaveUtils {
                 continue;
             }
 
-            if(!classPath.startsWith(userDir)) {
+            if(!classPath.startsWith(".") && !classPath.startsWith(userDir)) {
                 continue;
             }
 
