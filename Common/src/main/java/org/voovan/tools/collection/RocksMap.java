@@ -1270,7 +1270,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         try {
             byte[] values = transaction.getForUpdate(readOptions, dataColumnFamilyHandle, serialize(key), exclusive);
-            return values==null ? null : (V) unserialize(values);
+            return (V) unserialize(values);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap lock " + key + " failed, " + e.getMessage(), e);
         }
@@ -1299,7 +1299,25 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         byte[] values = get(serialize(key));
-        return values==null ? null : (V) unserialize(values);
+        return (V) unserialize(values);
+    }
+
+    /**
+     * 无事务直接获取
+     * @param key 当前 key
+     * @return 不在当前事务中的 value
+     */
+    public V directGet(Object key) {
+        if(key == null){
+            throw new NullPointerException();
+        }
+
+        try {
+            byte[] values = rocksDB.get(dataColumnFamilyHandle, readOptions, serialize(key));
+            return (V) unserialize(values);
+        } catch (RocksDBException e) {
+            throw new RocksMapException("RocksMap getWithoutTransaction failed, " + e.getMessage(), e);
+        }
     }
 
     public List<V> getAll(Collection<K> keys) {
