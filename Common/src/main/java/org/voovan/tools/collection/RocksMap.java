@@ -141,6 +141,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 设置副本打开的路径
+     * @param defaultSecondaryDbPath 副本打开的路径
      */
     public static void setDefaultSecondaryDbPath(String defaultSecondaryDbPath) {
         DEFAULT_SECONDARY_DB_PATH = defaultSecondaryDbPath.endsWith(File.separator) ? defaultSecondaryDbPath : defaultSecondaryDbPath + File.separator;
