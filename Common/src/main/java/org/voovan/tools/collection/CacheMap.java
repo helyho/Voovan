@@ -1,6 +1,5 @@
 package org.voovan.tools.collection;
 
-import org.voovan.tools.TEnv;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.log.Logger;
@@ -28,7 +27,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     protected final static HashWheelTimer CACHE_MAP_WHEEL_TIMER = new HashWheelTimer("CacheMap", 60, 1000);
     private Function<K, V> supplier = null;
-    private int interval = 5;
+    private int interval = 1;
     private boolean autoRemove = true;
     private BiFunction<K, V, Long> destory;
 
@@ -196,8 +195,8 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                 public void run() {
                     if (!cacheMap.getCacheMark().isEmpty()) {
                         //清理过期的
-                        for (TimeMark timeMark : (TimeMark[]) cacheMap.getCacheMark().values().toArray(new TimeMark[0])) {
-                            cacheMap.checkAndDoExpire(timeMark);
+                        for (Object key : cacheMap.getCacheMark().keySet().toArray(new Object[]{})) {
+                            cacheMap.checkAndDoExpire((K)key);
                         }
                         fixSize();
                     }
@@ -207,83 +206,74 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         return this;
     }
 
+
     /**
      * 检查指定的Key, 如果过期则处理过期的数据
      * @param key 检查的 Key
-     */
-    public void checkAndDoExpire(K key){
-        checkAndDoExpire(cacheMark.get(key));
-    }
-
-    /**
-     * 检查或处理过期的数据
-     * @param timeMark 检查的 TimeMark 对象
      * @return true: 已过期, false: 未过期, 有可能已经通过 supplier 重置
      */
-    private boolean checkAndDoExpire(TimeMark<K> timeMark){
-        synchronized (timeMark) {
-            if (timeMark != null && timeMark.isExpire()) {
+    private boolean checkAndDoExpire(K key){
+        TimeMark timeMark = cacheMark.compute(key, (k, mark)->{
+            if (mark != null && mark.isExpire()) {
                 if (getSupplier() != null) {
-                    if (createCache(timeMark.getKey(), supplier, timeMark.getExpireTime())) {
-                        timeMark.refresh(true);
-                        return false;
-                    } else {
-                        return true;
-                    }
+                    return createCache(k, supplier, mark.getExpireTime());
                 } else if (autoRemove) {
-                    if (destory != null) {
-                        V data = cacheData.get(timeMark.getKey());
-                        if (data == null) {
-                            this.remove(timeMark.getKey());
-                        }
-
-                        // 1.返回 null 则刷新为默认超时时间
-                        // 2.小于0 的数据, 则移除对象
-                        // 3.大于0的数据则重新设置返回值为新的超时时间
-                        Long value = destory.apply(timeMark.getKey(), data);
-                        if (value == null) {
-                            timeMark.refresh(true);
-                        } else if (value < 0) {
-                            remove(timeMark.getKey());
-                        } else {
-                            timeMark.setExpireTime(value);
-                        }
-                    } else {
-                        remove(timeMark.getKey());
-                    }
+                    return destory(k, mark);
                 }
-
-                return true;
             }
 
-            return false;
+            return cacheMark.get(k);
+        });
+
+        return timeMark == null;
+    }
+
+
+    private TimeMark destory(K key, TimeMark mark) {
+        if (destory != null) {
+            V data = cacheData.get(key);
+            if (data == null) {
+                cacheData.remove(key);
+                return null;
+            }
+
+            // 1.返回 null 则刷新为默认超时时间
+            // 2.小于0 的数据, 则移除对象
+            // 3.大于0的数据则重新设置返回值为新的超时时间
+            Long value = destory.apply(key, data);
+            if (value == null) {
+                mark.refresh(true);
+                return mark;
+            } else if (value < 0) {
+                cacheData.remove(key);
+                return null;
+            } else {
+                mark.setExpireTime(value);
+                return mark;
+            }
+        } else {
+            cacheData.remove(key);
+            return null;
         }
     }
 
-    private boolean createCache(K key, Function<K, V> supplier, Long createExpire){
+    private TimeMark createCache(K key, Function<K, V> supplier, Long createExpire){
         if(supplier==null){
-            return false;
+            remove(key);
+            return null;
         }
 
-        try {
-            V value = supplier.apply(key);
-            if(value == null) {
-                remove(key);
-                return false;
-            }
-
-            if(expire==Long.MAX_VALUE) {
-                this.put(key, value);
-            } else {
-                this.put(key, value, createExpire);
-            }
-
-            return true;
-        } catch (Exception e){
-            Logger.error("Create with supplier failed: ", e);
-            return false;
+        V value = supplier.apply(key);
+        if(value == null) {
+            remove(key);
+            return null;
         }
 
+
+        expire = expire<0 ? this.expire : createExpire;
+        cacheData.put(key, value);
+
+        return new TimeMark(this, key, expire);
     }
 
     /**
@@ -297,41 +287,32 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
      */
     @Override
     public V get(Object key, Function<K, V> appointedSupplier, Long createExpire, boolean refresh){
+        Function<K, V> finalAppointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
+        Long finalCreateExpireInner = createExpire == null ? expire : createExpire;
 
-        TimeMark timeMark = cacheMark.get(key);
-
-        appointedSupplier = appointedSupplier == null ? supplier : appointedSupplier;
-        createExpire = createExpire == null ? expire : createExpire;
-
-        if (timeMark == null) {
-            synchronized (cacheMark) {
-                timeMark = cacheMark.get(key);
-                if (timeMark == null) {
-                    createCache((K) key, appointedSupplier, createExpire);
-                }
-
-                return cacheData.get(key);
+        Long finalCreateExpire = createExpire;
+        Object[] ret = new Object[1];
+        TimeMark timeMark = cacheMark.compute((K) key, (k, mark)->{
+            if(mark!=null && !mark.isExpire()) {
+                mark.refresh(refresh);
+                ret[0] = cacheData.get(key);
+                return mark;
             }
-        } else {
-            synchronized (timeMark) {
-                V value = cacheData.get(key);
 
-                if (value!=null && !timeMark.isExpire()) {
-                    timeMark.refresh(refresh);
+            if(mark == null || mark.isExpire()) {
+                if (finalAppointedSupplier != null) {
+                    TimeMark newMark = createCache((K) key, finalAppointedSupplier, finalCreateExpireInner);
+                    ret[0] = cacheData.get(key);
+                    return newMark;
                 }
 
-                if (value == null || timeMark.isExpire()) {
-                    if (checkAndDoExpire(timeMark)) {
-                        if (appointedSupplier != null) {
-                            timeMark.refresh(true);
-                            createCache((K) key, appointedSupplier, createExpire);
-                        }
-                    }
-                }
-
-                return cacheData.get(key);
+                return cacheMark.get(key);
             }
-        }
+
+            return null;
+        });
+
+        return (V)ret[0];
     }
 
     @Override
@@ -346,10 +327,8 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
      */
     public void putAll(Map<? extends K, ? extends V> m, long expire){
         for (Entry<? extends K, ? extends V> e : m.entrySet()) {
-            cacheMark.put(e.getKey(), new TimeMark(this, e.getKey(), expire));
+            put(e.getKey(), e.getValue(), expire);
         }
-
-        cacheData.putAll(m);
     }
 
     @Override
@@ -390,8 +369,12 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
             throw new NullPointerException();
         }
 
-        cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
-        return cacheData.put(key, value);
+        cacheMark.compute(key, (k, v)->{
+            cacheData.put(key, value);
+            return new TimeMark(this, key, expire);
+        });
+
+        return value;
     }
 
     /**
@@ -415,15 +398,16 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         if (key == null || value == null){
             throw new NullPointerException();
         }
+        V  result = cacheData.get(key);
+        cacheMark.compute(key, (k, v)->{
+            if(cacheData.putIfAbsent(key, value)==null) {
+                return new TimeMark(this, key, expire);
+            } else {
+                return v;
+            }
+        });
 
-        V result = cacheData.putIfAbsent(key, value);
-        cacheMark.putIfAbsent(key, new TimeMark(this, key, expire));
-
-        if(result!=null){
-            return result;
-        } else {
-            return null;
-        }
+        return result;
     }
 
 
@@ -455,27 +439,9 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                     .search()
                     .toArray(new TimeMark[0]);
             for (TimeMark<K> timeMark : removedTimeMark) {
-                synchronized (timeMark) {
-                    if (destory != null) {
-                        V data = cacheData.get(timeMark.getKey());
-                        if (data == null) {
-                            this.remove(timeMark.getKey());
-                            continue;
-                        }
-
-                        Long value = destory.apply(timeMark.getKey(), data);
-
-                        if (value == null) {
-                            timeMark.refresh(true);
-                        } else if (value < 0) {
-                            remove(timeMark.getKey());
-                        } else {
-                            timeMark.setExpireTime(value);
-                        }
-                    } else {
-                        this.remove(timeMark.getKey());
-                    }
-                }
+                cacheMark.compute(timeMark.getKey(),(k, mark)->{
+                    return destory(k, mark);
+                });
             }
         }
     }
@@ -510,15 +476,27 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
     }
 
     @Override
-    public V remove(Object key){
-        cacheMark.remove(key);
-        return cacheData.remove(key);
+    public V remove(Object key) {
+        V value =  cacheData.get(key);
+        cacheMark.computeIfPresent((K) key, (k, v)->{
+            cacheData.remove(k);
+            return null;
+        });
+
+        return value;
     }
 
     @Override
     public boolean remove(Object key, Object value) {
-        cacheMark.remove(key);
-        return cacheData.remove(key, value);
+        boolean ret = cacheMark.containsKey(key);
+        cacheMark.computeIfPresent((K) key,(k, v)->{
+            if(cacheData.remove(k, value)) {
+                return null;
+            }
+            return v;
+        });
+
+        return ret;
     }
 
     @Override
