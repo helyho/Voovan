@@ -12,7 +12,6 @@ import org.voovan.tools.reflect.convert.Convert;
 import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.security.THash;
 import org.voovan.tools.tuple.Tuple;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
@@ -725,7 +724,7 @@ public class TReflect {
             if(oneType instanceof Class){
                 result[i] = (Class)oneType;
             } else if(type instanceof ParameterizedType){
-                result[i] = ((ParameterizedTypeImpl)oneType).getRawType();
+                result[i] = (Class) ((ParameterizedType)oneType).getRawType();
             } else {
                 result[i] = null;
             }
