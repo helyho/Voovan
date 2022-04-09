@@ -71,7 +71,9 @@ public class CacheMapTest extends TestCase{
         cacheMap.putIfAbsent("key_bbb", "value_222");
         cacheMap.putIfAbsent("key_ccc", "value_333");
 
+
         assertEquals("value_aaa", cacheMap.get("key_aaa"));
+        cacheMap.remove("key_ccc");
 
         int count = 0;
         while(count<140*1000) {

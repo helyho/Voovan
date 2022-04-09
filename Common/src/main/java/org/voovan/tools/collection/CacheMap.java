@@ -27,7 +27,7 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     protected final static HashWheelTimer CACHE_MAP_WHEEL_TIMER = new HashWheelTimer("CacheMap", 60, 1000);
     private Function<K, V> supplier = null;
-    private int interval = 1;
+    private int interval = 5;
     private boolean autoRemove = true;
     private BiFunction<K, V, Long> destory;
 
@@ -259,13 +259,13 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
 
     private TimeMark createCache(K key, Function<K, V> supplier, Long createExpire){
         if(supplier==null){
-            remove(key);
+            cacheData.remove(key);
             return null;
         }
 
         V value = supplier.apply(key);
         if(value == null) {
-            remove(key);
+            cacheData.remove(key);
             return null;
         }
 
