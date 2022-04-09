@@ -133,7 +133,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取副本打开的路径
-     * @return
+     * @return 副本打开的路径
      */
     public static String getDefaultSecondaryDbPath() {
         return DEFAULT_SECONDARY_DB_PATH;
@@ -141,7 +141,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 设置副本打开的路径
-     * @return
      */
     public static void setDefaultSecondaryDbPath(String defaultSecondaryDbPath) {
         DEFAULT_SECONDARY_DB_PATH = defaultSecondaryDbPath.endsWith(File.separator) ? defaultSecondaryDbPath : defaultSecondaryDbPath + File.separator;
@@ -1900,7 +1899,6 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * 构造一个有范围的迭代器
      * @param fromKey 起始 key
      * @param toKey 结束 key
-     * @param size 迭代的记录数
      * @param skipSize 跳过记录数
      * @param size 返回记录数
      * @return 迭代器对象
