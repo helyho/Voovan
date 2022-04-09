@@ -306,6 +306,11 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
                     return newMark;
                 }
 
+                if(mark!=null && mark.isExpire()) {
+                    cacheData.remove(k);
+                    return null;
+                }
+
                 return cacheMark.get(key);
             }
 

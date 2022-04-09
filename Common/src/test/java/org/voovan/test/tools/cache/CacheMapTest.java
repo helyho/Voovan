@@ -82,6 +82,16 @@ public class CacheMapTest extends TestCase{
         }
     }
 
+    public void testGetExpire(){
+        CacheMap cacheMap = new CacheMap().interval(0).expire(1).create();
+        cacheMap.put("aaa", "bbb");
+        TEnv.sleep(1000);
+        System.out.println(cacheMap.get("aaa"));
+
+        System.out.println(cacheMap.get("ccc"));
+        TEnv.sleep(60*1000);
+    }
+
     public void testLockTest(){
         CacheMap cacheMap = new CacheMap().create().expire(5);
         for(int i=0;i<10;i++) {
