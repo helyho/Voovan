@@ -22,8 +22,11 @@ import org.voovan.tools.log.Logger;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 /**
  * WebServer Socket 事件处理类
@@ -47,14 +50,14 @@ public class WebServerHandler implements IoHandler {
 	private HttpDispatcher		httpDispatcher;
 	private WebSocketDispatcher	webSocketDispatcher;
 	private WebServerConfig webConfig;
-	private List<IoSession> keepAliveSessionList;
+	private Map<Long, IoSession> keepAliveSessionList;
 
 
 	public WebServerHandler(WebServerConfig webConfig, HttpDispatcher httpDispatcher, WebSocketDispatcher webSocketDispatcher) {
 		this.httpDispatcher = httpDispatcher;
 		this.webSocketDispatcher = webSocketDispatcher;
 		this.webConfig = webConfig;
-		keepAliveSessionList = new Vector<IoSession>();
+		keepAliveSessionList = new ConcurrentHashMap<Long, IoSession>();
 
 		initKeepAliveTimer();
 	}
@@ -70,24 +73,20 @@ public class WebServerHandler implements IoHandler {
 	public void initKeepAliveTimer(){
 		KEEP_ALIVE_WHEEL_TIMER.addTask(()->{
 			long currentTimeValue = System.currentTimeMillis();
-			//遍历所有的 session
-			for(int i=0; i<keepAliveSessionList.size(); i++){
 
-				IoSession session = keepAliveSessionList.get(i);
-
-				if(session==null){
-					continue;
-				}
-
+			//遍历所有超时的 session
+			List<IoSession> timeoutSessionList = keepAliveSessionList.values().stream().filter(session->{
 				long timeoutValue = getSessionState(session).getKeepAliveTimeout();
+				return timeoutValue <= currentTimeValue;
+			}).collect(Collectors.toList());
 
-				if(timeoutValue < currentTimeValue){
-					//如果超时则结束当前连接
+			//关闭超时所有的连接
+			timeoutSessionList.forEach(session->{
+				if(session.getReadByteBufferChannel().size()==0 && session.getSendByteBufferChannel().size() ==0) {
 					session.close();
-					keepAliveSessionList.remove(session);
-					i--;
+					keepAliveSessionList.remove(session.getId());
 				}
-			}
+			});
 		} ,1);
 	}
 
@@ -120,7 +119,7 @@ public class WebServerHandler implements IoHandler {
 		}
 
 		//清理 IoSession
-		keepAliveSessionList.remove(session);
+		keepAliveSessionList.remove(session.getId());
 	}
 
 	/**
@@ -429,21 +428,14 @@ public class WebServerHandler implements IoHandler {
 		HttpRequest request = httpSessionState.getHttpRequest();
 		//处理连接保持
 		if (httpSessionState.isKeepAlive() && webConfig.getKeepAliveTimeout() > 0) {
-
-			if (!httpSessionState.isKeepLiveListContain()) {
-				keepAliveSessionList.add(session);
-				httpSessionState.setKeepLiveListContain(true);
-			}
 			//更新会话超时时间
 			refreshTimeout(session);
 
+			keepAliveSessionList.putIfAbsent(session.getId(), session);
 		} else {
 			//在 `HTTP/1.0` 或 `keepAlive: false` 时, 为确保 tcp 缓冲发送完成, 使用 keepAliveTimeout 延时关闭连接
 			long timeoutValue = System.currentTimeMillis();
 			httpSessionState.setKeepAliveTimeout(timeoutValue);
-
-//			keepAliveSessionList.remove(session);
-//			session.close();
 		}
 	}
 

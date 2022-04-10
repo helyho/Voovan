@@ -15,8 +15,7 @@ public class HttpSessionState {
     private HttpResponse httpResponse;
     private HttpRequestType type;
     private boolean isKeepAlive = false;
-    private long keepAliveTimeout = 30*1000;
-    private boolean isKeepLiveListContain = false;
+    private long keepAliveTimeout = -1;
 
     public HttpRequest getHttpRequest() {
         return httpRequest;
@@ -68,13 +67,5 @@ public class HttpSessionState {
 
     public void setKeepAliveTimeout(long keepAliveTimeout) {
         this.keepAliveTimeout = keepAliveTimeout;
-    }
-
-    public boolean isKeepLiveListContain() {
-        return isKeepLiveListContain;
-    }
-
-    public void setKeepLiveListContain(boolean keepLiveListContain) {
-        isKeepLiveListContain = keepLiveListContain;
     }
 }

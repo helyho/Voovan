@@ -3,6 +3,7 @@ package org.voovan.network;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
+import org.voovan.tools.UniqueId;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.collection.Attributes;
@@ -26,6 +27,8 @@ import java.util.concurrent.TimeoutException;
  * Licence: Apache v2 License
  */
 public abstract class IoSession<T extends SocketContext> extends Attributes {
+	public static UniqueId SESSION_UNIQUE_ID = new UniqueId(2047);
+
 	public static HashWheelTimer SOCKET_IDLE_WHEEL_TIME = null;
 
 	public static HashWheelTimer getIdleWheelTimer() {
@@ -41,6 +44,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		return SOCKET_IDLE_WHEEL_TIME;
 	}
 
+	private Long id;
 	private MessageLoader messageLoader;
 	protected ByteBufferChannel readByteBufferChannel;
 	protected ByteBufferChannel sendByteBufferChannel;
@@ -119,6 +123,7 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 	 * @param socketContext socketContext对象
 	 */
 	public IoSession(T socketContext){
+		this.id = SESSION_UNIQUE_ID.nextNumber();
 		this.socketContext = socketContext;
 		this.state = new State();
 		readByteBufferChannel = new ByteBufferChannel(socketContext.getReadBufferSize());
@@ -126,6 +131,10 @@ public abstract class IoSession<T extends SocketContext> extends Attributes {
 		readByteBufferChannel.setThreadSafe(SocketContext.ASYNC_RECIVE);
 		sendByteBufferChannel.setThreadSafe(SocketContext.ASYNC_SEND);
 		messageLoader = new MessageLoader(this);
+	}
+
+	public Long getId() {
+		return id;
 	}
 
 	public Object getAttachment() {
