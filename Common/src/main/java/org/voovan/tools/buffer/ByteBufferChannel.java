@@ -647,8 +647,8 @@ public class ByteBufferChannel {
             if (writeSize > 0) {
                 //是否扩容
                 if (available() < writeSize) {
-//                    int newSize = byteBuffer.capacity() + writeSize;
-                    reallocate(writeSize);
+                    int newSize = (writeSize - available()) + capacity();
+                    reallocate(newSize);
                 }
 
                 int position = byteBuffer.position();
@@ -770,8 +770,8 @@ public class ByteBufferChannel {
             if (writeSize > 0) {
                 //是否扩容
                 if (available() < writeSize) {
-//                    int newSize = byteBuffer.capacity() + writeSize;
-                    reallocate(writeSize);
+                    int newSize = (writeSize - available()) + capacity();
+                    reallocate(newSize);
                 }
 
                 int position = byteBuffer.position();
