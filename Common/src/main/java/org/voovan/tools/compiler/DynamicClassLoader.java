@@ -29,15 +29,13 @@ public class DynamicClassLoader extends URLClassLoader {
         }
     }
 
-    protected Class<?> loadClass(String name,
-                                 boolean resolve)
-            throws ClassNotFoundException{
+    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException{
         try {
             if(Global.ENABLE_SANDBOX) {
                 sandboxSecurity.checkLoadClass(name);
             }
             return super.loadClass(name, resolve);
-        }catch (ClassNotFoundException e){
+        } catch (ClassNotFoundException e){
             e.printStackTrace();
             throw e;
         }

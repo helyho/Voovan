@@ -6,7 +6,6 @@ import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.collection.ArraySet;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
-import sun.nio.ch.SelectorImpl;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -38,35 +37,16 @@ public class NioUtil {
 	public static Field publicSelectedKeysField;
 
 	static {
-		Object res = AccessController.doPrivileged(new PrivilegedAction<Object>() {
-			@Override
-			public Object run() {
-				try {
-					return Class.forName("sun.nio.ch.SelectorImpl");
-				} catch (Throwable cause) {
-					return cause;
-				}
-			}
-		});
+		try {
+			final Class selectorImplClass = TReflect.getClassByName("sun.nio.ch.SelectorImpl");
+			selectedKeysField = selectorImplClass .getDeclaredField("selectedKeys");
+			publicSelectedKeysField = selectorImplClass .getDeclaredField("publicSelectedKeys");
 
-		final Class selectorImplClass = (Class) res;
-		AccessController.doPrivileged(new PrivilegedAction<Object>() {
-			@Override
-			public Object run() {
-				try {
-					selectedKeysField = selectorImplClass
-							.getDeclaredField("selectedKeys");
-					publicSelectedKeysField = selectorImplClass
-							.getDeclaredField("publicSelectedKeys");
-
-					selectedKeysField.setAccessible(true);
-					publicSelectedKeysField.setAccessible(true);
-					return null;
-				} catch (Exception e) {
-					return e;
-				}
-			}
-		});
+			selectedKeysField.setAccessible(true);
+			publicSelectedKeysField.setAccessible(true);
+		} catch (Exception e) {
+		 	Logger.errorf("Preepare SelectorImpl method failed", e);
+		}
 	}
 
 
