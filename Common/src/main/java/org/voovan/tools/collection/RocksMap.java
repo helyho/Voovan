@@ -339,8 +339,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     case TRANSACTION: {
                         this.dbOptions.setMaxOpenFiles(-1);
                         TransactionDBOptions transactionDBOptions = new TransactionDBOptions();
-                        if(dbOptions.unorderedWrite() == true) {
-                            dbOptions.setTwoWriteQueues(true);
+                        if(this.dbOptions.unorderedWrite() == true) {
+                            this.dbOptions.setTwoWriteQueues(true);
                             transactionDBOptions.setWritePolicy(TxnDBWritePolicy.WRITE_PREPARED);
                         }
                         rocksDB = TransactionDB.open(this.dbOptions, transactionDBOptions, dataPath, DEFAULT_CF_DESCRIPTOR_LIST, columnFamilyHandleList);
@@ -505,8 +505,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 备份路径
      */
     public String createBackup(boolean beforeFlush) {
-        try {
-            BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions);
+        try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions)){
             backupEngine.createNewBackup(this.rocksDB, beforeFlush);
             return backupableDBOptions.backupDir();
         } catch (RocksDBException e) {
@@ -523,8 +522,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 备份信息清单
      */
     public List<BackupInfo> getBackupInfo() {
-        try {
-            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
             return backupEngine.getBackupInfo();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap getBackupInfo failed , " + e.getMessage(), e);
@@ -536,11 +534,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
     public void restoreLatestBackup(Boolean keepLogfile) {
-        try {
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
             RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
 
-            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
             backupEngine.restoreDbFromLatestBackup(dataPath, walPath, restoreOptions);
+            restoreOptions.close();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap restoreFromLatestBackup failed , " + e.getMessage(), e);
         }
@@ -556,11 +554,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
     public void restore(int backupId, Boolean keepLogfile) {
-        try {
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
             RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
-
-            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
             backupEngine.restoreDbFromBackup(backupId, dataPath, walPath, restoreOptions);
+            restoreOptions.close();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap restore failed , " + e.getMessage(), e);
         }
@@ -573,8 +570,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
 
     public void deleteBackup(int backupId) throws RocksDBException {
-        try {
-            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
             backupEngine.deleteBackup(backupId);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap deleteBackup failed , " + e.getMessage(), e);
@@ -587,8 +583,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param number 保留的备份书
      */
     public void PurgeOldBackups(int number) {
-        try {
-            BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions);
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
             backupEngine.purgeOldBackups(number);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap PurgeOldBackups failed , " + e.getMessage(), e);
@@ -1651,11 +1646,11 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param allowStall 是否允许写入暂停
      */
     public void flush(boolean sync, boolean allowStall){
-        try {
-            FlushOptions flushOptions = new FlushOptions();
+        try (FlushOptions flushOptions = new FlushOptions()){
             flushOptions.setWaitForFlush(sync);
             flushOptions.setAllowWriteStall(allowStall);
             rocksDB.flush(flushOptions, this.dataColumnFamilyHandle);
+            flushOptions.close();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush failed", e);
         }
@@ -1682,13 +1677,13 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param allowStall 是否允许写入暂停
      */
     public void flushAll(boolean sync, boolean allowStall) {
-        try {
+        try (FlushOptions flushOptions = new FlushOptions()){
             Map<String, ColumnFamilyHandle> columnFamilyHandleMap = RocksMap.COLUMN_FAMILY_HANDLE_MAP.get(rocksDB);
             List<ColumnFamilyHandle> columnFamilyHandleList = new ArrayList(columnFamilyHandleMap.values());
-            FlushOptions flushOptions = new FlushOptions();
             flushOptions.setWaitForFlush(sync);
             flushOptions.setAllowWriteStall(allowStall);
             rocksDB.flush(flushOptions, columnFamilyHandleList);
+            flushOptions.close();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap flush all failed", e);
         }
