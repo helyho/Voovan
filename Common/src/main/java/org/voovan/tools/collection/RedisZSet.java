@@ -2,14 +2,14 @@ package org.voovan.tools.collection;
 
 import org.voovan.tools.serialize.TSerialize;
 import redis.clients.jedis.*;
-import redis.clients.util.Pool;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.resps.Tuple;
+import redis.clients.jedis.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Redis 的 ZSet 封装
@@ -206,7 +206,7 @@ public class RedisZSet<V> implements Closeable {
     public Set<V> getRangeByIndex(long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
-            Set<byte[]> bytesSet = jedis.zrange(name.getBytes(), start, end);
+            List<byte[]> bytesSet = jedis.zrange(name.getBytes(), start, end);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -224,7 +224,7 @@ public class RedisZSet<V> implements Closeable {
     public Set<V> getRevRangeByIndex(long start, long end){
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
-            Set<byte[]> bytesSet = jedis.zrevrange(name.getBytes(), start, end);
+            List<byte[]> bytesSet = jedis.zrevrange(name.getBytes(), start, end);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -244,7 +244,7 @@ public class RedisZSet<V> implements Closeable {
             byte[] startByteArray = TSerialize.serialize(start);
             byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrangeByLex(name.getBytes(), startByteArray, endByteArray);
+            List<byte[]> bytesSet = jedis.zrangeByLex(name.getBytes(), startByteArray, endByteArray);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -267,7 +267,7 @@ public class RedisZSet<V> implements Closeable {
             byte[] startByteArray = TSerialize.serialize(start);
             byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrangeByLex(name.getBytes(), startByteArray, endByteArray, offset, size);
+            List<byte[]> bytesSet = jedis.zrangeByLex(name.getBytes(), startByteArray, endByteArray, offset, size);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -287,7 +287,7 @@ public class RedisZSet<V> implements Closeable {
             byte[] startByteArray = TSerialize.serialize(start);
             byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrevrangeByLex(name.getBytes(), startByteArray, endByteArray);
+            List<byte[]> bytesSet = jedis.zrevrangeByLex(name.getBytes(), startByteArray, endByteArray);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -309,7 +309,7 @@ public class RedisZSet<V> implements Closeable {
             byte[] startByteArray = TSerialize.serialize(start);
             byte[] endByteArray = TSerialize.serialize(end);
 
-            Set<byte[]> bytesSet = jedis.zrevrangeByLex(name.getBytes(), startByteArray, endByteArray, offset, size);
+            List<byte[]> bytesSet = jedis.zrevrangeByLex(name.getBytes(), startByteArray, endByteArray, offset, size);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -327,7 +327,7 @@ public class RedisZSet<V> implements Closeable {
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
 
-            Set<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), start, end);
+            List<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), start, end);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -347,7 +347,7 @@ public class RedisZSet<V> implements Closeable {
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
 
-            Set<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), start, end, offset, size);
+            List<byte[]> bytesSet = jedis.zrangeByScore(name.getBytes(), start, end, offset, size);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -365,7 +365,7 @@ public class RedisZSet<V> implements Closeable {
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
 
-            Set<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), start, end);
+            List<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), start, end);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -385,7 +385,7 @@ public class RedisZSet<V> implements Closeable {
         try (Jedis jedis = getJedis()) {
             Set<V> result = new HashSet<V>();
 
-            Set<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), start, end, offset, size);
+            List<byte[]> bytesSet = jedis.zrevrangeByScore(name.getBytes(), start, end, offset, size);
             for(byte[] objByteArray : bytesSet){
                 result.add((V)TSerialize.unserialize(objByteArray));
             }
@@ -544,7 +544,7 @@ public class RedisZSet<V> implements Closeable {
             }
             ScanResult<Tuple> scanResult = jedis.zscan(name.getBytes(), cursor.getBytes(), scanParams);
 
-            ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
+            ScanedObject scanedObject = new ScanedObject(scanResult.getCursor());
             for(Tuple tuple : scanResult.getResult()){
                 scanedObject.getResultList().add((V)TSerialize.unserialize(tuple.getBinaryElement()));
             }

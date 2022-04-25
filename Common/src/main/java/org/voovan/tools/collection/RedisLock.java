@@ -5,7 +5,8 @@ import org.voovan.tools.TString;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.util.Pool;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.util.Pool;
 
 import java.util.Collections;
 
@@ -132,7 +133,7 @@ public class RedisLock {
         }
 
         try (Jedis jedis = getJedis()) {
-            String result = jedis.set(this.lockName, lockValue, RedisMap.SET_NOT_EXIST, RedisMap.SET_EXPIRE_TIME, lockExpireTime);
+            String result = jedis.set(this.lockName, lockValue, SetParams.setParams().nx().ex(lockExpireTime));
             this.lockValue = lockValue;
 
             if ( RedisMap.LOCK_SUCCESS.equals(result)) {
@@ -169,7 +170,7 @@ public class RedisLock {
         long start = System.currentTimeMillis();
         while(true) {
             try (Jedis jedis = getJedis()) {
-                String result = jedis.set(this.lockName, lockValue,  RedisMap.SET_NOT_EXIST,  RedisMap.SET_EXPIRE_TIME, lockExpireTime);
+                String result = jedis.set(this.lockName, lockValue,  SetParams.setParams().nx().ex(lockExpireTime));
 
                 if (RedisMap.LOCK_SUCCESS.equals(result)) {
                     return true;

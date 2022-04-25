@@ -2,7 +2,10 @@ package org.voovan.tools.collection;
 
 import org.voovan.tools.serialize.TSerialize;
 import redis.clients.jedis.*;
-import redis.clients.util.Pool;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.SetParams;
+import redis.clients.jedis.resps.ScanResult;
+import redis.clients.jedis.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -27,8 +30,6 @@ import java.util.stream.Collectors;
 public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
     public static final String LOCK_SUCCESS = "OK";
     public static final Long   UNLOCK_SUCCESS = 1L;
-    public static final String SET_NOT_EXIST = "NX";
-    public static final String SET_EXPIRE_TIME = "PX";
 
     private long expire = 0;
 
@@ -386,7 +387,7 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
         try (Jedis jedis = getJedis()) {
             if (name == null) {
-                String result = jedis.set(keyByteArray, valueByteArray, SET_NOT_EXIST.getBytes(), SET_EXPIRE_TIME.getBytes(), expire*1000);
+                String result = jedis.set(keyByteArray, valueByteArray, SetParams.setParams().nx().ex(expire*1000));
 
                 if (LOCK_SUCCESS.equals(result)) {
                     value = null;
@@ -670,14 +671,14 @@ public class RedisMap<K, V> implements ICacheMap<K, V>, Closeable {
 
             if(name==null){
                 ScanResult<byte[]> scanResult = jedis.scan(cursor.getBytes(), scanParams);
-                ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
+                ScanedObject scanedObject = new ScanedObject(scanResult.getCursor());
                 for(byte[] keyBytes : scanResult.getResult()){
                     scanedObject.getResultList().add((V)TSerialize.unserialize(keyBytes));
                 }
                 return scanedObject;
             }else {
                 ScanResult<Map.Entry<byte[], byte[]>> scanResult = jedis.hscan(name.getBytes(), cursor.getBytes(), scanParams);
-                ScanedObject scanedObject = new ScanedObject(scanResult.getStringCursor());
+                ScanedObject scanedObject = new ScanedObject(scanResult.getCursor());
 
                 for(Map.Entry<byte[], byte[]> entryItem : scanResult.getResult()){
 

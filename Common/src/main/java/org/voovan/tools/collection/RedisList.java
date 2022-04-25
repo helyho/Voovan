@@ -1,11 +1,11 @@
 package org.voovan.tools.collection;
 
 import org.voovan.tools.serialize.TSerialize;
-import redis.clients.jedis.BinaryClient;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
-import redis.clients.util.Pool;
+import redis.clients.jedis.args.ListPosition;
+import redis.clients.jedis.util.Pool;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -360,7 +360,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         try (Jedis jedis = getJedis()) {
             byte[] pivot = jedis.lindex(name.getBytes(), index);
             for(V item : c){
-                jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, TSerialize.serialize(item));
+                jedis.linsert(name.getBytes(), ListPosition.AFTER, pivot, TSerialize.serialize(item));
             }
         }
 
@@ -407,7 +407,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     public void add(int index, V element) {
         try (Jedis jedis = getJedis()) {
             byte[] pivot = jedis.lindex(name.getBytes(), index);
-            jedis.linsert(name.getBytes(), BinaryClient.LIST_POSITION.AFTER, pivot, TSerialize.serialize(element));
+            jedis.linsert(name.getBytes(), ListPosition.AFTER, pivot, TSerialize.serialize(element));
         }
     }
 
