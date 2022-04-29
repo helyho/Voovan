@@ -1,8 +1,6 @@
 package org.voovan.http.message.packet;
 
 import org.voovan.http.message.exception.BodyParseExecption;
-import org.voovan.http.message.exception.HttpParserException;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.buffer.ByteBufferChannel;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TString;
@@ -14,7 +12,6 @@ import org.voovan.tools.security.THash;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 
 /**
  * HTTP的内容对象
@@ -25,7 +22,11 @@ import java.nio.MappedByteBuffer;
  * Licence: Apache v2 License
  */
 public class Body {
-	private final static String TMP_RESPONSE = TFile.assemblyPath(TFile.getTemporaryPath(), "voovan", "webserver", "response");
+	private final static String TMP_BODY = TFile.assemblyPath(TFile.getTemporaryPath(), "voovan", "webserver", "body");
+
+	static {
+		TFile.mkdir(TMP_BODY);
+	}
 
 	private ByteBufferChannel byteBufferChannel;
 	private BodyType type;
@@ -289,7 +290,7 @@ public class Body {
 				if(byteBufferChannel.size() + length <= byteBufferChannel.getMaxSize()) {
 					byteBufferChannel.writeEnd(body, offset, length);
 				} else { //超过缓冲区大小使用文件作为缓冲
-					File tmpFile = new File(TMP_RESPONSE  + File.separator + TString.generateId() + ".tmp");
+					File tmpFile = new File(TFile.assemblyPath(TMP_BODY, "large_body_" + TString.generateId() + ".tmp" ));
 					try {
 						RandomAccessFile randomAccessFile = null;
 						try {
@@ -411,11 +412,7 @@ public class Body {
 				fileName = fileName.equals("") ? ".tmp" : fileName;
 
 				//拼文件名
-				String localFileName = TFile.assemblyPath(TFile.getTemporaryPath(),
-						"voovan",
-						"webserver",
-						"body",
-						TString.assembly("VOOVAN_", TString.generateId(this), ".", fileName));
+				String localFileName = TFile.assemblyPath(TMP_BODY, TString.assembly("compress_", TString.generateId(this), ".", fileName));
 
 				TFile.mkdir(localFileName);
 				File gzipedFile = new File(localFileName);
