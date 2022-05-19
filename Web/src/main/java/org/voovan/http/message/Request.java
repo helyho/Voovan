@@ -352,7 +352,7 @@ public class Request {
                 byteBuffer = readHead();
             } catch (Throwable e){
                 if(!(e instanceof MemoryReleasedException)){
-                    Logger.error("Response writeToChannel error: ", (Exception) e);
+                    Logger.error("Response writeToChannel error: ", e);
                 }
             }
 
