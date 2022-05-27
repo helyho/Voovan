@@ -398,26 +398,6 @@ public class WebServerHandler implements IoHandler {
 					Logger.error("WebSocket Open event writeToChannel frame error", e);
 				}
 			}
-
-			//发送第一次心跳消息
-			WebSocketDispatcher.getHeartBeatWheelTimer().addTask(new HashWheelTask() {
-				@Override
-				public void run() {
-					//发送 ping 消息
-					if(session.isConnected()) {
-						try {
-							WebSocketFrame ping = WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
-							session.send(ping.toByteBuffer());
-							session.flush();
-						} catch (Exception e) {
-							session.close();
-							Logger.error("WebSocket writeToChannel Ping frame error", e);
-						}
-					} else {
-						this.cancel();
-					}
-				}
-			}, 3);
 		}
 	}
 

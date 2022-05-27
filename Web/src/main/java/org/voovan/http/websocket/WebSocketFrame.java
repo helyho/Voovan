@@ -6,6 +6,7 @@ import org.voovan.tools.log.Logger;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * WebSocket帧解析类
@@ -297,8 +298,7 @@ public class WebSocketFrame {
 
 		if (mask) {
 			ByteBuffer maskkey = TByteBuffer.allocateDirect(4);
-			Random reuseableRandom = new Random();
-			maskkey.putInt(reuseableRandom.nextInt());
+			maskkey.putInt(ThreadLocalRandom.current().nextInt());
 			maskkey.flip();
 			buf.put(maskkey);
 			for (int i = 0; data.hasRemaining(); i++) {

@@ -235,6 +235,24 @@ public class WebSocketDispatcher {
 					result = webSocketRouter.onOpen(webSocketSession);
 					//封包
 					responseMessage = (ByteBuffer) filterEncoder(webSocketSession, webFilterChain, result);
+
+					//通过触发 pong 来发送心跳消息
+					{
+						HashWheelTask pingTask = new HashWheelTask() {
+							@Override
+							public void run() {
+								//发送 ping 消息
+								if (session.isConnected()) {
+									firePoneEvent(session, request, null);
+								} else {
+									this.cancel();
+								}
+							}
+						};
+
+						WebSocketDispatcher.getHeartBeatWheelTimer().addTask(pingTask, 10);
+						webSocketSession.setAttribute("PING_TASK", pingTask);
+					}
 				} else if (event == WebSocketEvent.RECIVED) {
 					//解包
 					result = filterDecoder(webSocketSession, webFilterChain, result);
@@ -256,6 +274,10 @@ public class WebSocketDispatcher {
 					result = filterDecoder(webSocketSession, webFilterChain, byteBuffer);
 					webSocketRouter.onSent(webSocketSession, result);
 				} else if (event == WebSocketEvent.CLOSE) {
+					//删除心跳任务
+					HashWheelTask pingTask = (HashWheelTask) webSocketSession.getAttribute("PING_TASK");
+					pingTask.cancel();
+
 					webSocketRouter.onClose(webSocketSession);
 
 					//清理 webSocketSessions 中的 WebSocketSession
@@ -263,22 +285,16 @@ public class WebSocketDispatcher {
 				} else if (event == WebSocketEvent.PING) {
 					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
 				} else if (event == WebSocketEvent.PONG) {
-//					final IoSession poneSession = session;
-//					if(poneSession.isConnected()) {
-//						WebSocketDispatcher.getHeartBeatWheelTimer().addTask(new HashWheelTask() {
-//							@Override
-//							public void run() {
-//								try {
-//									if(poneSession.socketContext().isConnected()) {
-//										poneSession.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
-//									}
-//								} catch (SendMessageException e) {
-//									poneSession.close();
-//									Logger.error("Send WebSocket ping error", e);
-//								}
-//							}
-//						}, poneSession.socketContext().getReadTimeout() / 1000/ 3);
-//					}
+					if(webSocketSessions.containsKey(session)) {
+						try {
+							if (session.socketContext().isConnected()) {
+								session.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
+							}
+						} catch (SendMessageException e) {
+							session.close();
+							Logger.error("Send WebSocket ping error", e);
+						}
+					}
 				}
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
