@@ -3,9 +3,11 @@ package org.voovan.http.server;
 import org.voovan.Global;
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.server.context.WebContext;
+import org.voovan.http.server.router.OptionsRouter;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.filter.StringFilter;
+import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -23,25 +25,150 @@ import java.util.concurrent.atomic.AtomicReference;
  * Licence: Apache v2 License
  */
 public class WebServerCli {
-    public static void registerRouter(WebServer webServer) {
+    /**
+     * 是否具备管理权限
+     *      这里控制必须是 127.0.0.1的 ip 地址, 并且需要提供 authToken
+     * @param request http请求对象
+     * @return true: 具备管理权限, false: 不具备管理权限
+     */
+    public static boolean hasAdminRight(HttpRequest request) {
+        if (!TPerformance.getLocalIpAddrs().contains(request.getSession().getSocketSession().remoteAddress())) {
+            request.getSession().close();
+        }
 
-        //Http Status 命令
+        String authToken = request.header().get("AUTH-TOKEN");
+        if (authToken != null && authToken.equals(WebContext.AUTH_TOKEN)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    public static void registerRouter(WebServer webServer) {
         webServer.otherMethod("ADMIN", "/voovan/admin/status", new HttpRouter() {
             @Override
             public void process(HttpRequest request, HttpResponse response) throws Exception {
                 String status = "RUNNING";
-
-                String authToken = request.header().get("AUTH-TOKEN");
-                if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN)) {
+                if(hasAdminRight(request)) {
                     if(WebContext.PAUSE){
                         status = "PAUSE";
                     }
                     response.write(status);
+                }else{
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/shutdown", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+
+                if(hasAdminRight(request)) {
+                    request.getSocketSession().close();
+                    webServer.stop();
+                    Logger.info("WebServer is stoped");
+                }else{
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/pause", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+
+                if(hasAdminRight(request)) {
+                    WebContext.PAUSE = true;
+                    response.write("OK");
+                    Logger.info("WebServer is paused");
+                }else{
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/unpause", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+
+                if(hasAdminRight(request)) {
+                    WebContext.PAUSE = false;
+                    response.write("OK");
+                    Logger.info("WebServer is running");
+                }else{
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/pid", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+
+                if(hasAdminRight(request)) {
+                    response.write(Long.valueOf(TEnv.getCurrentPID()).toString());
+                }else{
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/reload", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+
+                if(hasAdminRight(request)) {
+                    webServer.reload(request.body().getBodyString());
+                    response.write("OK");
+                }else{
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/authtoken", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+                if(hasAdminRight(request)) {
+                    if(!request.body().getBodyString().isEmpty()){
+                        //重置 AUTH_TOKEN
+                        WebContext.AUTH_TOKEN = request.body().getBodyString();
+                        response.write("OK");
+                    } else {
+                        response.write("NOTHING");
+                    }
                 } else {
                     request.getSession().close();
                 }
             }
         });
+
+        webServer.otherMethod("ADMIN", "/voovan/admin/restart", new HttpRouter() {
+            @Override
+            public void process(HttpRequest request, HttpResponse response) throws Exception {
+                if(hasAdminRight(request)) {
+                    if(!request.body().getBodyString().isEmpty()){
+                        //重置 AUTH_TOKEN
+                        WebContext.AUTH_TOKEN = request.body().getBodyString();
+                        response.write("OK");
+                    } else {
+                        response.write("NOTHING");
+                    }
+
+                    response.send();
+
+                    ((TcpServerSocket)webServer.getServerSocket()).restart();
+                    Logger.info("Webserver restart done");
+
+                } else {
+                    request.getSession().close();
+                }
+            }
+        });
+
+        webServer.options("/voovan/admin/*", new OptionsRouter("ADMIN", "*", "auth-token"));
 
         //WebSocket 管理命令
         webServer.socket("/voovan/admin", new WebSocketRouter() {
