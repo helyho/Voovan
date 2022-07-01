@@ -132,7 +132,7 @@ public class ThreadPool {
 	public static ThreadPoolExecutor createThreadPool(String poolName, int mimPoolSize, int maxPoolSize, int keepAliveTime, boolean daemon, int priority, int queueSize){
 		ThreadPoolExecutor threadPoolInstance = THREAD_POOL_HANDLER.get(poolName);
 
-		if(threadPoolInstance==null) {
+		if(threadPoolInstance==null || threadPoolInstance.isShutdown()) {
 			threadPoolInstance = new ThreadPoolExecutor(mimPoolSize, maxPoolSize, keepAliveTime, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<Runnable>(queueSize), new FastThreadFactory(poolName, daemon, priority));
 			//设置allowCoreThreadTimeOut,允许回收超时的线程
 			threadPoolInstance.allowCoreThreadTimeOut(true);
@@ -154,7 +154,7 @@ public class ThreadPool {
 	 * @param threadPoolExecutor 线程池对象
 	 */
 	public static void gracefulShutdown(ThreadPoolExecutor threadPoolExecutor) {
-		if(threadPoolExecutor!=null && threadPoolExecutor.isShutdown()) {
+		if(threadPoolExecutor!=null && !threadPoolExecutor.isShutdown()) {
 			threadPoolExecutor.shutdown();
 			TEnv.wait(() -> !threadPoolExecutor.isShutdown());
 		}
