@@ -3,6 +3,7 @@ package org.voovan.network.tcp;
 import org.voovan.network.ConnectModel;
 import org.voovan.network.ConnectType;
 import org.voovan.network.SocketContext;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
@@ -160,6 +161,35 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 		if(serverSocketChannel!=null){
 			return serverSocketChannel.isOpen();
 		} else {
+			return false;
+		}
+	}
+
+	/**
+	 * 重启 ServerSocket
+	 * @return true:成功, false: 失败
+	 */
+	public boolean restart(){
+		try {
+			if(serverSocketChannel!=null && serverSocketChannel.isOpen()){
+				serverSocketChannel.close();
+			}
+			int acceptSize = this.getAcceptEventRunnerGroup().getThreadPool().getPoolSize();
+			int ioSize = this.getIoEventRunnerGroup().getThreadPool().getPoolSize();
+
+			this.getAcceptEventRunnerGroup().close();
+			this.getIoEventRunnerGroup().close();
+
+			setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", acceptSize+1, true));
+			setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", ioSize+1, false));
+
+			TEnv.sleep(1000);
+
+			syncStart();
+
+			return true;
+		} catch(IOException e){
+			Logger.error("TcpServerSocket.close failed", e);
 			return false;
 		}
 	}
