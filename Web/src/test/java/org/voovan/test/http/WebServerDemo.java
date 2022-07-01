@@ -16,6 +16,7 @@ import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.http.websocket.filter.StringFilter;
 import org.voovan.network.exception.SendMessageException;
+import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
@@ -37,6 +38,14 @@ public class WebServerDemo {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING);
 				resp.write("OK");
+			}
+		});
+
+		webServer.get("/restart", new HttpRouter() {
+			@Override
+			public void process(HttpRequest request, HttpResponse response) throws Exception {
+				((TcpServerSocket)webServer.getServerSocket()).restart();
+				System.out.println("restart ....");
 			}
 		});
 
@@ -282,7 +291,11 @@ public class WebServerDemo {
 				})
 		);
 
-		webServer.serve();
+//		Global.getHashWheelTimer().addTask(()->{
+//			((TcpServerSocket)webServer.getServerSocket()).restart();;
+//			System.out.println("restart ....");
+//		}, 3);
 
+		webServer.serve();
 	}
 }

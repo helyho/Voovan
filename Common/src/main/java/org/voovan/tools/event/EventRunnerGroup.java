@@ -173,6 +173,9 @@ public class EventRunnerGroup implements Closeable {
 		return this;
 	}
 
+	/**
+	 * 放弃 EventRunner 中未执行的任务, 等带当前正在执行的任务完成后关闭
+	 */
 	@Override
 	public void close() {
 		for(EventRunner eventRunner : eventRunners) {
