@@ -375,14 +375,13 @@ public class Body {
 	 * 清空缓冲
 	 */
 	public void clear(){
-		if(type == BodyType.BYTES) {
-			changeToBytes();
-		} else if(type == BodyType.FILE){
+		if(type == BodyType.FILE){
 			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
 				bodyFile.delete();
 			}
-			changeToBytes();
 		}
+
+		changeToBytes();
 
 		jsonPath = null;
 
