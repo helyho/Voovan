@@ -14,6 +14,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -159,8 +160,11 @@ public class WebServerCli {
 
                     response.send();
 
-                    ((TcpServerSocket)webServer.getServerSocket()).restart();
-                    Logger.info("Webserver restart done");
+                    float cost = (long) TEnv.measure(()->{
+                        ((TcpServerSocket)webServer.getServerSocket()).restart();
+                    }, TimeUnit.MILLISECONDS);
+
+                    Logger.infof("Webserver restart done, cost: {}ms",cost);
 
                 } else {
                     request.getSession().close();
