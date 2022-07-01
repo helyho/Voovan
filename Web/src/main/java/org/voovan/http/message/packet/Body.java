@@ -134,8 +134,10 @@ public class Body {
 			byteBufferChannel = new ByteBufferChannel();
 		}
 
-
 		if(bodyFile != null){
+			if(bodyFile.getPath().startsWith(TFile.getTemporaryPath())){
+				bodyFile.delete();
+			}
 			bodyFile = null;
 		}
 
@@ -375,17 +377,7 @@ public class Body {
 	 * 清空缓冲
 	 */
 	public void clear(){
-		if(type == BodyType.FILE){
-			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
-				bodyFile.delete();
-			}
-		}
-
 		changeToBytes();
-
-		jsonPath = null;
-
-		mark = 0;
 	}
 
 	public void saveAsFile(File destFile) throws IOException {
