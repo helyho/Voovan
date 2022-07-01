@@ -375,8 +375,8 @@ public class Body {
 	 * 清空缓冲
 	 */
 	public void clear(){
-		if(type == BodyType.BYTES && byteBufferChannel!=null && !byteBufferChannel.isReleased()) {
-			byteBufferChannel.clear();
+		if(type == BodyType.BYTES) {
+			changeToBytes();
 		} else if(type == BodyType.FILE){
 			if(bodyFile!=null && bodyFile.getPath().startsWith(TFile.getTemporaryPath())) {
 				bodyFile.delete();
