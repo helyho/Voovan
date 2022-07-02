@@ -155,7 +155,7 @@ public class WebServerCli {
                         WebContext.AUTH_TOKEN = request.body().getBodyString();
                         response.write("OK");
                     } else {
-                        response.write("NOTHING");
+                        response.write("PROCESSING");
                     }
 
                     response.send();
