@@ -19,6 +19,7 @@ import org.voovan.http.websocket.WebSocketType;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoSession;
 import org.voovan.network.SSLManager;
+import org.voovan.network.SocketContext;
 import org.voovan.network.exception.ReadMessageException;
 import org.voovan.network.exception.SendMessageException;
 import org.voovan.network.handler.SynchronousHandler;
@@ -28,6 +29,7 @@ import org.voovan.network.tcp.TcpSocket;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
+import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
@@ -57,6 +59,8 @@ import java.util.function.Consumer;
 public class HttpClient extends PooledObject implements Closeable{
 
 	public final static String DEFAULT_USER_AGENT = "Voovan Http Client " + Global.getVersion();
+
+	public final static EventRunnerGroup HTTP_CLIENT_EVENT_RUNNER_GROUP = SocketContext.createEventRunnerGroup("HttpClient", SocketContext.IO_THREAD_SIZE+1, false);
 
 	private TcpSocket socket;
 	private HttpRequest httpRequest;
@@ -163,6 +167,7 @@ public class HttpClient extends PooledObject implements Closeable{
 			parameters = new LinkedHashMap<String, Object>();
 
 			socket = new TcpSocket(hostString, port==-1?80:port, timeout*1000);
+			socket.setIoEventRunnerGroup(HTTP_CLIENT_EVENT_RUNNER_GROUP);
 			socket.filterChain().add(new HttpClientFilter(this));
 			socket.messageSplitter(new HttpMessageSplitter());
 
