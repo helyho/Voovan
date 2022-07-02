@@ -180,8 +180,8 @@ public class TcpServerSocket extends SocketContext<ServerSocketChannel, TcpSessi
 			this.getAcceptEventRunnerGroup().close();
 			this.getIoEventRunnerGroup().close();
 
-			setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", acceptSize+1, true));
-			setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", ioSize+1, false));
+			setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", acceptSize, true));
+			setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", ioSize, false));
 
 			TEnv.sleep(1000);
 
