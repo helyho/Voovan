@@ -694,8 +694,6 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * 重置
 	 */
 	public void reset(){
-		httpRequest.body().changeToBytes();
-
 		//清理请求对象,以便下次请求使用
 		parameters.clear();
 
