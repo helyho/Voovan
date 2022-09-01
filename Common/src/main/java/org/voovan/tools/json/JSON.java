@@ -171,6 +171,10 @@ public class JSON {
 	 * @return 接口后的对象
 	 */
 	public static Object parse(String jsonStr){
+		if(jsonStr==null) {
+			return null;
+		}
+
 		Object parseObject = null;
 		parseObject = JSONDecode.parse(jsonStr);
 		return parseObject;
