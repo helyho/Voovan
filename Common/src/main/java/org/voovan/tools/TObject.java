@@ -47,7 +47,6 @@ public class TObject {
 	 * @param objs List 列表的每一个元素
 	 * @return	初始化完成的List对象
 	 */
-	@SuppressWarnings("rawtypes")
 	public static List asList(Object ...objs){
 		List result = new ArrayList();
 		for(Object o : objs) {
