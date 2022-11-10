@@ -23,6 +23,12 @@ import java.util.concurrent.TimeUnit;
 
 
 public class TDateTime {
+
+	public final static long SECOND = TimeUnit.SECONDS.toMillis(1);
+	public final static long MINUTE = TimeUnit.MINUTES.toMillis(1);
+	public final static long HOUR = TimeUnit.HOURS.toMillis(1);
+	public final static long DAY = TimeUnit.DAYS.toMillis(1);
+
 	public final static Long BOOT_TIME_MILLS = System.currentTimeMillis();
 	public final static String STANDER_DATE_TEMPLATE = "yyyy-MM-dd";
 	public final static String STANDER_TIME_TEMPLATE = "HH:mm:ss";
@@ -36,6 +42,8 @@ public class TDateTime {
 	 */
 	public static String now(){
 		return format(new Date(),STANDER_DATETIME_TEMPLATE);
+
+
 	}
 
 	/**
@@ -206,7 +214,7 @@ public class TDateTime {
 	 * @param millis	微秒
 	 * @return Date 对象
 	 */
-	public static Date add(Date date,long millis){
+	public static Date add(Date date, long millis){
 		return new Date(date.getTime()+millis);
 	}
 
@@ -227,7 +235,7 @@ public class TDateTime {
 	/**
 	 * 获取日期中的时间元素
 	 * @param date 日期对象
-	 * @param type 时间元素类型
+	 * @param type 时间元素类型, 例如: Calendar.MINUTE
 	 * @return 时间元素的值
 	 */
 	public static int getDateElement(Date date,int type){
