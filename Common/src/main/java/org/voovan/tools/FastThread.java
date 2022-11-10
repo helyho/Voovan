@@ -3,7 +3,7 @@ package org.voovan.tools;
 /**
  * 快速线程(基于能够快速访问线程局部变量)
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

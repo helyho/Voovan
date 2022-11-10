@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 /**
  * 时间戳转换成字符串形式的时间格式
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

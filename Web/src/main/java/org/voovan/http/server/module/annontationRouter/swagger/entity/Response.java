@@ -3,7 +3,7 @@ package org.voovan.http.server.module.annontationRouter.swagger.entity;
 /**
  * Swagger response
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

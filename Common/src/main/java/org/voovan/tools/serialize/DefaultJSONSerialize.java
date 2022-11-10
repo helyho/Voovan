@@ -14,7 +14,7 @@ import java.util.TreeMap;
 /**
  * 默认框架内 JSON 序列化的实现
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

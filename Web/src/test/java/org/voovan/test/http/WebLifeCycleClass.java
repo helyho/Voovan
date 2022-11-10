@@ -7,7 +7,7 @@ import org.voovan.tools.log.Logger;
 /**
  * 类文字命名
  *
- * @author: helyho
+ * @author helyho
  * Framework Framework.
  * WebSite: https://github.com/helyho/Framework
  * Licence: Apache v2 License

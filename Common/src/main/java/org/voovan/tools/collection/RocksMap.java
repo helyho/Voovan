@@ -24,7 +24,7 @@ import java.util.function.Function;
 /**
  * RocksDB 的 Map 封装
  *
- * @author: helyho
+ * @author helyho
  * ignite-test Framework.
  * WebSite: https://github.com/helyho/ignite-test
  * Licence: Apache v2 License

@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * ProtoStuff 的序列化实现
  *
- * @author: helyho
+ * @author helyho
  * ignite-test Framework.
  * WebSite: https://github.com/helyho/ignite-test
  * Licence: Apache v2 License

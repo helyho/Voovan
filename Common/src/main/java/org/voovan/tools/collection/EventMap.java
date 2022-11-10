@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 /**
  * 基于事件的 Map 方便对 map 的修改进行跟踪
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

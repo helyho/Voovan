@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 数据库记录操作类
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

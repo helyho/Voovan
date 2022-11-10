@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 属性存储器
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

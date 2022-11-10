@@ -11,7 +11,7 @@ import java.util.concurrent.*;
 /**
  * RocksDB 的 DelayQueue 封装 <br>
  * 最小延时单位: 秒
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

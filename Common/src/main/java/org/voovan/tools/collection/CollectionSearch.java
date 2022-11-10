@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 /**
  * Collection 筛选类
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

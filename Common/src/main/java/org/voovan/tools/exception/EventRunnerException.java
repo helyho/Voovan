@@ -3,7 +3,7 @@ package org.voovan.tools.exception;
 /**
  * EventRunner 异常
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

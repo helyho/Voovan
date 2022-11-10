@@ -5,7 +5,7 @@ import java.lang.annotation.*;
 /**
  * 池化对象的注解路由
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

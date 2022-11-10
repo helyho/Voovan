@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 /**
  * 序列化数据转字符串
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

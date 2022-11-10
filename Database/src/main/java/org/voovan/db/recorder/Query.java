@@ -7,7 +7,7 @@ import java.util.*;
 /**
  * 查询条件构造
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

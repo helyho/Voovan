@@ -9,7 +9,7 @@ import java.lang.reflect.Method;
 /**
  *  注解路由拦截器
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

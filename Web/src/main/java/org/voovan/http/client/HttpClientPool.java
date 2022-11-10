@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 /**
  * httpclient 连接池
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

@@ -9,7 +9,7 @@ import java.util.function.Supplier;
  *      2. get / set 时作为 wrap 使用
  *      3. 如果当前索引位不够用, 则采用 java.lang.ThreadLocal 补充
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

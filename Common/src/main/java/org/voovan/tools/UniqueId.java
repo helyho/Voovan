@@ -9,7 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 参考 snowflake 算法快速生成 ID
  * 在 2109-05-15 15:35:11:103 可 保证无重复
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

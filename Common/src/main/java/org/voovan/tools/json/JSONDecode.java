@@ -508,7 +508,6 @@ public class JSONDecode {
 	 * @param <T>         范型
 	 * @param jsonStr    JSON字符串
 	 * @param clazz        JSON 字符串将要转换的目标类
-	 * @param clazz            转换的目标 java 类
 	 * @return                    JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常

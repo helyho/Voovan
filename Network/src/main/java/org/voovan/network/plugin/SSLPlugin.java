@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 /**
  * SSL 插件用于支持 SSL 加密通信
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

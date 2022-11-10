@@ -22,7 +22,7 @@ import static org.voovan.tools.TString.TOKEN_SUFFIX;
  * 动态函数管理类
  *      为了安全问题,默认不外部包导入功能,如果需要可以使用 setEnableImportInCode 方法设置
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

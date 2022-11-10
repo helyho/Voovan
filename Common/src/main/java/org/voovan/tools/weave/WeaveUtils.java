@@ -20,7 +20,7 @@ import java.util.regex.Matcher;
 /**
  * 代码织入工具类
  *
- * @author: helyho
+ * @author helyho
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
  */

@@ -15,7 +15,7 @@ import org.voovan.tools.TString;
  *      allowMethods: 跨域访问允许的方法
  *
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * 类文字命名
  *
- * @author: helyho
+ * @author helyho
  * ignite-test Framework.
  * WebSite: https://github.com/helyho/ignite-test
  * Licence: Apache v2 License

@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * Some description
  *
- * @author: helyho
+ * @author helyho
  * Project: Framework
  * Create: 2017/9/28 12:13
  */

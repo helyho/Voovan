@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.LongAdder;
 /**
  * ByteBuffer 内存分配分析类
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

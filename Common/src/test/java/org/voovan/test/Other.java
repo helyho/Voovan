@@ -5,7 +5,7 @@ import org.voovan.tools.log.Logger;
 /**
  * none
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

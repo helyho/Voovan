@@ -18,7 +18,7 @@ import java.util.function.Function;
  * 进程内缓存处理类
  *      可字发现对象,在对象没有时自动同步对象到缓存,具备超时, 按照 LRU 的原则清理过期数据
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

@@ -10,7 +10,7 @@ import java.util.List;
  * 定长队列
  *  当队列满时,会自动清除头部元素
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

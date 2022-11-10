@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 /**
  * 切面调用信息
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

@@ -3,7 +3,7 @@ package org.voovan.tools.exception;
 /**
  * 无堆栈 RuntimeException
  *
- * @author: helyho
+ * @author helyho
  * voovan-framework Framework.
  * WebSite: https://github.com/helyho/voovan-framework
  * Licence: Apache v2 License

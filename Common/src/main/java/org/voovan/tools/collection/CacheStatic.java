@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 缓存静态类
  *  用于准备 memcached 和 redis 的连接池
  *
- * @author: helyho
+ * @author helyho
  * Project: Framework
  * Create: 2017/9/26 18:30
  */

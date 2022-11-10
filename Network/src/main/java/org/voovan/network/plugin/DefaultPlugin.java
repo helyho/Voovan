@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 /**
  * 默认插件, SocketContext 无须手工初始化, SocketContext初始化时会作为默认的第一个插件初始化到 PluginChain 中
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

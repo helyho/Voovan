@@ -9,7 +9,7 @@ import org.voovan.tools.security.Cipher;
 /**
  * 对称密钥加密截断器
  *
- * @author: helyho
+ * @author helyho
  * Project: DBase
  * Create: 2017/11/1 14:46
  */

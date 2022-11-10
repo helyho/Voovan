@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 根据 Url 限定 ip 访问的过滤器
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

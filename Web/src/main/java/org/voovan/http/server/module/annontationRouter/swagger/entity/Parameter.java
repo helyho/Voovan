@@ -6,7 +6,7 @@ import org.voovan.tools.reflect.annotation.Serialization;
 /**
  * Swagger parameter
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

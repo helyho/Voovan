@@ -12,7 +12,7 @@ import java.util.Queue;
 /**
  * RocksDB 的 Queue 封装
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

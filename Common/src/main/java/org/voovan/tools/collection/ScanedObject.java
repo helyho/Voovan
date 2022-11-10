@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Redis 的扫描结果封装对象
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 /**
  * Aop 字节码织入类
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

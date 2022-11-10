@@ -40,7 +40,7 @@ import java.security.spec.X509EncodedKeySpec;
  *
  * https://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#MessageDigest
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

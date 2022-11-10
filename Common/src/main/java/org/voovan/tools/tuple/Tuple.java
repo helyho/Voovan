@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 /**
  * 带命名的元组类型
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

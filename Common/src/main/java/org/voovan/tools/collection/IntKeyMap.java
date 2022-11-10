@@ -8,7 +8,7 @@ import java.util.Set;
 /**
  * int 作为 key 的 map
  * 参考开放地址方法
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

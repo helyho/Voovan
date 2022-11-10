@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
  * Byte数据截断器
  *      255+4位为数据长度+255+数据
  *
- * @author: helyho
+ * @author helyho
  * Project: DBase
  * Create: 2017/11/1 14:38
  */

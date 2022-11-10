@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  *      采用 JavaAgent 方式进行类的热部署
  *      使用这种热部署方式,不能新增方法和属性,也就说类的结构不能发生变化
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

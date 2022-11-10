@@ -20,7 +20,7 @@ import java.util.function.Consumer;
 /**
  * Dao 对象基础类
  *
- * @author: helyho
+ * @author helyho
  * walletbridge Framework.
  * WebSite: https://github.com/helyho/walletbridge
  * Licence: Apache v2 License

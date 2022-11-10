@@ -5,7 +5,7 @@ import org.voovan.http.message.HttpStatic;
 /**
  * Some description
  *
- * @author: helyho
+ * @author helyho
  * Project: BlockLink
  * Create: 2017/9/21 19:41
  */

@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 /**
  * Varint
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

@@ -14,7 +14,7 @@ import java.util.function.Function;
 /**
  * 事件执行管理器
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

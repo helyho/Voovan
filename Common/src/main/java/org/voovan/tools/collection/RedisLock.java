@@ -13,7 +13,7 @@ import java.util.Collections;
 /**
  * 基于 Redis 的分布式锁
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

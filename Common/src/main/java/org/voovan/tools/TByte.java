@@ -5,7 +5,7 @@ import java.nio.charset.Charset;
 /**
  * 基本类型转换为字节
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

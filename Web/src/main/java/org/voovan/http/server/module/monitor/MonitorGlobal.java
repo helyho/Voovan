@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Some description
  *
- * @author: helyho
+ * @author helyho
  * Project: Framework
  * Create: 2017/9/28 12:07
  */

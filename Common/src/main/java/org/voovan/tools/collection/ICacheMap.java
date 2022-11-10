@@ -6,7 +6,7 @@ import java.util.function.Function;
 /**
  * 缓存的基础类
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

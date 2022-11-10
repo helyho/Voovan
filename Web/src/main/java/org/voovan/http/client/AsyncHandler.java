@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 /**
  * HttpClient 异步 IoHandler 实现
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

@@ -3,7 +3,7 @@ package org.voovan.db.recorder.exception;
 /**
  * Recorder 异常
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

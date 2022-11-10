@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 /**
  * Base58 工具类
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

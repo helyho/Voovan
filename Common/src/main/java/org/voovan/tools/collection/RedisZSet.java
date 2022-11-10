@@ -14,7 +14,7 @@ import java.util.*;
 /**
  * Redis 的 ZSet 封装
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

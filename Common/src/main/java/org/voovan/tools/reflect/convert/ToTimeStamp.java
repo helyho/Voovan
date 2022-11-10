@@ -7,7 +7,7 @@ import java.util.Date;
 /**
  * Date 形式的时间转换成时间戳
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

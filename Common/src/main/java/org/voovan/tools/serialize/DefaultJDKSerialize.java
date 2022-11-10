@@ -7,7 +7,7 @@ import java.io.*;
 /**
  * 默认 JDK 序列化的实现
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

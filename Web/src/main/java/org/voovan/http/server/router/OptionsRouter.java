@@ -9,7 +9,7 @@ import org.voovan.http.server.HttpRouter;
  * 用类处理自定义 header 以及跨域的处理
  *      自定义的 header 会先用 Options 探测是否支持自定义的 headers
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

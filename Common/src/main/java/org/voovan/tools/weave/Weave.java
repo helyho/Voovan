@@ -16,7 +16,7 @@ import java.security.ProtectionDomain;
 /**
  * 代码织入主类
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

@@ -14,7 +14,7 @@ import java.util.*;
 /**
  * 基于 Redis 的 List 实现
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

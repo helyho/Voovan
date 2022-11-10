@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  *
  *      如果 name 为 null,则采用 redis 的顶层键值系统, 如果 name 为非 null 则使用 redis 的 map 系统
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

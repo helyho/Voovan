@@ -5,7 +5,7 @@ import org.voovan.tools.TUnsafe;
 /**
  * 自动跟踪 GC 销毁的
  *
- * @author: helyho
+ * @author helyho
  * Voovan Framework.
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License

@@ -8,7 +8,7 @@ import org.voovan.http.websocket.filter.StringFilter;
 /**
  * 类文字命名
  *
- * @author: helyho
+ * @author helyho
  * voovan Framework.
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License

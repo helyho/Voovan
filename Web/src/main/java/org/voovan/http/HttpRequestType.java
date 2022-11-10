@@ -3,7 +3,7 @@ package org.voovan.http;
 /**
  * Http 请求类型
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License

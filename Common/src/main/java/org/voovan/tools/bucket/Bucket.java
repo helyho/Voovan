@@ -8,7 +8,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * 令牌桶,漏桶基类
  *
- * @author: helyho
+ * @author helyho
  * DBase Framework.
  * WebSite: https://github.com/helyho/DBase
  * Licence: Apache v2 License
