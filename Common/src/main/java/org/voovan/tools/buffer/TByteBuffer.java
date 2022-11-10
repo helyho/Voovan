@@ -5,7 +5,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
-import sun.misc.Unsafe;
+import jdk.internal.misc.Unsafe;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.invoke.MethodHandle;
