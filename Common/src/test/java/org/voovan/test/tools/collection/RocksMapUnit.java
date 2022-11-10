@@ -78,20 +78,19 @@ public class RocksMapUnit extends TestCase {
 
     public void testWal() throws RocksDBException {
         DBOptions dbOptions = new DBOptions();
-        dbOptions.setUnorderedWrite(true);
         ReadOptions readOptions = new ReadOptions();
         WriteOptions writeOptions = new WriteOptions();
         ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
 
-//        dbOptions.setDbWriteBufferSize(1024*1024*512);
+        dbOptions.setDbWriteBufferSize(1024*1024*512);
 
         dbOptions.setCreateIfMissing(true);
         dbOptions.setCreateMissingColumnFamilies(true);
         dbOptions.setUseDirectReads(true);
-//        dbOptions.setUseDirectIoForFlushAndCompaction(true);
+        dbOptions.setUseDirectIoForFlushAndCompaction(true);
 
         //设置 MemTable 大小
-//        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
+        columnFamilyOptions.setWriteBufferSize(1024*1024*512);
 
         RocksMap rocksMap =  new RocksMap("waltest", "cfname", columnFamilyOptions, dbOptions, readOptions, writeOptions, null);
         for(int i=0;i<30;i++){
@@ -124,7 +123,7 @@ public class RocksMapUnit extends TestCase {
             ((RocksMap)map).put(16, 32);
             return null;
         });
-//
+
         rocksMap.choseColumnFamily("default").put(90, 65536);
         System.out.println(rocksMap.choseColumnFamily("cfname").get(90));
 
@@ -166,6 +165,7 @@ public class RocksMapUnit extends TestCase {
         }
 
         rocksMap.compact();
+        System.out.println("====================================");
 
         rocksWalRecords = rocksMap.getWalSince(0l, true);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
@@ -490,12 +490,11 @@ public class RocksMapUnit extends TestCase {
         RocksMap.setRootPath("bingo");
 
         RocksMap rocksMap = new RocksMap("testdb", RocksMap.Type.SECONDARY);
-        System.out.println(rocksMap.get("aaaa"));
-        System.out.println(rocksMap.get("aaaa"));
+        System.out.println(rocksMap.get("aaaa1"));
         rocksMap.tryCatchUpWithPrimary();
-        System.out.println(rocksMap.get("aaaa"));
+        System.out.println(rocksMap.get("aaaa1"));
         rocksMap.tryCatchUpWithPrimary();
-        System.out.println(rocksMap.get("aaaa"));
+        System.out.println(rocksMap.get("aaaa3"));
 
     }
 
@@ -506,9 +505,9 @@ public class RocksMapUnit extends TestCase {
         RocksMap rocksMap1 = new RocksMap(cfName);
         rocksMap1.put(System.currentTimeMillis(), System.currentTimeMillis());
 
-        BackupableDBOptions backupableDBOptions = rocksMap1.getBackupableDBOptions();
-        backupableDBOptions.setDestroyOldData(false);
-        backupableDBOptions.setBackupLogFiles(true);
+        BackupEngineOptions backupEngineOptions = rocksMap1.getBackupEngineOptions();
+        backupEngineOptions.setDestroyOldData(false);
+        backupEngineOptions.setBackupLogFiles(true);
 
         //创建备份
         String backupDir = rocksMap1.createBackup(true);

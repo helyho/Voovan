@@ -181,7 +181,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     public transient ReadOptions          readOptions;
     public transient WriteOptions         writeOptions;
     public transient ColumnFamilyOptions  columnFamilyOptions;
-    public transient BackupableDBOptions  backupableDBOptions;
+    public transient BackupEngineOptions backupEngineOptions;
 
     private transient RocksDB                     rocksDB;
     private transient ColumnFamilyHandle          dataColumnFamilyHandle;
@@ -302,7 +302,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
 
         this.dbOptions.setWalDir(walPath);
-        this.backupableDBOptions = new BackupableDBOptions(backupPath);
+        this.backupEngineOptions = new BackupEngineOptions(backupPath);//new BackupableDBOptions();
         this.dbOptions.setDbLogDir(logPath);
 
         rocksDB = ROCKSDB_MAP.get(this.dbName);
@@ -474,8 +474,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         return columnFamilyOptions;
     }
 
-    public BackupableDBOptions getBackupableDBOptions() {
-        return backupableDBOptions;
+    public BackupEngineOptions getBackupEngineOptions() {
+        return backupEngineOptions;
     }
 
     public Serialize getSerialize() {
@@ -505,9 +505,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 备份路径
      */
     public String createBackup(boolean beforeFlush) {
-        try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupableDBOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupEngineOptions)){
             backupEngine.createNewBackup(this.rocksDB, beforeFlush);
-            return backupableDBOptions.backupDir();
+            return backupEngineOptions.backupDir();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap createBackup failed , " + e.getMessage(), e);
         }
@@ -522,7 +522,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 备份信息清单
      */
     public List<BackupInfo> getBackupInfo() {
-        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupEngineOptions)){
             return backupEngine.getBackupInfo();
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap getBackupInfo failed , " + e.getMessage(), e);
@@ -534,7 +534,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
     public void restoreLatestBackup(Boolean keepLogfile) {
-        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupEngineOptions)){
             RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
 
             backupEngine.restoreDbFromLatestBackup(dataPath, walPath, restoreOptions);
@@ -554,7 +554,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param keepLogfile 是否覆盖原有 wal 日志
      */
     public void restore(int backupId, Boolean keepLogfile) {
-        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupEngineOptions)){
             RestoreOptions restoreOptions = new RestoreOptions(keepLogfile);
             backupEngine.restoreDbFromBackup(backupId, dataPath, walPath, restoreOptions);
             restoreOptions.close();
@@ -570,7 +570,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
 
     public void deleteBackup(int backupId) throws RocksDBException {
-        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupEngineOptions)){
             backupEngine.deleteBackup(backupId);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap deleteBackup failed , " + e.getMessage(), e);
@@ -583,7 +583,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @param number 保留的备份书
      */
     public void PurgeOldBackups(int number) {
-        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupableDBOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupEngineOptions)){
             backupEngine.purgeOldBackups(number);
         } catch (RocksDBException e) {
             throw new RocksMapException("RocksMap PurgeOldBackups failed , " + e.getMessage(), e);
