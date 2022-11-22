@@ -1,0 +1,42 @@
+{
+  ServerName             : VoovanWebServer,
+  Host                   : 0.0.0.0,
+  Port                   : 28080,
+  ReadTimeout            : 10,
+  SendTimeout            : 30,
+  IndexFiles             : index.htm,index.html,default.htm,default.htm,
+  ContextPath            : WEBAPP,
+  MatchRouteIgnoreCase   : false,
+  CharacterSet           : UTF-8,
+  SessionContainer       : org.voovan.tools.collection.CacheMap,
+  SessionTimeout         : 1,
+  KeepAliveTimeout       : 60,
+  Gzip                   : true,
+  GzipMinSize            : 1024,
+  GzipMimeType           : [  text/html,
+                              text/plain,
+                              text/css,
+                              text/javascript,
+                              application/javascript,
+                              application/json],
+  AccessLog              : false,
+  maxRequestSize         : 65536,
+
+  // When it discomment, it will be depend on javaassist
+  //  WeaveConfig              : {
+  //    Scan  : org.voovan,
+  //    Inject : org.voovan
+  //  },
+
+  //  Https: {
+  //      CertificateFile        : ssl_ks,
+  //      CertificatePassword    : cert_pass,
+  //      KeyPassword            : key_pass,
+  //  },
+
+  Filters: [],
+
+  Routers: [],
+
+  Modules: []
+}

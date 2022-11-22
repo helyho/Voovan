@@ -16,13 +16,13 @@
   Gzip                   : true,                                            // 是否启用Gzip压缩,默认 true
   GzipMinSize            : 1024,                                            // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
   GzipMimeType           : [  text/html,
-    text/plain,
-    text/css,
-    text/javascript,
-    application/javascript,
-    application/json],                          // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
+                                text/plain,
+                                text/css,
+                                text/javascript,
+                                application/javascript,
+                                application/json],                          // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
   AccessLog              : true,                                           // 是否记录access.log,默认 true
-  HotSwapInterval        : 3,                                              // 热加载检测时间间隔. 默认:0秒. 0:关闭
+  HotSwapInterval        : 3,                                               // 热加载检测时间间隔. 默认:0秒. 0:关闭
   LifeCycleClass         : org.voovan.test.http.WebLifeCycleClass,        // 配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
   PauseURL               : /img/logo.jpg,                                 // 服务器暂停状态下所有请求都会转向这个路由
   Cache                  : false,
@@ -33,12 +33,12 @@
     Inject : org.voovan
   },
 
-  //  HTTPS证书配置
-  //  Https: {
-  //      CertificateFile        : /src/test/java/org/voovan/test/http/ssl_ks,  // HTTPS 证书
-  //      CertificatePassword    : passStr,                // HTTPS 证书密码
-  //      KeyPassword            : 123123,                 // HTTPS 证书Key 密码
-  //  },
+//  HTTPS证书配置
+//  Https: {
+//      CertificateFile        : /src/test/java/org/voovan/test/http/ssl_ks,  // HTTPS 证书
+//      CertificatePassword    : passStr,                // HTTPS 证书密码
+//      KeyPassword            : 123123,                 // HTTPS 证书Key 密码
+//  },
 
   // 过滤器配置节点 请求 先执行filter1, 后执行filter2,响应则相反
 
@@ -58,7 +58,7 @@
       ClassName : org.voovan.test.http.HttpFilterTest,
       Encoding  : UTF-8,
       Action    : pass      },
-    {
+   {
       Name : TokenBucketFilter, //限制新增委托的过滤器
       enable:true,
       ClassName : org.voovan.http.server.filter.RateLimiterFilter,
@@ -71,29 +71,29 @@
           type:url,
           response: your request is limited
         },
-        //        {
-        //          limitSize:1,
-        //          interval:5000,
-        //          value: 127.0.0.1,
-        //          type:IP,
-        //          response: your request is limited
-        //        },
-        //        {
-        //          limitSize:1,         //限流数量, 令牌桶为每次新增的令牌数, 漏桶为刷新后桶的容量
-        //          interval:5000,       //限流器刷新时间, 令牌桶为新增令牌时间, 漏桶为刷新时间
-        //          value: Connection, //限流的数据类型, 在 URL 限流时为数据, ip 这个数据无效, HEADER 和 SESSOIN 为具体数据的 key
-        //          type:HEADER,     //限流的类型: HEADER, URL, SESSION, IP
-        //          response: your request is limited,  // 被限流时的响应
-        //          bucketType : TOKEN  //过滤器限流类型: LEAK 漏桶, TOKEN 令牌桶
-        //        },
-        //        {
-        //          limitSize:1,
-        //          interval:5000,
-        //          value: Connection,
-        //          type:ession,
-        //          response: your request is limited,
-        //          bucketType : TOKEN
-        //        },
+//        {
+//          limitSize:1,
+//          interval:5000,
+//          value: 127.0.0.1,
+//          type:IP,
+//          response: your request is limited
+//        },
+//        {
+//          limitSize:1,         //限流数量, 令牌桶为每次新增的令牌数, 漏桶为刷新后桶的容量
+//          interval:5000,       //限流器刷新时间, 令牌桶为新增令牌时间, 漏桶为刷新时间
+//          value: Connection, //限流的数据类型, 在 URL 限流时为数据, ip 这个数据无效, HEADER 和 SESSOIN 为具体数据的 key
+//          type:HEADER,     //限流的类型: HEADER, URL, SESSION, IP
+//          response: your request is limited,  // 被限流时的响应
+//          bucketType : TOKEN  //过滤器限流类型: LEAK 漏桶, TOKEN 令牌桶
+//        },
+//        {
+//          limitSize:1,
+//          interval:5000,
+//          value: Connection,
+//          type:ession,
+//          response: your request is limited,
+//          bucketType : TOKEN
+//        },
       ]
     }
   ],
@@ -124,11 +124,11 @@
         Version: v1.0.0
       }
     },
-    //    {
-    //      Name: Monitor,                                                    //模块名称
-    //      Path: /monitor,                                                   //模块路径
-    //      ClassName: org.voovan.http.server.module.monitor.MonitorModule,   //模块处理器
-    //      AllowIPAddress: [127.0.0.1, 10.0.0.4]
-    //    }
+//    {
+//      Name: Monitor,                                                    //模块名称
+//      Path: /monitor,                                                   //模块路径
+//      ClassName: org.voovan.http.server.module.monitor.MonitorModule,   //模块处理器
+//      AllowIPAddress: [127.0.0.1, 10.0.0.4]
+//    }
   ]
 }
