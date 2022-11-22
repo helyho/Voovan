@@ -7,14 +7,10 @@ import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -29,7 +25,7 @@ import java.util.stream.Collectors;
 public class JSONPath {
 
     public enum SplitChar {
-        DOT("\\."),
+        POINT("\\."),
         BACKSLASH(Global.STR_BACKSLASH);
         private String value;
 

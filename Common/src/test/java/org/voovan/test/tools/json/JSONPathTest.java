@@ -114,7 +114,7 @@ public class JSONPathTest {
     public static void main(String[] args) throws ReflectiveOperationException {
         JSONPath jsonPath = new JSONPath(tmpStr);
         Logger.info(jsonPath.value("/Version/Index"));
-        jsonPath.setPathSplitor(JSONPath.SplitChar.DOT);
+        jsonPath.setPathSplitor(JSONPath.SplitChar.POINT);
         Logger.info(jsonPath.value("Version.Index"));
     }
 }
