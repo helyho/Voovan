@@ -16,11 +16,11 @@
   Gzip                   : true,                                            // 是否启用Gzip压缩,默认 true
   GzipMinSize            : 1024,                                            // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
   GzipMimeType           : [  text/html,
-    text/plain,
-    text/css,
-    text/javascript,
-    application/javascript,
-    application/json],                          // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
+                              text/plain,
+                              text/css,
+                              text/javascript,
+                              application/javascript,
+                              application/json],                          // 启用Gzip压缩的最小响应报文, 默认 2048 byte 以上启用 gzip 压缩
   AccessLog              : true,                                           // 是否记录access.log,默认 true
   HotSwapInterval        : 3,                                              // 热加载检测时间间隔. 默认:0秒. 0:关闭
   LifeCycleClass         : org.voovan.test.http.WebLifeCycleClass,        // 配置在Web 服务启动时加载并运行初始化类, 该类需继承:org.voovan.http.server.WebServerInit
