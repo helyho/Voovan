@@ -1099,6 +1099,23 @@ public class TString {
 	}
 
 	/**
+	 * 字符串快捷拼装方法
+	 * @param splitor 分割字符串
+	 * @param items 需要拼装的字符串
+	 * @return 拼装后的字符串
+	 */
+	public static String join(String splitor,  Object ... items){
+		StringBuilder stringBuilder = new StringBuilder();
+		for(Object item : items){
+			stringBuilder.append(item + splitor);
+		}
+
+		stringBuilder.substring(0, stringBuilder.length()-splitor.length());
+
+		return stringBuilder.toString();
+	}
+
+	/**
 	 * 将字符串转化成 Ascii 的 byte[]
 	 * @param str 需要转换的字符串
 	 * @return 转换后的字节队列
