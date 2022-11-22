@@ -201,7 +201,7 @@ public class JSONDecode {
 				}
 
 				//====================  创建根对象((有根包裹)  ====================
-				if (root == null && !isString && isComment==0 && !isFunction) {
+				if (root == null && !isString && isComment==0 /*&& !isFunction*/) {
 					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES ||
 							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_COMMA) {
 						char flag = currentChar;
@@ -239,7 +239,7 @@ public class JSONDecode {
 
 
 				//====================  处理对象的包裹  ====================
-				if(!isString &&  !isFunction) {
+				if(!isString /*&&  !isFunction*/) {
 					//数组 []
 					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
