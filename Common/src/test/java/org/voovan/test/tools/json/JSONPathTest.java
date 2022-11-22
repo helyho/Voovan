@@ -13,7 +13,7 @@ import org.voovan.tools.log.Logger;
  *         Licence: Apache v2 License
  */
 public class JSONPathTest {
-    public static String tmpStr = "[\n" +
+    public static String tmpStr = //"[\n" +
             "  {\n" +
             "    \"ID\": \"7hyvnnrbp48bzcvolx35hdoqg\",\n" +
             "    \"Version\": {\n" +
@@ -108,11 +108,13 @@ public class JSONPathTest {
             "      \"StartedAt\": \"0001-01-01T00:00:00Z\",\n" +
             "      \"CompletedAt\": \"0001-01-01T00:00:00Z\"\n" +
             "    }\n" +
-            "  }\n" +
-            "]";
+            "  }\n" ;
+//            "]";
 
     public static void main(String[] args) throws ReflectiveOperationException {
         JSONPath jsonPath = new JSONPath(tmpStr);
-        Logger.info(jsonPath.value("/[0]/Version/Index"));
+        Logger.info(jsonPath.value("/Version/Index"));
+        jsonPath.setPathSplitor(JSONPath.SplitChar.DOT);
+        Logger.info(jsonPath.value("Version.Index"));
     }
 }

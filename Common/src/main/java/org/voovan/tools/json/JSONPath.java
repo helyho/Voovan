@@ -1,5 +1,6 @@
 package org.voovan.tools.json;
 
+import org.voovan.Global;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TStream;
 import org.voovan.tools.TString;
@@ -27,7 +28,24 @@ import java.util.stream.Collectors;
  */
 public class JSONPath {
 
+    public enum SplitChar {
+        DOT("\\."),
+        BACKSLASH(Global.STR_BACKSLASH);
+        private String value;
+
+        SplitChar(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+//        "\\.", "/"
+    }
+
     private Object parsedObj;
+    private SplitChar pathSplitor = SplitChar.BACKSLASH;
 
     public JSONPath(String jsonStr) {
         if(jsonStr.startsWith("http")) {
@@ -48,9 +66,17 @@ public class JSONPath {
         }
     }
 
+    public SplitChar getPathSplitor() {
+        return pathSplitor;
+    }
+
+    public void setPathSplitor(SplitChar pathSplitor) {
+        this.pathSplitor = pathSplitor;
+    }
+
     public Object parse(String pathQry, Object parsedObj) {
         Object currentPathObject = parsedObj;
-        String[] pathElems = pathQry.split("/");
+        String[] pathElems = pathQry.split(pathSplitor.getValue());
         ArrayList result = new ArrayList();
 
         for (int m=0;m<pathElems.length;m++) {
