@@ -22,7 +22,7 @@ public class JSONDecodeUnit extends TestCase {
 									"\"bint\":56,"+
 									"\"string\":\"bi\\\"ngo\","+
 									"\"list\":["+
-										"\"tb2 list\n item\""+
+										"\"tb2 list item\""+
 									"],"+
 									"\"map\":{"+
 										"\"tb2 map item\":\"tb2 map item\""+
@@ -39,7 +39,25 @@ public class JSONDecodeUnit extends TestCase {
 								"} " +
 							" ";
 
+//		String jsonString = "\n" +
+//				"\t/* asdfasdf */\n" +
+//				"\tbint: 32,\n" +
+//				"\tstring: helyho,\n" +
+//				"\ttb2: {\n" +
+//				"\t\tbint: 56,\n" +
+//				"\t\tstring: \"bi\\ngo\n 123123\",\n " +
+//				"\t\tlist: [tb2 list item],\n" +
+//				"\t\tmap: {\n" +
+//				"\t\t\ttb2 map item: tb2 map item\n" +
+//				"\t\t}\n" +
+//				"\t},\n" +
+//				"\tlist: [listitem1, listitem2, listitem3],\n" +
+//				"\tmap: {\n" +
+//				"\t\tmapitem2: mapitem2,\n" +
+//				"\t\tmapitem1: mapitem1\n" +
+//				"\t}\n" ;
 
+		System.out.println(jsonString);
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString);
 		assertTrue((Integer)obj.size()==5);
 		assertTrue((Integer)obj.get("bint")==32);

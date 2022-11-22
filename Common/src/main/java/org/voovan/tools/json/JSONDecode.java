@@ -78,14 +78,12 @@ public class JSONDecode {
 	 * @return 根对象
 	 * @throws IOException IO 异常
 	 */
-	public static Object createRootObj (StringReader reader) throws IOException {
+	public static Object createRootObj(char flag) throws IOException {
 		int type = 0;
 		Object root = null;
 
 		//根据起始和结束符号,决定返回的对象类型
 		if (type == 0) {
-			char flag = (char) reader.read();
-
 			if (flag == Global.CHAR_LC_BRACES) {
 				type = E_OBJECT;
 			}
@@ -101,7 +99,7 @@ public class JSONDecode {
 		} else if (E_ARRAY == type) {
 			root = (List) new ArrayList<Object>(1024);
 		} else {
-			reader.skip(-1);
+			Logger.errorf("JSONDecode: create root objec failed {}", flag);
 		}
 
 		return root;
@@ -204,10 +202,19 @@ public class JSONDecode {
 
 				//====================  创建根对象((有根包裹)  ====================
 				if (root == null && !isString && isComment==0 && !isFunction) {
-					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
-						reader.skip(-1);
-						root = createRootObj(reader);
-						continue;
+					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES ||
+							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_COMMA) {
+						char flag = currentChar;
+
+						//通过结构形式推断根对象类型
+						flag = flag == Global.CHAR_COLON ? '{' : flag;
+						flag = flag == Global.CHAR_COLON ? '[' : flag;
+						root = createRootObj(flag);
+
+						//推断根对象类型, 则字符不表意, 则继续处理
+						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
+							continue;
+						}
 					}
 				}
 
@@ -298,24 +305,24 @@ public class JSONDecode {
 				//处理数据
 				if(!isString) {
 					//如果是函数 function 起始
-					if (!isString && itemString.toString().trim().startsWith("function")) {
+//					if (itemString.toString().trim().startsWith("function")) {
+//
+//						if (currentChar == Global.CHAR_LC_BRACES) {
+//							functionWarpFlag++;
+//						} else if (currentChar == Global.CHAR_RC_BRACES) {
+//							functionWarpFlag--;
+//
+//							if (functionWarpFlag == 0) {
+//								isFunction = false;
+//								value = itemString.toString();
+//								itemString = new StringBuilder();
+//							}
+//						} else {
+//							isFunction = true;
+//						}
+//					}
 
-						if (currentChar == Global.CHAR_LC_BRACES) {
-							functionWarpFlag++;
-						} else if (currentChar == Global.CHAR_RC_BRACES) {
-							functionWarpFlag--;
-
-							if (functionWarpFlag == 0) {
-								isFunction = false;
-								value = itemString.toString();
-								itemString = new StringBuilder();
-							}
-						} else {
-							isFunction = true;
-						}
-					}
-
-					if(!isFunction) {
+//					if(!isFunction) {
 						//JSON对象字符串分组,取 Key 对象,当前字符是:则取 Key
 						if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
 							keyString = itemString.substring(0, itemString.length() - 1).trim();
@@ -338,7 +345,7 @@ public class JSONDecode {
 							}
 							itemString = new StringBuilder();
 						}
-					}
+//					}
 				}
 
 				//返回值处理
