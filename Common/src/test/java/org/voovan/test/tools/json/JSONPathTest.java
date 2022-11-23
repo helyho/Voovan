@@ -91,6 +91,11 @@ public class JSONPathTest {
             "          \"Protocol\": \"tcp\",\n" +
             "          \"TargetPort\": 80,\n" +
             "          \"PublishedPort\": 8080\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"Protocol\": \"tcp\",\n" +
+            "          \"TargetPort\": 80,\n" +
+            "          \"PublishedPort\": 8081\n" +
             "        }\n" +
             "      ],\n" +
             "      \"VirtualIPs\": [\n" +
@@ -115,6 +120,6 @@ public class JSONPathTest {
         JSONPath jsonPath = new JSONPath(tmpStr);
         Logger.info(jsonPath.value("/Version/Index"));
         jsonPath.setPathSplitor(JSONPath.SplitChar.POINT);
-        Logger.info(jsonPath.value("Version.Index"));
+        Logger.info(jsonPath.value("Endpoint.Ports[1]"));
     }
 }
