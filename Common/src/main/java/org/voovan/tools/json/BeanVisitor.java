@@ -4,7 +4,6 @@ import org.voovan.Global;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.ParseException;
-import org.voovan.tools.ioc.MethodItem;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
