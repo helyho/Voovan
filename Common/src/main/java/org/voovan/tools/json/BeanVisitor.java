@@ -20,16 +20,16 @@ import java.util.stream.Collectors;
  *
  * @author helyho
  *         <p>
- *         Voovan Framework.
- *         WebSite: https://github.com/helyho/Voovan
- *         Licence: Apache v2 License
+ * Voovan Framework.
+ * WebSite: https://github.com/helyho/Voovan
+ * Licence: Apache v2 License
  */
 public class BeanVisitor {
 
     public enum SplitChar {
         POINT("\\."),
         BACKSLASH(Global.STR_BACKSLASH);
-        private String value;
+        private final String value;
 
         SplitChar(String value) {
             this.value = value;
@@ -38,8 +38,6 @@ public class BeanVisitor {
         public String getValue() {
             return value;
         }
-
-//        "\\.", "/"
     }
 
     private Object bean;
@@ -71,7 +69,6 @@ public class BeanVisitor {
     public Object parse(String pathQry, Object parsedObj) {
         Object currentPathObject = parsedObj;
         String[] pathElems = pathQry.split(pathSplitor.getValue());
-        ArrayList result = new ArrayList();
 
         for (int m=0;m<pathElems.length;m++) {
             String pathElem = pathElems[m];
@@ -98,7 +95,7 @@ public class BeanVisitor {
                     }
                     if(pathElemSegm.endsWith("]")){
                         int index = Integer.parseInt(TString.removeSuffix(pathElemSegms[i]));
-                        currentPathObject = ((List) currentPathObject).get(index);
+                        currentPathObject = ((List<?>) currentPathObject).get(index);
                     }else {
                         currentPathObject = (List) ((Map) currentPathObject).get(pathElemSegms[i]);
                     }
