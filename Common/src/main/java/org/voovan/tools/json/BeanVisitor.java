@@ -52,7 +52,11 @@ public class BeanVisitor {
 
     protected void init(Object bean) {
         if (!(bean instanceof List || bean instanceof Map)) {
-            throw new ParseException("The object is not instance of List or Map");
+            try {
+                bean = TReflect.getMapFromObject(bean);
+            } catch (ReflectiveOperationException e) {
+                throw new ParseException("Get Map from object failed");
+            }
         }
         this.bean = bean;
     }
@@ -336,7 +340,7 @@ public class BeanVisitor {
 
     /**
      * 构造默认的对象
-     * @param jsonStr JSONPath 路径
+     * @param obj 改造的 bean 对象
      * @return  转换后的对象
      */
     public static BeanVisitor newInstance(Object obj){

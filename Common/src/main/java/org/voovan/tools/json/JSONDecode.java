@@ -74,7 +74,7 @@ public class JSONDecode {
 
 	/**
 	 * 创建根对象
-	 * @param reader StringReader 对象
+	 * @param flag 用户创建跟对象的标记
 	 * @return 根对象
 	 * @throws IOException IO 异常
 	 */
