@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 [![](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework)
-![JDK 1.7](https://img.shields.io/badge/JDK-1.7-green.svg "JDK 1.8")
+![JDK 1.7](https://img.shields.io/badge/JDK-11-green.svg "JDK 11")
 [![jar size 720K](https://img.shields.io/badge/size-720K-green.svg "size 497K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
 
 Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是极少依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
@@ -96,15 +96,15 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 
  **JDK支持:**
 
- - 推荐使用 JDK1.8,懒人专用。
- - 目前自2.0.1开始所有版本在发布前都会进行 jdk1.7的测试。
- - 如果 WebServer 使用lambda 需要 JDK1.8,不使用 lambda 需要 JDK1.7。
+ - 推荐使用 JDK11,懒人专用。
+ - 目前自 *4.3.8* 开始所有版本在发布前都会进行 jdk11的测试。
+ - 如果 WebServer 使用lambda 需要 JDK11,不使用 lambda 需要 JDK1.7。
  - 有能力的同学可以通过很简单几行修改使 WebServer 和 HTTPClient使用 NIO 那么就是 JDK1.6。
 
 ---------------------
 
  **框架特点介绍:**
- - 使用 JDK8 的 lambda 表达式,快速实现 HTTP/WebSocket 服务的开发。[【演示】](http://webserver.voovan.org/)/[【TFB性能测试】](https://www.techempower.com/benchmarks/#section=test&runid=59583d86-f7b6-4e86-b86a-a7e8eebf89fb&hw=ph&test=json)
+ - 使用 JDK 的 lambda 表达式,快速实现 HTTP/WebSocket 服务的开发。[【演示】](http://webserver.voovan.org/)/[【TFB性能测试】](https://www.techempower.com/benchmarks/#section=test&runid=59583d86-f7b6-4e86-b86a-a7e8eebf89fb&hw=ph&test=json)
  - 异步通信框架解决粘包问题,过滤器链等。
  - 独立无依赖的代码。
  - 源码注释丰富，方便码友学习、调试、使用。
