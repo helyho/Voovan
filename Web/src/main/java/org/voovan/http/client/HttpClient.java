@@ -82,7 +82,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 */
 	public  HttpClient(String urlString) {
 		this.urlString = urlString;
-		init(urlString, 5);
+		init(urlString, 30);
 
 	}
 
@@ -117,7 +117,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	public  HttpClient(String urlString,String charset) {
 		this.urlString = urlString;
 		this.charset = charset;
-		init(urlString, 5);
+		init(urlString, 30);
 
 	}
 
@@ -834,7 +834,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 	/**
 	 * 静态构造方法
-	 *   默认字符集 UTF-8, 默认超时时间 5s
+	 *   默认字符集 UTF-8, 默认超时时间 30s
 	 * @param urlString 请求的 URL 地址
 	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
 	 */
@@ -848,7 +848,6 @@ public class HttpClient extends PooledObject implements Closeable{
 
 	/**
 	 * 静态构造方法
-	 *   默认超时时间 5s
 	 * @param urlString 请求的 URL 地址
 	 * @param timeout  超时时间
 	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
@@ -863,7 +862,7 @@ public class HttpClient extends PooledObject implements Closeable{
 
 	/**
 	 * 静态构造方法
-	 *   默认超时时间 5s
+	 *   默认超时时间 30s
 	 * @param urlString 请求的 URL 地址
 	 * @param charset  字符集
 	 * @return HttpClient 对象, 返回 null 则构造的 HttpClient 建立连接失败
