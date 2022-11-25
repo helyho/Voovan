@@ -2127,6 +2127,13 @@ public class TReflect {
         }
     }
 
+    /**
+     * 获取注解的值, 可通过@Alias 注解消除默认值 value 的影响
+     * @param obj 注解对象
+     * @param name 注解属性名称, 如果 name 属性的值是其默认值则尝试使用 @Alias 注解的值
+     * @return 注解属性值
+     * @param <T> 泛型
+     */
     public static <T> T getAnnotationValue(Annotation obj, String name) {
         try {
             Class clazz = obj.getClass().getInterfaces()[0];
