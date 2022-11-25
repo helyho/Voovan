@@ -114,7 +114,7 @@ public class SwaggerApi {
 
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
         for(RouterInfo routerInfo : AnnotationRouter.ROUTER_INFO_LIST) {
-            String classUrl = routerInfo.getClassAnnotation().value() == null ? routerInfo.getClassAnnotation().path() : routerInfo.getClassAnnotation().value();
+            String classUrl = TReflect.getAnnotationValue(routerInfo.getClassAnnotation(), "path");
             classUrl = HttpDispatcher.fixRoutePath(classUrl);
             String url = routerInfo.getUrl();
             //转换路径中的参数未 swagger 的格式
@@ -400,7 +400,7 @@ public class SwaggerApi {
         Map<String, Tag> tagsMap = new HashMap<String, Tag>();
         for(RouterInfo routerInfo : AnnotationRouter.ROUTER_INFO_LIST) {
             tagsMap.putAll(parseTags(routerInfo.getClassAnnotation()));
-            String classUrl = routerInfo.getClassAnnotation().value() == null ? routerInfo.getClassAnnotation().path() : routerInfo.getClassAnnotation().value();
+            String classUrl = TReflect.getAnnotationValue(routerInfo.getClassAnnotation(), "path");
             classUrl = HttpDispatcher.fixRoutePath(classUrl);
             tagsMap.put(classUrl, new Tag(classUrl, "Tag of Router class: " + routerInfo.getClazz().getSimpleName()));
 

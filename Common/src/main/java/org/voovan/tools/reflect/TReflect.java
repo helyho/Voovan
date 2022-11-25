@@ -6,6 +6,7 @@ import org.voovan.tools.*;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.annotation.Alias;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
 import org.voovan.tools.reflect.convert.Convert;
@@ -44,6 +45,9 @@ public class TReflect {
         public void method(){
         }
     }
+
+    public static Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+    public static Class[] EMPTY_CLASS_ARRAY = new Class[0];
 
     public static Empty EMPTY = new Empty();
     public static Constructor EMPTY_CONSTRUCTOR;
@@ -979,8 +983,8 @@ public class TReflect {
 
         Integer marker = getMethodMark(clazz, name);
         methods = METHOD_ARRAYS.get(marker);
-        if(methods==null){
 
+        if(methods==null){
             LinkedHashSet<Method> methodList = new LinkedHashSet<Method>();
             Method[] allMethods = getMethods(clazz);
             for (Method method : allMethods) {
@@ -2121,6 +2125,26 @@ public class TReflect {
         } else {
             return var1 ^ var2;
         }
+    }
+
+    public static <T> T getAnnotationValue(Annotation obj, String name) {
+        try {
+            Class clazz = obj.getClass().getInterfaces()[0];
+            Method method = TReflect.findMethod(clazz, name);
+            Object ret = TReflect.invokeMethod(obj, method);
+            if (ret.equals(method.getDefaultValue())) {
+                Alias alias = method.getAnnotation(Alias.class);
+                if(alias != null) {
+                    ret = TReflect.invokeMethod(obj, alias.value());
+                }
+            }
+
+            return (T) ret;
+        } catch (ReflectiveOperationException e) {
+            Logger.errorf("Get annotation value faile: {} {}", e, obj, name);
+        }
+
+        return null;
     }
 }
 

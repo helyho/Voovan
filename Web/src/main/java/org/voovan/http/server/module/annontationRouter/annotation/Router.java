@@ -1,6 +1,7 @@
 package org.voovan.http.server.module.annontationRouter.annotation;
 
 import org.voovan.http.HttpContentType;
+import org.voovan.tools.reflect.annotation.Alias;
 
 import java.lang.annotation.*;
 
@@ -21,12 +22,14 @@ public @interface Router {
      * 请求的 URL
      * @return 请求路径
      */
+    @Alias("value")
     String path() default "";
 
     /**
      *
      * @return 默认路径
      */
+    @Alias("path")
     String value() default "";
 
     /**

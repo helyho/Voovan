@@ -129,7 +129,7 @@ public class AnnotationRouter implements HttpRouter {
 
         //多个 Router 注解的迭代
         for (Router annonClassRouter : annonClassRouters) {
-            String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+            String classRouterPath = TReflect.getAnnotationValue(annonClassRouter, "path");
             String[] classRouterMethods = annonClassRouter.method();
 
             //多个请求方法的迭代
@@ -150,7 +150,7 @@ public class AnnotationRouter implements HttpRouter {
 
                         //多个 Router 注解的迭代, 一个方法支持多个路由
                         for (Router annonMethodRouter : annonMethodRouters) {
-                            String methodRouterPath = annonMethodRouter.path().isEmpty() ? annonMethodRouter.value() : annonMethodRouter.path();
+                            String methodRouterPath = TReflect.getAnnotationValue(annonMethodRouter, "path");
                             String[] methodRouterMethods = annonMethodRouter.method();
 
                             //多个请求方法的迭代,  一个路由支持多个 Http mehtod
@@ -264,7 +264,7 @@ public class AnnotationRouter implements HttpRouter {
         if (TReflect.isExtends(webSocketClass, WebSocketRouter.class)) {
             WebSocket[] annonClassRouters = (WebSocket[]) webSocketClass.getAnnotationsByType(WebSocket.class);
             WebSocket annonClassRouter = annonClassRouters[0];
-            String classRouterPath = annonClassRouter.path().isEmpty() ? annonClassRouter.value() : annonClassRouter.path();
+            String classRouterPath = TReflect.getAnnotationValue(annonClassRouter, "path");
 
             //使用类名指定默认路径
             if (classRouterPath.isEmpty()) {
