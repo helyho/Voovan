@@ -117,12 +117,13 @@ public class BeanVisitor {
                         ret.add(parse(stringJoiner.toString(), listElem));
                     }
                     return ret;
-                }
-
-                if(currentPathObject instanceof Map) {
-
+                } else if(currentPathObject instanceof Map) {
                     currentPathObject = ((Map) currentPathObject).get(pathElem);
+                } else {
+                    return null;
                 }
+
+
             }
         }
 
