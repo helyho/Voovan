@@ -13,16 +13,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -788,14 +784,15 @@ public class TEnv {
 		return value == null ? null : TString.toObject(value, clazz);
 	}
 
-	public static String shortPackageName(Class clazz) {
-		if(clazz == null) {
-			return null;
-		}
-		return shortPackageName(clazz.getCanonicalName());
-	}
 
-	public static String shortPackageName(String className) {
+	/**
+	 * 获取缩写的类名
+	 * 	包名只去第一个字母
+	 * @param className 类名称
+	 * @param spliter 分割符号
+	 * @return 返回缩写的类名
+	 */
+	public static String shortClassName(String className, String spliter) {
 
 		if(className == null) {
 			return null;
@@ -812,12 +809,49 @@ public class TEnv {
 				if (cns.length() > 0) {
 					cns = i < classNameSplites.length - 1 ? String.valueOf(cns.charAt(0)) : cns;
 				}
-				shortPackageName = shortPackageName + cns + ".";
+				shortPackageName = shortPackageName + cns + spliter;
 			}
 
 			shortPackageName = TString.removeSuffix(shortPackageName);
 		}
 
 		return shortPackageName;
+	}
+
+	/**
+	 * 获取缩写的类名
+	 * 	包名只去第一个字母
+	 * @param className 类名称
+	 * @return 返回缩写的类名
+	 */
+	public static String shortClassName(String className) {
+		return shortClassName(className, ".");
+	}
+
+	/**
+	 * 获取缩写的类名
+	 * 	包名只去第一个字母
+	 * @param clazz 类
+	 * @param spliter 分割符号
+	 * @return 返回缩写的类名
+	 */
+	public static String shortClassName(Class clazz, String spliter) {
+		if(clazz == null) {
+			return null;
+		}
+		return shortClassName(clazz.getCanonicalName(), spliter);
+	}
+
+	/**
+	 * 获取缩写的类名
+	 * 	包名只去第一个字母
+	 * @param clazz 类
+	 * @return 返回缩写的类名
+	 */
+	public static String shortClassName(Class clazz) {
+		if(clazz == null) {
+			return null;
+		}
+		return shortClassName(clazz.getCanonicalName());
 	}
 }

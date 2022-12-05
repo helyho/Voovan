@@ -247,7 +247,7 @@ public class Formater {
 
             String className = stackTraceElement.getClassName();
             if(LoggerStatic.SHORT_PACKAGE_NAME) {
-                TEnv.shortPackageName(className);
+                TEnv.shortClassName(className);
             }
             tokens.put("C", className);								//类名
         }
