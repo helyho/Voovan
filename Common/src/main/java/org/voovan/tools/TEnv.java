@@ -15,8 +15,10 @@ import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -42,6 +44,9 @@ public class TEnv {
 	public static volatile boolean IS_SHUTDOWN = false;
 
 	public static LinkedBlockingDeque<Runnable> SHUT_DOWN_HOOKS = new LinkedBlockingDeque<Runnable>();
+
+
+	private static ConcurrentHashMap<Class, String> SHORT_PACKAGE_CLASS_NAME = new ConcurrentHashMap<>();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -781,5 +786,38 @@ public class TEnv {
 	public static <T> T getEnv(String propertyName, Class clazz) {
 		String value = System.getenv(propertyName);
 		return value == null ? null : TString.toObject(value, clazz);
+	}
+
+	public static String shortPackageName(Class clazz) {
+		if(clazz == null) {
+			return null;
+		}
+		return shortPackageName(clazz.getCanonicalName());
+	}
+
+	public static String shortPackageName(String className) {
+
+		if(className == null) {
+			return null;
+		}
+
+		String shortPackageName = SHORT_PACKAGE_CLASS_NAME.get(className);
+
+		if(shortPackageName==null) {
+			String[] classNameSplites = className.split("\\.");
+
+			shortPackageName = "";
+			for (int i = 0; i < classNameSplites.length; i++) {
+				String cns = classNameSplites[i];
+				if (cns.length() > 0) {
+					cns = i < classNameSplites.length - 1 ? String.valueOf(cns.charAt(0)) : cns;
+				}
+				shortPackageName = shortPackageName + cns + ".";
+			}
+
+			shortPackageName = TString.removeSuffix(shortPackageName);
+		}
+
+		return shortPackageName;
 	}
 }

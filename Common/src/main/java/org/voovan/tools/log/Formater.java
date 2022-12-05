@@ -247,17 +247,7 @@ public class Formater {
 
             String className = stackTraceElement.getClassName();
             if(LoggerStatic.SHORT_PACKAGE_NAME) {
-                String[] classNameSplites = className.split("\\.");
-                className = "";
-                for(int i =0;i<classNameSplites.length;i++) {
-                    String cns = classNameSplites[i];
-                    if(cns.length()>0) {
-                        cns = i < classNameSplites.length - 1 ? String.valueOf(cns.charAt(0)) : cns;
-                    }
-                    className = className + cns + ".";
-                }
-
-                className = TString.removeSuffix(className);
+                TEnv.shortPackageName(className);
             }
             tokens.put("C", className);								//类名
         }
