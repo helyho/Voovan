@@ -81,6 +81,8 @@ public class TReflect {
     private static IntKeyMap<DynamicFunction>   CONSTRUCTOR_INVOKE   = new IntKeyMap<DynamicFunction>(256);
     private static IntKeyMap<DynamicFunction>   METHOD_INVOKE        = new IntKeyMap<DynamicFunction>(256);
 
+    private static IntKeyMap<Boolean>           IS_SYSTEM_TYPE_CLASS = new IntKeyMap<Boolean>(256);
+    private static IntKeyMap<Boolean>           IS_SYSTEM_TYPE_NAME  = new IntKeyMap<Boolean>(256);
 
     /**
      * 注册一个类, 尝试采用 native 方式进行反射调用
@@ -2014,17 +2016,27 @@ public class TReflect {
      */
     public static boolean isSystemType(Class clazz){
 
-        if( clazz.isPrimitive()){
-            return true;
-        }
+        int mark = getClassMark(clazz);
 
-        for(String systemPackage : systemPackages){
-            if(getClassName(clazz).startsWith(systemPackage)){
-                return true;
+        Boolean ret = IS_SYSTEM_TYPE_CLASS.get(mark);
+        if(ret == null) {
+            if (clazz.isPrimitive()) {
+                ret = true;
             }
+
+            for (String systemPackage : systemPackages) {
+                if (getClassName(clazz).startsWith(systemPackage)) {
+                    ret = true;
+                }
+            }
+
+            ret = false;
+
+            IS_SYSTEM_TYPE_CLASS.put(mark, ret);
         }
 
-        return false;
+        return ret;
+
     }
 
     /**
@@ -2033,18 +2045,27 @@ public class TReflect {
      * @return true: 是JDK 中定义的类, false:非JDK 中定义的类
      */
     public static boolean isSystemType(String className) {
-        if(className.indexOf(Global.STR_POINT)==-1){
-            return true;
-        }
+        int mark = className.hashCode();
 
-        //排除的包中的 class 不加载
-        for(String systemPackage : systemPackages){
-            if(className.startsWith(systemPackage)){
-                return true;
+        Boolean ret = IS_SYSTEM_TYPE_NAME.get(mark);
+
+        if(ret==null) {
+            if (className.indexOf(Global.STR_POINT) == -1) {
+                ret = true;
             }
+
+            //排除的包中的 class 不加载
+            for (String systemPackage : systemPackages) {
+                if (className.startsWith(systemPackage)) {
+                    ret = true;
+                }
+            }
+
+            ret = false;
+            IS_SYSTEM_TYPE_NAME.put(mark, ret);
         }
 
-        return false;
+        return ret;
     }
 
     /**

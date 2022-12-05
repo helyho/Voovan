@@ -669,7 +669,7 @@ public class TFile {
 	/**
 	 * 获取文件名称,包含扩展名
 	 * @param filePath 文件的路径或者文件名
-	 * @return 获取文件所在文件夹路径
+	 * @return 获取文件名称
 	 */
 	public static String getFileName(String filePath){
 		try {
