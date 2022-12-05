@@ -61,6 +61,10 @@ public class BeanVisitor {
         this.bean = bean;
     }
 
+    public Object getBean() {
+        return bean;
+    }
+
     public SplitChar getPathSplitor() {
         return pathSplitor;
     }
@@ -71,6 +75,7 @@ public class BeanVisitor {
 
     public Object parse(String pathQry, Object parsedObj) {
         Object currentPathObject = parsedObj;
+
         String[] pathElems = pathQry.split(pathSplitor.getValue());
 
         for (int m=0;m<pathElems.length;m++) {
@@ -104,6 +109,19 @@ public class BeanVisitor {
                     }
                 }
             } else {
+//                //如果是复杂类型的特殊处理
+                if(!(currentPathObject instanceof List) &&
+                        !(currentPathObject instanceof Map) &&
+                        !TReflect.isSystemType(currentPathObject.getClass())){
+                    if(!(currentPathObject instanceof Map) && !(currentPathObject instanceof List)) {
+                        try {
+                            currentPathObject = TReflect.getMapFromObject(currentPathObject);
+                        } catch (ReflectiveOperationException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+
                 if(currentPathObject instanceof List) {
                     //遍历list中的元素
                     StringJoiner stringJoiner = new StringJoiner("/");
