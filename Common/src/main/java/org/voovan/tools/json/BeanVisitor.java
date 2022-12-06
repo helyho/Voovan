@@ -109,7 +109,7 @@ public class BeanVisitor {
                     }
                 }
             } else {
-//                //如果是复杂类型的特殊处理
+                //如果是复杂类型的特殊处理
                 if(!(currentPathObject instanceof List) &&
                         !(currentPathObject instanceof Map) &&
                         !TReflect.isSystemType(currentPathObject.getClass())){
