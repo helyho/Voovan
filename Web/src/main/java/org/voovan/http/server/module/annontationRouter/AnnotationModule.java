@@ -9,18 +9,13 @@ import org.voovan.http.server.module.annontationRouter.annotation.WebSocket;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
-import org.voovan.http.server.module.annontationRouter.swagger.entity.Swagger;
-import org.voovan.http.websocket.WebSocketRouter;
-import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
-import org.voovan.tools.hotswap.Hotswaper;
+import org.voovan.tools.AnnotataionScaner;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -88,16 +83,13 @@ public class AnnotationModule extends HttpModule {
             for(String scanRouterPackage : scanRouterPackageArr) {
                 scanRouterPackage = scanRouterPackage.trim();
 
-                List<Class> routerClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{Router.class});
-                for (Class routerClass : routerClasses) {
-                    AnnotationRouter.routerRegister(this, routerClass);
-                }
+                AnnotataionScaner.scan(scanRouterPackage, cls->{
+                    AnnotationRouter.routerRegister(this, cls);
+                }, Router.class);
 
-                //查找包含 WebSocket 注解的类
-                List<Class> webSocketClasses = TEnv.searchClassInEnv(scanRouterPackage, new Class[]{WebSocket.class});
-                for (Class webSocketClass : webSocketClasses) {
-                    AnnotationRouter.webSocketRegister(this, webSocketClass);
-                }
+                AnnotataionScaner.scan(scanRouterPackage,cls->{
+                    AnnotationRouter.webSocketRegister(this, cls);
+                }, WebSocket.class);
             }
 
         } catch (Exception e){

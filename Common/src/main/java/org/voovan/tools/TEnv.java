@@ -15,6 +15,7 @@ import java.lang.instrument.Instrumentation;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ public class TEnv {
 	public static LinkedBlockingDeque<Runnable> SHUT_DOWN_HOOKS = new LinkedBlockingDeque<Runnable>();
 
 
-	private static ConcurrentHashMap<Class, String> SHORT_PACKAGE_CLASS_NAME = new ConcurrentHashMap<>();
+	private static ConcurrentHashMap<String, ConcurrentHashMap<String, String>> SHORT_PACKAGE_CLASS_NAME = new ConcurrentHashMap();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -798,24 +799,27 @@ public class TEnv {
 			return null;
 		}
 
-		String shortPackageName = SHORT_PACKAGE_CLASS_NAME.get(className);
 
-		if(shortPackageName==null) {
+		Map<String, String> cache = SHORT_PACKAGE_CLASS_NAME.computeIfAbsent(spliter, key->new ConcurrentHashMap<String, String>());
+		String shortClassName =cache.get(className);
+
+		if(shortClassName==null) {
 			String[] classNameSplites = className.split("\\.");
 
-			shortPackageName = "";
+			shortClassName = "";
 			for (int i = 0; i < classNameSplites.length; i++) {
 				String cns = classNameSplites[i];
 				if (cns.length() > 0) {
 					cns = i < classNameSplites.length - 1 ? String.valueOf(cns.charAt(0)) : cns;
 				}
-				shortPackageName = shortPackageName + cns + spliter;
+				shortClassName = shortClassName + cns + spliter;
 			}
 
-			shortPackageName = TString.removeSuffix(shortPackageName);
+			shortClassName = shortClassName.substring(0, shortClassName.length() - spliter.length());
+			cache.put(className, shortClassName);
 		}
 
-		return shortPackageName;
+		return shortClassName;
 	}
 
 	/**
