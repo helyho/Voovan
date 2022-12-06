@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.voovan.tools.ioc.utils.classKey;
+
 /**
  * 容器类
  *
@@ -190,7 +192,7 @@ public class Container {
     }
 
     public <T> T getByType(Class clazz, T defaultVal) {
-        return getByName(TEnv.shortClassName(clazz, ""), defaultVal);
+        return getByName(classKey(clazz), defaultVal);
     }
 
 
@@ -199,7 +201,7 @@ public class Container {
     }
 
     public boolean existsByType(Class clazz) {
-        return exists(TEnv.shortClassName(clazz, ""));
+        return exists(classKey(clazz));
     }
 
     /**
@@ -216,7 +218,7 @@ public class Container {
             }
         }
         beanValues.put(name, value);
-        beanValues.put(TEnv.shortClassName(value.getClass(), ""), value);
+        beanValues.put(classKey(value.getClass()), value);
     }
 
     /**
@@ -233,7 +235,7 @@ public class Container {
             }
         }
         methodValues.put(name, value);
-        methodValues.put(TEnv.shortClassName(value.getClass(), ""), value);
+        methodValues.put(classKey(value.getClass()), value);
     }
 
     private String getBeanName(String path) {

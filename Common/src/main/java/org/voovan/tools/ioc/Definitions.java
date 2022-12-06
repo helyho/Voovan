@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.voovan.tools.ioc.utils.classKey;
+
 /**
  * 定义管理类
  *
@@ -270,7 +272,7 @@ public class Definitions {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
-            beanName = TEnv.shortClassName(clazz.getName(), "");
+            beanName = classKey(clazz);
         }
 
         return beanName;
@@ -280,7 +282,7 @@ public class Definitions {
         Bean bean = (Bean) method.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
-            beanName = TEnv.shortClassName(method.getReturnType().getName(), "");
+            beanName = classKey(method.getReturnType());
         }
 
         return beanName;
