@@ -26,6 +26,7 @@ public class Utils {
     }
 
     public static String classKey(Class clazz) {
+        //TODO: 转换成配置文件
         //归总到接口类型
         if(TReflect.isImp(clazz, Map.class)) {
             clazz = Map.class;

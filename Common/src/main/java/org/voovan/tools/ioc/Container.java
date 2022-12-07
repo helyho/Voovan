@@ -228,7 +228,11 @@ public class Container {
 
     public <T> T initBean(String beanName) {
         BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
-        if(beanDefinition!=null && (!beanValues.containsKey(beanName) || !beanDefinition.isSingleton() || beanDefinition.isPrimary())) {
+        if(beanDefinition!=null && (!beanValues.containsKey(beanName) ||
+                beanDefinition.isPrimary() ||
+                !beanDefinition.isSingleton())
+
+        ) {
             //延迟加载处理
             if(Context.isIsInited() || !beanDefinition.isLazy()) {
                 T value = definitions.craeteBean(beanName);
@@ -255,7 +259,7 @@ public class Container {
     public <T> T invokeMethodBean(MethodDefinition methodDefinition) {
         String beanName = methodDefinition.getName();
         BeanDefinition beanDefinition = definitions.getBeanDefinition(methodDefinition.getClazz());
-        if (methodDefinition != null && (!methodValues.containsKey(beanName) || !methodDefinition.isSingleton() || methodDefinition.isPrimary())) {
+        if (methodDefinition != null && (!methodValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton())) {
             //延迟加载处理
             if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isPrimary()) {
                 T value = definitions.createMethodBean(methodDefinition);

@@ -17,8 +17,6 @@ public class MethodDefinition extends BeanDefinition {
      */
     private Method method;
 
-    private BeanDefinition beanDefinition;
-
     public MethodDefinition(String name, String owner, Method method, boolean singleton, boolean lazy, boolean primary) {
         super(name, method.getDeclaringClass(), singleton, lazy, primary);
         this.owner = owner;
@@ -38,7 +36,6 @@ public class MethodDefinition extends BeanDefinition {
         return "MethodDefinition{" +
                 "owner='" + owner + '\'' +
                 ", method=" + method +
-                ", beanDefinition=" + beanDefinition +
                 "} " + super.toString();
     }
 }
