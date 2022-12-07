@@ -17,6 +17,7 @@ import java.util.Map;
  */
 @Bean
 public class IOC1 {
+    @Value("ServerName")
     private String str;
     private int integer;
 

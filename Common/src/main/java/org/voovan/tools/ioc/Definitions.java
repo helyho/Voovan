@@ -1,7 +1,5 @@
 package org.voovan.tools.ioc;
 
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
@@ -22,7 +20,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.TObject.cast;
-import static org.voovan.tools.ioc.utils.classKey;
+import static org.voovan.tools.ioc.Utils.getBeanNameInPath;
 
 /**
  * 定义管理类
@@ -99,7 +97,7 @@ public class Definitions {
                         if (annotation.annotationType().isAssignableFrom(Value.class)) {
                             Value valueAnnotation = cast(annotation);
                             String anchor = TReflect.getAnnotationValue(annotation, "anchor");
-                            if (anchor == null) {
+                            if (TString.isNullOrEmpty(anchor)) {
                                 continue;
                             }
                             params[i] = container.get(anchor, parameterTypes[i], null);
@@ -178,7 +176,7 @@ public class Definitions {
                     if (annotation.annotationType().isAssignableFrom(Value.class)) {
                         Value valueAnnotation = cast(annotation);
                         String anchor = TReflect.getAnnotationValue(annotation, "anchor");
-                        if (anchor == null) {
+                        if (TString.isNullOrEmpty(anchor)) {
                             continue;
                         }
                         params[i] = container.get(anchor, parameterTypes[i], null);
@@ -217,9 +215,10 @@ public class Definitions {
      * @param clazz Bean 类型
      * @param singletone 是否单例模式
      * @param lazy 是否延迟加载
+     * @param primary 是否是主对象
      */
-    public BeanDefinition addBeanDefinition(String name, Class clazz, boolean singletone, boolean lazy) {
-        BeanDefinition beanDefinition = new BeanDefinition(name, clazz, singletone, lazy);
+    public BeanDefinition addBeanDefinition(String name, Class clazz, boolean singletone, boolean lazy, boolean primary) {
+        BeanDefinition beanDefinition = new BeanDefinition(name, clazz, singletone, lazy, primary);
         beanDefinitions.put(name, beanDefinition);
         beanDefinitionsByClass.put(clazz, beanDefinition);
         return beanDefinition;
@@ -227,12 +226,13 @@ public class Definitions {
 
     public BeanDefinition addBeanDefinition(Class clazz) {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
-        String beanName = getBeanName(clazz);
+        String beanName = getBeanNameInPath(clazz);
         String scope = TReflect.getAnnotationValue(bean, "scope");
         boolean singleton = TReflect.getAnnotationValue(bean, "singleton");
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
+        boolean primary = clazz.getAnnotation(Primary.class)!=null;
 
-        return addBeanDefinition(beanName, clazz, singleton, lazy);
+        return addBeanDefinition(beanName, clazz, singleton, lazy, primary);
     }
 
     /**
@@ -242,9 +242,10 @@ public class Definitions {
      * @param method 方法对象
      * @param singletone 是否单例模式
      * @param lazy 是否延迟加载
+     * @param primary 是否是主对象
      */
-    public MethodDefinition addMethodDefinition(String name, String owner, Method method, boolean singletone, boolean lazy) {
-        MethodDefinition methodDefinition = new MethodDefinition(name, owner, method, singletone, lazy);
+    public MethodDefinition addMethodDefinition(String name, String owner, Method method, boolean singletone, boolean lazy, boolean primary) {
+        MethodDefinition methodDefinition = new MethodDefinition(name, owner, method, singletone, lazy, primary);
         methodDefinitions.put(name, methodDefinition);
         methodDefinitionsByClass.computeIfAbsent(method.getDeclaringClass(), key->new Vector<MethodDefinition>()).add(methodDefinition);
         return methodDefinition;
@@ -260,44 +261,16 @@ public class Definitions {
      */
     public MethodDefinition addMethodDefinition(Method method) {
         Bean bean = (Bean) method.getAnnotation(Bean.class);
-        String beanName = getBeanName(method);
+        String beanName = getBeanNameInPath(method);
         String scope = TReflect.getAnnotationValue(bean, "scope");
         boolean singleton = TReflect.getAnnotationValue(bean, "singleton");
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
+        boolean primary = method.getAnnotation(Primary.class)!=null;
 
-        String owner = getBeanName(method.getDeclaringClass());
-        return addMethodDefinition(beanName, owner, method, singleton, lazy);
+        String owner = getBeanNameInPath(method.getDeclaringClass());
+        return addMethodDefinition(beanName, owner, method, singleton, lazy, primary);
     }
 
-    public static String getBeanName(Class clazz) {
-        Bean bean = (Bean) clazz.getAnnotation(Bean.class);
-        String beanName = TReflect.getAnnotationValue(bean, "name");
-        if (TString.isNullOrEmpty(beanName)) {
-            beanName = classKey(clazz);
-        }
-
-        return beanName;
-    }
-
-    public static String getBeanName(Method method) {
-        Bean bean = (Bean) method.getAnnotation(Bean.class);
-        String beanName = TReflect.getAnnotationValue(bean, "name");
-        if (TString.isNullOrEmpty(beanName)) {
-            beanName = classKey(method.getReturnType());
-        }
-
-        return beanName;
-    }
-
-    public static String getScope(Class clazz){
-        Bean bean = (Bean) clazz.getAnnotation(Bean.class);
-        return TReflect.getAnnotationValue(bean, "scope");
-    }
-
-    public static String getScope(Method method){
-        Bean bean = (Bean) method.getAnnotation(Bean.class);
-        return TReflect.getAnnotationValue(bean, "scope");
-    }
 
     public BeanDefinition getBeanDefinition(Class clazz){
         return beanDefinitionsByClass.get(clazz);

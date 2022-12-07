@@ -10,6 +10,8 @@ import org.voovan.tools.reflect.TReflect;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.voovan.tools.ioc.Utils.getScope;
+
 /**
  * Class name
  *
@@ -24,7 +26,7 @@ public class Context {
 
     private static String[] scanPaths;
 
-    private static boolean isInited = false; //0: 未初始化, 1: 初始化完成
+    private static boolean inited = false; //0: 未初始化, 1: 初始化完成
 
     public static ConcurrentHashMap<String, Container> getContainerMap() {
         return CONTAINER_MAP;
@@ -35,7 +37,7 @@ public class Context {
     }
 
     public static boolean isIsInited() {
-        return isInited;
+        return inited;
     }
 
     public static void init(String... scanPaths) {
@@ -54,7 +56,7 @@ public class Context {
                 Logger.errorf("Scan compoment failed", e);
             }
         }
-        isInited = true;
+        inited = true;
     }
 
 
@@ -76,7 +78,7 @@ public class Context {
      * @param clazz 解析这个 class 的 bean 定义
      */
     public static void loadClass(Class clazz) {
-        String scope = Definitions.getScope(clazz);
+        String scope = getScope(clazz);
 
         Container container = getContainer(scope);
         Definitions definitions = container.getDefinitions();
@@ -95,7 +97,7 @@ public class Context {
             if(bean==null) {
                 continue;
             }
-            String scope = Definitions.getScope(method);
+            String scope = getScope(method);
 
             Container container = getContainer(scope);
             Definitions definitions = container.getDefinitions();

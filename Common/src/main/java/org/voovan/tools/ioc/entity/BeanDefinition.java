@@ -22,14 +22,16 @@ public class BeanDefinition<T> {
     private boolean singleton = true;
     private boolean lazy = false;
 
+    private boolean primary = false;
 
-    public BeanDefinition(String objName, Class clazz, boolean singleton, boolean lazy) {
+
+    public BeanDefinition(String objName, Class clazz, boolean singleton, boolean lazy, boolean primary) {
         this.name = objName;
         this.clazz = clazz;
         this.singleton = singleton;
         this.lazy = lazy;
+        this.primary = primary;
     }
-
 
     public String getName() {
         return name;
@@ -45,5 +47,20 @@ public class BeanDefinition<T> {
 
     public boolean isLazy() {
         return lazy;
+    }
+
+    public boolean isPrimary() {
+        return primary;
+    }
+
+    @Override
+    public String toString() {
+        return "BeanDefinition{" +
+                "name='" + name + '\'' +
+                ", clazz=" + clazz +
+                ", singleton=" + singleton +
+                ", lazy=" + lazy +
+                ", primary=" + primary +
+                '}';
     }
 }

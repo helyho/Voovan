@@ -19,12 +19,11 @@ public class MethodDefinition extends BeanDefinition {
 
     private BeanDefinition beanDefinition;
 
-    public MethodDefinition(String name, String owner, Method method, boolean singleton, boolean lazy) {
-        super(name, method.getDeclaringClass(), singleton, lazy);
+    public MethodDefinition(String name, String owner, Method method, boolean singleton, boolean lazy, boolean primary) {
+        super(name, method.getDeclaringClass(), singleton, lazy, primary);
         this.owner = owner;
         this.method = method;
     }
-
 
     public String getOwner() {
         return owner;
@@ -32,5 +31,14 @@ public class MethodDefinition extends BeanDefinition {
 
     public Method getMethod() {
         return method;
+    }
+
+    @Override
+    public String toString() {
+        return "MethodDefinition{" +
+                "owner='" + owner + '\'' +
+                ", method=" + method +
+                ", beanDefinition=" + beanDefinition +
+                "} " + super.toString();
     }
 }

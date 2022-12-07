@@ -1,6 +1,7 @@
 package org.voovan.test.tools.ioc;
 
 import org.voovan.tools.ioc.annotation.Bean;
+import org.voovan.tools.ioc.annotation.Primary;
 import org.voovan.tools.ioc.annotation.Value;
 
 import java.util.List;
@@ -27,8 +28,10 @@ public class IOC2 {
     private Map map;
 
 
-    @Bean("methodString")
-    public String getList(@Value("string") String data){
+    @Bean
+    @Primary
+    public List getList(@Value List data){
+        data.add("item3");
         return data;
     }
 }

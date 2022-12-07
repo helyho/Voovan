@@ -26,26 +26,26 @@ public class ContainerUnit extends TestCase {
         System.out.println(container.get("abcd", 123));
         System.out.println("============================");
 
-        container.getDefinitions().addBeanDefinition("config", Config.class, true, false);
+        container.getDefinitions().addBeanDefinition("config", Config.class, true, false, false);
         Config c = container.get("co", null);
         System.out.println("Value: " + c);
         System.out.println("============================");
 
-        container.getDefinitions().addBeanDefinition("parent", Config.class, true, false);
-        container.getDefinitions().addMethodDefinition("tttt1", "parent", TReflect.findMethod(Config.class, "getConfig"), false, false);
+        container.getDefinitions().addBeanDefinition("parent", Config.class, true, false, false);
+        container.getDefinitions().addMethodDefinition("tttt1", "parent", TReflect.findMethod(Config.class, "getConfig"), false, false, false);
         System.out.println("method1 PathValue: " + container.get("tttt1.ServerName", null));
         System.out.println("============================");
 
         //静态方法测试
-        container.getDefinitions().addMethodDefinition("tttt2", null, TReflect.findMethod(ContainerUnit.class, "test1", 1)[0], false, false);
+        container.getDefinitions().addMethodDefinition("tttt2", null, TReflect.findMethod(ContainerUnit.class, "test1", 1)[0], false, false, false);
         System.out.println("static method2 PathValue: " + container.get("tttt2.name", null));
         System.out.println("============================");
 
-        container.getDefinitions().addMethodDefinition("tttt3", null, TReflect.findMethod(ContainerUnit.class, "test2"), false, false);
+        container.getDefinitions().addMethodDefinition("tttt3", null, TReflect.findMethod(ContainerUnit.class, "test2"), false, false, false);
         System.out.println("static method3 PathValue: " + container.get("tttt3", null));
         System.out.println("============================");
 
-        container.getDefinitions().addMethodDefinition("tttt4", null, TReflect.findMethod(ContainerUnit.class, "test2"), true, false);
+        container.getDefinitions().addMethodDefinition("tttt4", null, TReflect.findMethod(ContainerUnit.class, "test2"), true, false, false);
         System.out.println("static method4 singleton PathValue: " + container.get("tttt4", null));
         System.out.println("static method4 singleton PathValue: " + container.get("tttt4", null));
         System.out.println("static method4 singleton PathValue: " + container.get("tttt4", null));

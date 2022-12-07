@@ -1,19 +1,15 @@
 package org.voovan.tools.ioc;
 
-import org.voovan.tools.TEnv;
-import org.voovan.tools.exception.IOCException;
-import org.voovan.tools.ioc.annotation.Primary;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.json.BeanVisitor;
-import org.voovan.tools.log.Logger;
 
 import java.util.List;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.voovan.tools.ioc.utils.classKey;
+import static org.voovan.tools.ioc.Utils.*;
 
 /**
  * 容器类
@@ -81,7 +77,7 @@ public class Container {
             return ret;
         }
 
-        String beanName = getBeanName(path);
+        String beanName = getBeanNameInPath(path);
         //如果依赖的 Bean 不存在则创建
         initBean(beanName);
         ret = beanVisitor.value(path, clazz, defaultVal);
@@ -113,7 +109,7 @@ public class Container {
             return ret;
         }
 
-        String beanName = getBeanName(path);;
+        String beanName = getBeanNameInPath(path);;
 
         initBean(beanName);
         ret = beanVisitor.value(path, defaultVal);
@@ -212,11 +208,6 @@ public class Container {
      */
     public void addBeanValue(String name, Object value) {
         nameChecker(name);
-        if (beanValues.get(name) != null) {
-            if (value.getClass().getAnnotation(Primary.class) == null) {
-                return;
-            }
-        }
         beanValues.put(name, value);
         beanValues.put(classKey(value.getClass()), value);
     }
@@ -229,32 +220,15 @@ public class Container {
      */
     public void addMethodValue(String name, Object value) {
         nameChecker(name);
-        if (beanValues.get(name) != null) {
-            if (value.getClass().getAnnotation(Primary.class) == null) {
-                return;
-            }
-        }
         methodValues.put(name, value);
         methodValues.put(classKey(value.getClass()), value);
     }
 
-    private String getBeanName(String path) {
-        return path.split("\\.")[0];
-    }
 
-    private boolean isPath(String path) {
-        return path.indexOf('.') >= 0;
-    }
-
-    private void nameChecker(String name) {
-        if(name.indexOf('.') >= 0) {
-            throw new IOCException("Bean name errro cause it has '.'");
-        }
-    }
 
     public <T> T initBean(String beanName) {
         BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
-        if(beanDefinition!=null && (!beanValues.containsKey(beanName) || !beanDefinition.isSingleton())) {
+        if(beanDefinition!=null && (!beanValues.containsKey(beanName) || !beanDefinition.isSingleton() || beanDefinition.isPrimary())) {
             //延迟加载处理
             if(Context.isIsInited() || !beanDefinition.isLazy()) {
                 T value = definitions.craeteBean(beanName);
@@ -271,27 +245,32 @@ public class Container {
     }
 
     public void initMethodBean(Class clazz) {
-        BeanDefinition beanDefinition = definitions.getBeanDefinition(clazz);
         List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
         for(MethodDefinition methodDefinition : methodDefinitionList) {
-            //延迟加载处理
-            if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isLazy()) {
-                invokeMethodBean(methodDefinition.getName());
-            }
+            invokeMethodBean(methodDefinition);
         }
     }
 
 
-    public <T> T invokeMethodBean(String beanName) {
-        MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
-        if (methodDefinition != null && (!methodValues.containsKey(beanName) || !methodDefinition.isSingleton())) {
-            T value = definitions.createMethodBean(methodDefinition);
-            if(value!=null) {
-                addMethodValue(beanName, value);
-                return value;
+    public <T> T invokeMethodBean(MethodDefinition methodDefinition) {
+        String beanName = methodDefinition.getName();
+        BeanDefinition beanDefinition = definitions.getBeanDefinition(methodDefinition.getClazz());
+        if (methodDefinition != null && (!methodValues.containsKey(beanName) || !methodDefinition.isSingleton() || methodDefinition.isPrimary())) {
+            //延迟加载处理
+            if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isPrimary()) {
+                T value = definitions.createMethodBean(methodDefinition);
+                if (value != null) {
+                    addMethodValue(beanName, value);
+                    return value;
+                }
             }
         }
 
         return null;
+    }
+
+    public <T> T invokeMethodBean(String beanName) {
+        MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
+        return invokeMethodBean(methodDefinition);
     }
 }
