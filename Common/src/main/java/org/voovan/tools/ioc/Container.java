@@ -1,7 +1,7 @@
 package org.voovan.tools.ioc;
 
 import org.voovan.tools.TEnv;
-import org.voovan.tools.exception.ParseException;
+import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Primary;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
@@ -248,19 +248,22 @@ public class Container {
 
     private void nameChecker(String name) {
         if(name.indexOf('.') >= 0) {
-            throw new ParseException("Bean name errro cause it has '.'");
+            throw new IOCException("Bean name errro cause it has '.'");
         }
     }
 
     public <T> T initBean(String beanName) {
         BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
         if(beanDefinition!=null && (!beanValues.containsKey(beanName) || !beanDefinition.isSingleton())) {
-            T value = definitions.craeteBean(beanName);
-            if(value!=null) {
-                definitions.initField(value);
-                addBeanValue(beanName, value);
-                initMethodBean(beanDefinition.getClazz());
-                return value;
+            //延迟加载处理
+            if(Context.isIsInited() || !beanDefinition.isLazy()) {
+                T value = definitions.craeteBean(beanName);
+                if (value != null) {
+                    definitions.initField(value);
+                    addBeanValue(beanName, value);
+                    initMethodBean(beanDefinition.getClazz());
+                    return value;
+                }
             }
         }
 
@@ -268,12 +271,11 @@ public class Container {
     }
 
     public void initMethodBean(Class clazz) {
+        BeanDefinition beanDefinition = definitions.getBeanDefinition(clazz);
         List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
         for(MethodDefinition methodDefinition : methodDefinitionList) {
-            BeanDefinition beanDefinition = definitions.getBeanDefinition(methodDefinition.getClazz());
-
             //延迟加载处理
-            if (!beanDefinition.isLazy() && !methodDefinition.isLazy()) {
+            if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isLazy()) {
                 invokeMethodBean(methodDefinition.getName());
             }
         }

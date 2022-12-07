@@ -1,7 +1,7 @@
 package org.voovan.tools.ioc;
 
 import org.voovan.tools.TFile;
-import org.voovan.tools.exception.ParseException;
+import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.JSONPath;
 
@@ -40,7 +40,7 @@ public class Config {
         String content = new String(TFile.loadResource(configFile));
         config = (Map<String, Object>)JSON.parse(content);
         if(!(config instanceof Map)) {
-            throw new ParseException("ConfigFile must be a Map style file");
+            throw new IOCException("ConfigFile must be a Map style file");
         }
     }
 

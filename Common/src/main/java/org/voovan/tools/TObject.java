@@ -28,7 +28,7 @@ public class TObject {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T cast(Object obj){
-		return TObject.cast(obj);
+		return (T)obj;
 	}
 
 	/**

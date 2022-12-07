@@ -3,7 +3,7 @@ package org.voovan.tools.ioc;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
-import org.voovan.tools.exception.ParseException;
+import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.annotation.Primary;
 import org.voovan.tools.ioc.annotation.Value;
@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.voovan.tools.TObject.cast;
 import static org.voovan.tools.ioc.utils.classKey;
 
 /**
@@ -96,7 +97,7 @@ public class Definitions {
                     //尝试使用注解的名称选择参数
                     for (Annotation annotation : annotaions) {
                         if (annotation.annotationType().isAssignableFrom(Value.class)) {
-                            Value valueAnnotation = TObject.cast(annotation);
+                            Value valueAnnotation = cast(annotation);
                             String anchor = TReflect.getAnnotationValue(annotation, "anchor");
                             if (anchor == null) {
                                 continue;
@@ -118,7 +119,7 @@ public class Definitions {
 
             return value;
         } catch (Throwable e) {
-            throw new ParseException("Try to create bean " + clazz.getName() + "@" + constructor.getName() + " failed");
+            throw new IOCException("Try to create bean " + clazz.getName() + "@" + constructor.getName() + " failed", e);
         }
     }
 
@@ -152,7 +153,7 @@ public class Definitions {
             }
 
         } catch (Throwable e) {
-            throw new ParseException("Try to fill " + clazz.getName() + "@" + exField.getName() + " failed");
+            throw new IOCException("Try to fill " + clazz.getName() + "@" + exField.getName() + " failed", e);
         }
     }
 
@@ -175,7 +176,7 @@ public class Definitions {
                 //尝试使用注解的名称选择参数
                 for (Annotation annotation : annotaions) {
                     if (annotation.annotationType().isAssignableFrom(Value.class)) {
-                        Value valueAnnotation = TObject.cast(annotation);
+                        Value valueAnnotation = cast(annotation);
                         String anchor = TReflect.getAnnotationValue(annotation, "anchor");
                         if (anchor == null) {
                             continue;
@@ -204,8 +205,8 @@ public class Definitions {
             T value = TReflect.invokeMethod(obj, method, params);
             return value;
         } catch (Throwable e) {
-            throw new ParseException("Try to create method bean " +
-                    methodDefinition.getClazz().getName() + "@" + methodDefinition.getMethod().getName() + " failed");
+            throw new IOCException("Try to create method bean " +
+                    methodDefinition.getClazz().getName() + "@" + methodDefinition.getMethod().getName() + " failed", e);
         }
     }
 

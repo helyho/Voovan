@@ -20,15 +20,26 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Context {
 
-    public static ConcurrentHashMap<String, Container> CONTAINER_MAP = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, Container> CONTAINER_MAP = new ConcurrentHashMap<>();
 
-    String[] scanPaths;
+    private static String[] scanPaths;
 
-    public Context(String... scanPaths) {
-        this.scanPaths = scanPaths;
+    private static boolean isInited = false; //0: 未初始化, 1: 初始化完成
+
+    public static ConcurrentHashMap<String, Container> getContainerMap() {
+        return CONTAINER_MAP;
     }
 
-    public void init() {
+    public static String[] getScanPaths() {
+        return scanPaths;
+    }
+
+    public static boolean isIsInited() {
+        return isInited;
+    }
+
+    public static void init(String... scanPaths) {
+        Context.scanPaths = scanPaths;
         for(String scanPath : scanPaths) {
             try {
                 //扫描类并加载 Bean, Method 定义
@@ -43,16 +54,15 @@ public class Context {
                 Logger.errorf("Scan compoment failed", e);
             }
         }
+        isInited = true;
     }
 
 
-    public void initBean() throws ReflectiveOperationException {
+    public static void initBean() {
         for(Container container : CONTAINER_MAP.values()) {
             Definitions definitions = container.getDefinitions();
             for(BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()){
-                if(!beanDefinition.isLazy()) {
-                    container.initBean(beanDefinition.getName());
-                }
+                container.initBean(beanDefinition.getName());
             }
 
             for(BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
@@ -65,7 +75,7 @@ public class Context {
      * 解析 class 的 bean 定义
      * @param clazz 解析这个 class 的 bean 定义
      */
-    public void loadClass(Class clazz) {
+    public static void loadClass(Class clazz) {
         String scope = Definitions.getScope(clazz);
 
         Container container = getContainer(scope);
@@ -78,7 +88,7 @@ public class Context {
      * 解析 method 的 bean 定义
      * @param clazz 解析这个类的 method 的 bean 定义
      */
-    public void loadMethod(Class clazz) {
+    public static void loadMethod(Class clazz) {
         Method[] methods = TReflect.getMethods(clazz);
         for(Method method : methods) {
             Bean bean = method.getAnnotation(Bean.class);
@@ -99,7 +109,7 @@ public class Context {
      * @param scope 作用域
      * @return 指定作用域的 Container
      */
-    public Container getContainer(String scope) {
+    public static Container getContainer(String scope) {
         return CONTAINER_MAP.computeIfAbsent(scope, key->new Container(scope));
     }
 

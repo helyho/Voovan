@@ -27,9 +27,8 @@ public class IOC2 {
     private Map map;
 
 
-    @Bean("getList")
-    public List getList(){
-        return ioc1.getList();
+    @Bean("methodString")
+    public String getList(@Value("string") String data){
+        return data;
     }
-
 }
