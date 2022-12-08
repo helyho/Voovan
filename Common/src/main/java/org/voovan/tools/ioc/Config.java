@@ -7,6 +7,7 @@ import org.voovan.tools.json.JSONPath;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 配置文件类
@@ -17,7 +18,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Config {
-    public static String configFile = "./application.json";
+    public static String configFile = "conf/application.json";
 
     public Map<String, Object> config;
 
@@ -37,8 +38,15 @@ public class Config {
     public void init() {
         String fileName = TFile.getFileName(configFile);
         this.name = fileName.substring(0, fileName.indexOf('.'));
-        String content = new String(TFile.loadResource(configFile));
-        config = (Map<String, Object>)JSON.parse(content);
+        byte[] confBytes = TFile.loadFileFromContextPath(configFile);
+
+        if(confBytes != null) {
+            String content = new String(confBytes);
+            config = (Map<String, Object>) JSON.parse(content);
+        } else {
+            config = new ConcurrentHashMap<String, Object>();
+        }
+
         if(!(config instanceof Map)) {
             throw new IOCException("ConfigFile must be a Map style file");
         }

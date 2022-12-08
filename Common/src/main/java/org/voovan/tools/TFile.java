@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
  */
 public class TFile {
 
-	private static String LINE_SEPARATOR = System.getProperty("line.separator");
+	private final static String LINE_SEPARATOR = System.getProperty("line.separator");
 
 	/**
 	 * 判断文件是否存在
@@ -164,11 +164,14 @@ public class TFile {
 		try {
 			resourcePath = URLDecoder.decode(resourcePath,"utf-8");
 			InputStream inputStream = TEnv.class.getClassLoader().getResourceAsStream(resourcePath);
-			return TStream.readAll(inputStream);
+			if(inputStream!=null) {
+				return TStream.readAll(inputStream);
+			}
 		} catch (IOException e) {
 			Logger.error("Load resource " + resourcePath + " failed", e);
-			return null;
 		}
+
+		return null;
 	}
 
 

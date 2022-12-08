@@ -24,13 +24,14 @@ import static org.voovan.tools.ioc.Utils.getScope;
  */
 public class Context {
 
-    private static ConcurrentHashMap<String, Container> CONTAINER_MAP = new ConcurrentHashMap<>();
+    private final static ConcurrentHashMap<String, Container> CONTAINER_MAP = new ConcurrentHashMap<>();
+
+    private final static Container DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE);
 
     private static List<String> scanPaths;
 
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
 
-    private static Container DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE);
 
 
     static {
@@ -52,6 +53,10 @@ public class Context {
 
     public static void init() {
         Context.scanPaths = DEFAULT_CONTAINER.get("scanPaths", null);
+        if(scanPaths == null) {
+            return;
+        }
+
         for (String scanPath : scanPaths) {
             try {
                 //扫描类并加载 Bean, Method 定义

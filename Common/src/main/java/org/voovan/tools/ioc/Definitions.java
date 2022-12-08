@@ -14,6 +14,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -31,10 +32,10 @@ import static org.voovan.tools.ioc.Utils.getBeanNameInPath;
  * Licence: Apache v2 License
  */
 public class Definitions {
-    private Map<String, BeanDefinition>     beanDefinitions = new ConcurrentHashMap<>();
-    private Map<Class, BeanDefinition>      beanDefinitionsByClass = new ConcurrentHashMap<>();
-    private Map<String, MethodDefinition>   methodDefinitions = new ConcurrentHashMap<>();
-    private Map<Class, List<MethodDefinition>>    methodDefinitionsByClass = new ConcurrentHashMap<>();
+    private final Map<String, BeanDefinition>         beanDefinitions = new ConcurrentHashMap<>();
+    private final Map<Class, BeanDefinition>          beanDefinitionsByClass = new ConcurrentHashMap<>();
+    private final Map<String, MethodDefinition>       methodDefinitions = new ConcurrentHashMap<>();
+    private final Map<Class, List<MethodDefinition>>  methodDefinitionsByClass = new ConcurrentHashMap<>();
 
     Container container;
 
