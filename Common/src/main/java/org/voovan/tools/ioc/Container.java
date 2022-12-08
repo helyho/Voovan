@@ -273,7 +273,7 @@ public class Container {
         }
 
         String beanName = beanDefinition.getName();
-
+        //单例 及 Primary 支持
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             //延迟加载处理
             if(Context.isIsInited() || !beanDefinition.isLazy()) {
@@ -314,6 +314,7 @@ public class Container {
 
         String beanName = methodDefinition.getName();
         BeanDefinition beanDefinition = definitions.getBeanDefinition(methodDefinition.getClazz());
+        //单例 及 Primary 支持
         if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
             if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isPrimary()) {
@@ -340,7 +341,7 @@ public class Container {
     }
 
     /**
-     * 初始化类所有的方法Bean
+     * 初始化类中所有的方法Bean
      * @param clazz 指定的类型
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      */
@@ -355,6 +356,4 @@ public class Container {
             invokeMethodBean(methodDefinition);
         }
     }
-
-
 }
