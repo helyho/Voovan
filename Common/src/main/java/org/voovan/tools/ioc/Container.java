@@ -21,15 +21,16 @@ import static org.voovan.tools.ioc.Utils.*;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
+@SuppressWarnings("ALL")
 public class Container {
-    private Map<String, Object> configValues = new ConcurrentHashMap<>();
-    private Map<String, Object> beanValues = new ConcurrentHashMap<>();
+    private final Map<String, Object> configValues = new ConcurrentHashMap<>();
+    private final Map<String, Object> beanValues = new ConcurrentHashMap<>();
 
-    private String scope;
-    private Definitions definitions;
+    private final String scope;
+    private final Definitions definitions;
 
-    private BeanVisitor configVisitor;
-    private BeanVisitor beanVisitor;
+    private final BeanVisitor configVisitor;
+    private final BeanVisitor beanVisitor;
 
     public Container(String scope) {
         this.scope = scope;
@@ -161,7 +162,7 @@ public class Container {
      * @param <T> 泛型
      * @return 获取的对象
      */
-    public <T> T getByAnchor(String anchor, Class clazz, T defaultVal) {
+    public <T> T getByAnchor(String anchor, Class<T> clazz, T defaultVal) {
         if (isPath(anchor)) {
             return (T) getByExpression(anchor, clazz, defaultVal);
         } else {
@@ -191,7 +192,7 @@ public class Container {
      * @param <T> 泛型
      * @return 获取的对象
      */
-    public <T> T getByType(Class clazz, T defaultVal) {
+    public <T> T getByType(Class<T> clazz, T defaultVal) {
         return getByName(classKey(clazz), defaultVal);
     }
 
@@ -206,7 +207,7 @@ public class Container {
         if(mark instanceof String) {
             return getByAnchor((String)mark, defaultVal);
         } else if(mark instanceof Class) {
-            return getByType((Class)mark, defaultVal);
+            return getByType((Class<T>)mark, defaultVal);
         } else {
             throw new IOCException("Contain.get only accept mark type by java.lang.[String,Class]");
         }
@@ -227,7 +228,7 @@ public class Container {
      * @param clazz 判断所检查的类型
      * @return true: 存在, false: 不存在
      */
-    public boolean existsByType(Class clazz) {
+    public boolean existsByType(Class<?> clazz) {
         return exists(classKey(clazz));
     }
 
@@ -343,8 +344,13 @@ public class Container {
      * @param clazz 指定的类型
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      */
-    public void initMethodBean(Class clazz) {
+    public void initMethodBean(Class<?> clazz) {
         List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
+
+        if(methodDefinitionList==null) {
+            return;
+        }
+
         for(MethodDefinition methodDefinition : methodDefinitionList) {
             invokeMethodBean(methodDefinition);
         }

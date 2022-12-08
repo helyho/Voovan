@@ -8,7 +8,7 @@ package org.voovan.tools.ioc.entity;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class BeanDefinition<T> {
+public class BeanDefinition {
     /**
      * 方法执行依赖的对象
      */

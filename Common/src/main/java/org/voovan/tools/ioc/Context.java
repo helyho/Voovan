@@ -35,6 +35,7 @@ public class Context {
 
     static {
         CONTAINER_MAP.put(DEFAULT_SCOPE, DEFAULT_CONTAINER);
+        init();
     }
 
     public static ConcurrentHashMap<String, Container> getContainerMap() {
@@ -135,27 +136,27 @@ public class Context {
         return getContainer(DEFAULT_SCOPE);
     }
 
-    public <T> T get(String scope, Object mark, T defaultVal) {
+    public static <T> T get(String scope, Object mark, T defaultVal) {
         return getContainer(scope).get(mark, defaultVal);
     }
 
-    public <T> T get(Object mark, T defaultVal) {
+    public static <T> T get(Object mark, T defaultVal) {
         return get(Utils.DEFAULT_SCOPE, mark, defaultVal);
     }
 
-    public <T> T get(Object mark) {
+    public static <T> T get(Object mark) {
         return get(Utils.DEFAULT_SCOPE, mark, null);
     }
 
-    public <T> T addExtBean(String scope, String beanName, T value) {
+    public static <T> T addExtBean(String scope, String beanName, T value) {
         return getContainer(scope).addExtBean(beanName, value);
     }
 
-    public <T> T addExtBean(String beanName, T value) {
+    public static <T> T addExtBean(String beanName, T value) {
         return addExtBean(DEFAULT_SCOPE, beanName, value);
     }
 
-    public <T> T addExtBean(T value) {
+    public static <T> T addExtBean(T value) {
         return addExtBean(DEFAULT_SCOPE, null, value);
     }
 
