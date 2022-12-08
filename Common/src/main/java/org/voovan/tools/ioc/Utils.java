@@ -19,6 +19,8 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Utils {
+    public static final String DEFAULT_SCOPE = "defalut";
+
     public static void nameChecker(String name) {
         if(name.indexOf('.') >= 0) {
             throw new IOCException("Bean name errro cause it has '.'");

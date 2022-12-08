@@ -100,7 +100,7 @@ public class Definitions {
                             if (TString.isNullOrEmpty(anchor)) {
                                 continue;
                             }
-                            params[i] = container.get(anchor, parameterTypes[i], null);
+                            params[i] = container.getByExpression(anchor, parameterTypes[i], null);
                             if(valueAnnotation.required() && params[i] == null) {
                                 Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, constructor.getDeclaringClass(), constructor.getName(), parameterTypes[i], i);
                             }
@@ -108,7 +108,7 @@ public class Definitions {
                     }
                     if (params[i] == null) {
                         //使用类型选择参数
-                        params[i] = container.get(null, parameterTypes[i], null);
+                        params[i] = container.getByExpression(null, parameterTypes[i], null);
                     }
                 }
 
@@ -121,7 +121,7 @@ public class Definitions {
         }
     }
 
-    public void initField(Object obj) {
+    public void initField(Object obj, boolean initAllField) {
         Class clazz = obj.getClass();
 
 
@@ -130,6 +130,13 @@ public class Definitions {
             Field[] fields = TReflect.getFields(clazz);
             for (Field field : fields) {
                 exField = field;
+
+                //是否初始化 非 null 值 field
+                Object fieldVal = field.get(obj);
+                if(!initAllField && fieldVal!=null){
+                    continue;
+                }
+
                 Value value = field.getAnnotation(Value.class);
                 if (value == null) {
                     continue;
@@ -140,7 +147,7 @@ public class Definitions {
                 if(TString.isNullOrEmpty(anchor)) {
                     data = container.getByType(field.getType(), null);
                 } else {
-                    data = container.get(anchor, null);
+                    data = container.getByExpression(anchor, null);
                 }
 
                 if(value.required() && data == null) {
@@ -179,7 +186,7 @@ public class Definitions {
                         if (TString.isNullOrEmpty(anchor)) {
                             continue;
                         }
-                        params[i] = container.get(anchor, parameterTypes[i], null);
+                        params[i] = container.getByExpression(anchor, parameterTypes[i], null);
 
                         if (valueAnnotation.required() && params[i] == null) {
                             Logger.warnf("Bean '{}' not found -> {method: {}@{}(...), type: {}, No: {}}, On invoke method ", anchor, method.getDeclaringClass(), method.getName(), parameterTypes[i], i);
@@ -195,7 +202,7 @@ public class Definitions {
             Object obj = null;
             //获取方法的所属的对象, 静态方法无所属对象, 则使用方法所有的 class 作为对象
             if (methodDefinition.getOwner() != null) {
-                obj = container.get(methodDefinition.getOwner(), null);
+                obj = container.getByExpression(methodDefinition.getOwner(), null);
             } else {
                 obj = methodDefinition.getClazz();
             }

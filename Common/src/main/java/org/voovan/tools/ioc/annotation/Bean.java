@@ -1,5 +1,6 @@
 package org.voovan.tools.ioc.annotation;
 
+import org.voovan.tools.ioc.Utils;
 import org.voovan.tools.reflect.annotation.Alias;
 
 import java.lang.annotation.*;
@@ -23,7 +24,7 @@ public @interface Bean {
     @Alias("value")
     String name() default "";
 
-    String scope() default "default";
+    String scope() default Utils.DEFAULT_SCOPE;
 
     boolean singleton()  default true;
 

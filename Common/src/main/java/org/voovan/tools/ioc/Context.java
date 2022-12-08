@@ -10,6 +10,7 @@ import org.voovan.tools.reflect.TReflect;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.voovan.tools.ioc.Utils.DEFAULT_SCOPE;
 import static org.voovan.tools.ioc.Utils.getScope;
 
 /**
@@ -42,7 +43,7 @@ public class Context {
 
     public static void init(String... scanPaths) {
         Context.scanPaths = scanPaths;
-        for(String scanPath : scanPaths) {
+        for (String scanPath : scanPaths) {
             try {
                 //扫描类并加载 Bean, Method 定义
                 AnnotataionScaner.scan(scanPath, clazz -> {
@@ -60,14 +61,14 @@ public class Context {
     }
 
 
-    public static void initBean() {
-        for(Container container : CONTAINER_MAP.values()) {
+    private static void initBean() {
+        for (Container container : CONTAINER_MAP.values()) {
             Definitions definitions = container.getDefinitions();
-            for(BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()){
+            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
                 container.initBean(beanDefinition.getName());
             }
 
-            for(BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
+            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
                 container.initMethodBean(beanDefinition.getClazz());
             }
         }
@@ -75,9 +76,10 @@ public class Context {
 
     /**
      * 解析 class 的 bean 定义
+     *
      * @param clazz 解析这个 class 的 bean 定义
      */
-    public static void loadClass(Class clazz) {
+    private static void loadClass(Class clazz) {
         String scope = getScope(clazz);
 
         Container container = getContainer(scope);
@@ -88,13 +90,14 @@ public class Context {
 
     /**
      * 解析 method 的 bean 定义
+     *
      * @param clazz 解析这个类的 method 的 bean 定义
      */
-    public static void loadMethod(Class clazz) {
+    private static void loadMethod(Class clazz) {
         Method[] methods = TReflect.getMethods(clazz);
-        for(Method method : methods) {
+        for (Method method : methods) {
             Bean bean = method.getAnnotation(Bean.class);
-            if(bean==null) {
+            if (bean == null) {
                 continue;
             }
             String scope = getScope(method);
@@ -108,11 +111,44 @@ public class Context {
 
     /**
      * 获取指定作用域的 Container
+     *
      * @param scope 作用域
      * @return 指定作用域的 Container
      */
     public static Container getContainer(String scope) {
-        return CONTAINER_MAP.computeIfAbsent(scope, key->new Container(scope));
+        if(scope == null){
+            scope = DEFAULT_SCOPE;
+        }
+        String finalScope = scope;
+        return CONTAINER_MAP.computeIfAbsent(scope, key -> new Container(finalScope));
+    }
+
+    public static Container getDefaultContainer() {
+        return getContainer(DEFAULT_SCOPE);
+    }
+
+    public <T> T get(String scope, Object mark, T defaultVal) {
+        return getContainer(scope).get(mark, defaultVal);
+    }
+
+    public <T> T get(Object mark, T defaultVal) {
+        return get(Utils.DEFAULT_SCOPE, mark, defaultVal);
+    }
+
+    public <T> T get(Object mark) {
+        return get(Utils.DEFAULT_SCOPE, mark, null);
+    }
+
+    public <T> T addExtBean(String scope, String beanName, T value) {
+        return getContainer(scope).addExtBean(beanName, value);
+    }
+
+    public <T> T addExtBean(String beanName, T value) {
+        return addExtBean(DEFAULT_SCOPE, beanName, value);
+    }
+
+    public <T> T addExtBean(T value) {
+        return addExtBean(DEFAULT_SCOPE, null, value);
     }
 
 }

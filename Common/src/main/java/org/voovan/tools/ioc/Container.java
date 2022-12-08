@@ -1,5 +1,7 @@
 package org.voovan.tools.ioc;
 
+import org.voovan.tools.TString;
+import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.json.BeanVisitor;
@@ -164,7 +166,7 @@ public class Container {
      * @param <T>
      * @return
      */
-    public <T> T get(String pathOrName, Class clazz, T defaultVal) {
+    public <T> T getByExpression(String pathOrName, Class clazz, T defaultVal) {
         if (isPath(pathOrName)) {
             return (T) getByPath(pathOrName, clazz, defaultVal);
         } else {
@@ -179,7 +181,7 @@ public class Container {
      * @param <T>
      * @return
      */
-    public <T> T get(String anchor, T defaultVal) {
+    public <T> T getByExpression(String anchor, T defaultVal) {
         if (isPath(anchor)) {
             return (T) getByPath(anchor, defaultVal);
         } else {
@@ -191,6 +193,16 @@ public class Container {
         return getByName(classKey(clazz), defaultVal);
     }
 
+    public <T> T get(Object mark, T defaultVal) {
+        if(mark instanceof String) {
+            return getByExpression((String)mark, defaultVal);
+        } else if(mark instanceof Class) {
+            return getByType((Class)mark, defaultVal);
+        } else {
+            throw new IOCException("Contain.get only accept mark type by java.lang.[String,Class]");
+        }
+    }
+
 
     public boolean exists(String anchor) {
         return configValues.containsKey(anchor) || beanValues.containsKey(anchor) || methodValues.containsKey(anchor);
@@ -198,6 +210,23 @@ public class Container {
 
     public boolean existsByType(Class clazz) {
         return exists(classKey(clazz));
+    }
+
+
+    /**
+     * 增加外部类到容器中进行管理
+     * @param beanName 名称
+     * @param value 被增加到容器中对象
+     */
+    public <T> T addExtBean(String beanName, T value) {
+        if(TString.isNullOrEmpty(beanName)) {
+            beanName = classKey(value.getClass());
+        }
+
+        definitions.initField(value, false);
+        addBeanValue(beanName, value);
+        initMethodBean(value.getClass());
+        return value;
     }
 
     /**
@@ -224,8 +253,6 @@ public class Container {
         methodValues.put(classKey(value.getClass()), value);
     }
 
-
-
     public <T> T initBean(String beanName) {
         BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
         if(beanDefinition!=null && (!beanValues.containsKey(beanName) ||
@@ -237,7 +264,7 @@ public class Container {
             if(Context.isIsInited() || !beanDefinition.isLazy()) {
                 T value = definitions.craeteBean(beanName);
                 if (value != null) {
-                    definitions.initField(value);
+                    definitions.initField(value, true);
                     addBeanValue(beanName, value);
                     initMethodBean(beanDefinition.getClazz());
                     return value;
