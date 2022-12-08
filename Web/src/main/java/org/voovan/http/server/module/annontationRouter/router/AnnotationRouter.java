@@ -12,6 +12,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.compiler.function.DynamicFunction;
+import org.voovan.tools.ioc.Context;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -29,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
+@SuppressWarnings("ALL")
 public class AnnotationRouter implements HttpRouter {
     //是否预编译路由
     public final static boolean PRE_BUILDER_ROUTER = TEnv.getSystemProperty("PrebuildRouter", false);
@@ -75,7 +77,9 @@ public class AnnotationRouter implements HttpRouter {
         //如果是单例,则进行预实例化
         if(classRouter.singleton() && !singletonObjs.containsKey(clazz)){
             try {
-                singletonObjs.put(clazz, clazz.newInstance());
+                Object annotationObj  = clazz.newInstance();
+                Context.addExtBean(annotationObj);
+                singletonObjs.put(clazz, annotationObj);
             } catch (Exception e) {
                 Logger.error("New a singleton object error", e);
             }
@@ -316,6 +320,7 @@ public class AnnotationRouter implements HttpRouter {
             annotationObj = singletonObjs.get(clazz);
         } else {
             annotationObj = clazz.newInstance();
+            Context.addExtBean(annotationObj);
         }
 
         String path = request.protocol().getPath();
@@ -356,8 +361,6 @@ public class AnnotationRouter implements HttpRouter {
                 params[i] = request.getSession();
                 continue;
             }
-
-
 
             for(Annotation annotation : parameterAnnotations[i]) {
 

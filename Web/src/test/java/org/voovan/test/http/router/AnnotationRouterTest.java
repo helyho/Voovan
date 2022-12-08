@@ -11,6 +11,7 @@ import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiPro
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.ioc.annotation.Value;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,8 +19,12 @@ import java.util.Map;
 
 //将当前类注解为一个请求路由处理类, 采用默认的请求方法 GET
 //为当前类指定一个请求路径为:/annon，如果不指定则默认的路径为/AnnotationRouterTest
+@SuppressWarnings("ALL")
 @Router(value = "/annon", singleton = true)
 public class AnnotationRouterTest {
+
+    @Value("ServerName")
+    private String serverName;
 
     private String lastPath = "";
 
@@ -29,7 +34,7 @@ public class AnnotationRouterTest {
     public Object index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time19:" + System.currentTimeMillis();
-        return TObject.asMap("index", lastPath, "seq", 133832);//"index, lastPath="+oldPath;
+        return TObject.asMap("index", lastPath, "seq", 133832, "ServerName", serverName);//"index, lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由
