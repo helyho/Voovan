@@ -27,11 +27,16 @@ public class IOC2 {
     @Value(anchor = "Map", required = false)
     private Map map;
 
-
     @Bean
     @Primary
     public List getList(@Value List data){
         data.add("item3");
         return data;
+    }
+
+    @Bean("Filters")
+    @Primary
+    public String getFilters(@Value("Filters") List data, @Value("ServerName") String serverName){
+        return serverName + "->" + data;
     }
 }

@@ -65,7 +65,7 @@ public class Context {
         for (Container container : CONTAINER_MAP.values()) {
             Definitions definitions = container.getDefinitions();
             for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
-                container.initBean(beanDefinition.getName());
+                container.initBean(beanDefinition);
             }
 
             for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {

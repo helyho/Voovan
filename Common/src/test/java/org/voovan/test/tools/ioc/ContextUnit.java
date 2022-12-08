@@ -17,7 +17,7 @@ public class ContextUnit {
         Context.init("org.voovan.test.tools.ioc");
 
         Container container = Context.getDefaultContainer();
-        IOC2 ioc2 = container.getByExpression("IOC2", null);
+        IOC2 ioc2 = container.getByAnchor("IOC2", null);
         System.out.println("1111");
     }
 }

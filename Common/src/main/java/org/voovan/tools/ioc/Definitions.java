@@ -55,6 +55,7 @@ public class Definitions {
      * @param name  组件名称
      * @param clazz 需要构造的类型
      * @param <T> 泛型
+     * @return 创建的对象
      */
     public <T> T craeteBean(String name) {
         BeanDefinition beanDefinition = beanDefinitions.get(name);
@@ -100,7 +101,7 @@ public class Definitions {
                             if (TString.isNullOrEmpty(anchor)) {
                                 continue;
                             }
-                            params[i] = container.getByExpression(anchor, parameterTypes[i], null);
+                            params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
                             if(valueAnnotation.required() && params[i] == null) {
                                 Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, constructor.getDeclaringClass(), constructor.getName(), parameterTypes[i], i);
                             }
@@ -108,7 +109,7 @@ public class Definitions {
                     }
                     if (params[i] == null) {
                         //使用类型选择参数
-                        params[i] = container.getByExpression(null, parameterTypes[i], null);
+                        params[i] = container.getByAnchor(null, parameterTypes[i], null);
                     }
                 }
 
@@ -121,6 +122,11 @@ public class Definitions {
         }
     }
 
+    /**
+     * 初始对象的属性
+     * @param obj 对象
+     * @param initAllField 是否初始化所有的属性, 如果为false则在属性为 null 时不初始化该属性
+     */
     public void initField(Object obj, boolean initAllField) {
         Class clazz = obj.getClass();
 
@@ -147,7 +153,7 @@ public class Definitions {
                 if(TString.isNullOrEmpty(anchor)) {
                     data = container.getByType(field.getType(), null);
                 } else {
-                    data = container.getByExpression(anchor, null);
+                    data = container.getByAnchor(anchor, null);
                 }
 
                 if(value.required() && data == null) {
@@ -165,7 +171,7 @@ public class Definitions {
     /**
      * 执行方法创建 bean
      * @param methodDefinition 方法定义对象
-     * @return 方法的值
+     * @return 方法 bean 的对象
      * @param <T> 泛型
      */
     public <T> T createMethodBean(MethodDefinition methodDefinition) {
@@ -186,7 +192,7 @@ public class Definitions {
                         if (TString.isNullOrEmpty(anchor)) {
                             continue;
                         }
-                        params[i] = container.getByExpression(anchor, parameterTypes[i], null);
+                        params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
 
                         if (valueAnnotation.required() && params[i] == null) {
                             Logger.warnf("Bean '{}' not found -> {method: {}@{}(...), type: {}, No: {}}, On invoke method ", anchor, method.getDeclaringClass(), method.getName(), parameterTypes[i], i);
@@ -202,7 +208,7 @@ public class Definitions {
             Object obj = null;
             //获取方法的所属的对象, 静态方法无所属对象, 则使用方法所有的 class 作为对象
             if (methodDefinition.getOwner() != null) {
-                obj = container.getByExpression(methodDefinition.getOwner(), null);
+                obj = container.getByAnchor(methodDefinition.getOwner(), null);
             } else {
                 obj = methodDefinition.getClazz();
             }
@@ -223,6 +229,7 @@ public class Definitions {
      * @param singletone 是否单例模式
      * @param lazy 是否延迟加载
      * @param primary 是否是主对象
+     * @return bean 的定义对象
      */
     public BeanDefinition addBeanDefinition(String name, Class clazz, boolean singletone, boolean lazy, boolean primary) {
         BeanDefinition beanDefinition = new BeanDefinition(name, clazz, singletone, lazy, primary);
@@ -231,6 +238,11 @@ public class Definitions {
         return beanDefinition;
     }
 
+    /**
+     * 用 Class 增加 Bean 定义, 用于构建 Bean 对象
+     * @param clazz class对象
+     * @return bean 的定义对象
+     */
     public BeanDefinition addBeanDefinition(Class clazz) {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
         String beanName = getBeanNameInPath(clazz);
@@ -250,6 +262,7 @@ public class Definitions {
      * @param singletone 是否单例模式
      * @param lazy 是否延迟加载
      * @param primary 是否是主对象
+     * @return 方法 bean 的定义对象
      */
     public MethodDefinition addMethodDefinition(String name, String owner, Method method, boolean singletone, boolean lazy, boolean primary) {
         MethodDefinition methodDefinition = new MethodDefinition(name, owner, method, singletone, lazy, primary);
@@ -259,12 +272,9 @@ public class Definitions {
     }
 
     /**
-     * 增加 method 定义, 用于构建方法对象
-     * @param name 方法命名名称
-     * @param owner 方法依赖对象
+     * 增加方法的定义
      * @param method 方法对象
-     * @param singletone 是否单例模式
-     * @param lazy 是否延迟加载
+     * @return 方法的定义对象
      */
     public MethodDefinition addMethodDefinition(Method method) {
         Bean bean = (Bean) method.getAnnotation(Bean.class);
@@ -279,10 +289,20 @@ public class Definitions {
     }
 
 
+    /**
+     * 获取 bean 定义
+     * @param clazz 指定类
+     * @return bean的定义对象
+     */
     public BeanDefinition getBeanDefinition(Class clazz){
         return beanDefinitionsByClass.get(clazz);
     }
 
+    /**
+     * 获取指定类的所有方法定义对象
+     * @param clazz 指定类
+     * @return 方法 bean 的定义对象集合
+     */
     public List<MethodDefinition> getMethodDefinition(Class clazz){
         return methodDefinitionsByClass.get(clazz);
     }

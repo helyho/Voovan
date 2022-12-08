@@ -60,7 +60,7 @@ public class Utils {
         return beanName;
     }
 
-    public static String getBeanNameInPath(String path) {
+    public static String getBeanNameFromExpression(String path) {
         return path.split("\\.")[0];
     }
 

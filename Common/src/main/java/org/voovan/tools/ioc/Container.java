@@ -24,14 +24,12 @@ import static org.voovan.tools.ioc.Utils.*;
 public class Container {
     private Map<String, Object> configValues = new ConcurrentHashMap<>();
     private Map<String, Object> beanValues = new ConcurrentHashMap<>();
-    private Map<String, Object> methodValues = new ConcurrentHashMap<>();
 
     private String scope;
     private Definitions definitions;
 
     private BeanVisitor configVisitor;
     private BeanVisitor beanVisitor;
-    private BeanVisitor methodVisitor;
 
     public Container(String scope) {
         this.scope = scope;
@@ -48,11 +46,6 @@ public class Container {
         //.................
         beanVisitor = new BeanVisitor(beanValues);
         beanVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
-
-        //Method 初始化
-        //.................
-        methodVisitor = new BeanVisitor(methodValues);
-        methodVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
     }
 
 
@@ -65,30 +58,31 @@ public class Container {
     }
 
     /**
-     * 使用表达式获取数据
+     * 使用表达式获取数据, 保持解析后的类型, 无类型自动转移
+     * 性能高, 但复杂类型转换可能不正常
      *
-     * @param path       表达式路径
+     * @param expression       表达式路径
      * @param defaultVal 默认值
-     * @param clazz      值类型
+     * @param clazz      值的类型
      * @param <T>        泛型类型
      * @return 数据的值
      */
-    private <T> T getByPath(String path, Class<T> clazz, T defaultVal) {
-        T ret = configVisitor.value(path, clazz, defaultVal);
+    private <T> T getByExpression(String expression, Class<T> clazz, T defaultVal) {
+        T ret = configVisitor.value(expression, clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
 
-        String beanName = getBeanNameInPath(path);
+        String beanName = getBeanNameFromExpression(expression);
         //如果依赖的 Bean 不存在则创建
         initBean(beanName);
-        ret = beanVisitor.value(path, clazz, defaultVal);
+        ret = beanVisitor.value(expression, clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
 
         invokeMethodBean(beanName);
-        ret = methodVisitor.value(path,clazz, defaultVal);
+        ret = beanVisitor.value(expression,clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -100,27 +94,27 @@ public class Container {
      * 使用表达式获取数据, 保持解析后的类型, 无类型自动转移
      * 性能高, 但复杂类型转换可能不正常
      *
-     * @param path       表达式路径
+     * @param expression       表达式路径
      * @param defaultVal 默认值
      * @param <T>        泛型类型
      * @return 数据的值
      */
-    private <T> T getByPath(String path, T defaultVal) {
-        T ret = configVisitor.value(path, defaultVal);
+    private <T> T getByExpression(String expression, T defaultVal) {
+        T ret = configVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
         }
 
-        String beanName = getBeanNameInPath(path);;
+        String beanName = getBeanNameFromExpression(expression);;
 
         initBean(beanName);
-        ret = beanVisitor.value(path, defaultVal);
+        ret = beanVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
         }
 
         invokeMethodBean(beanName);
-        ret = methodVisitor.value(path, defaultVal);
+        ret = beanVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -151,7 +145,7 @@ public class Container {
         }
 
         invokeMethodBean(beanName);
-        ret = (T) methodValues.get(beanName);
+        ret = (T) beanValues.get(beanName);
         if (ret != null) {
             return ret;
         }
@@ -160,42 +154,57 @@ public class Container {
     }
 
     /**
-     * @param pathOrName
-     * @param clazz
-     * @param defaultVal
-     * @param <T>
-     * @return
+     * 按锚点(名称或者表达式)获取对象
+     * @param anchor 表达式
+     * @param clazz 表达式对象类型
+     * @param defaultVal 默认值
+     * @param <T> 泛型
+     * @return 获取的对象
      */
-    public <T> T getByExpression(String pathOrName, Class clazz, T defaultVal) {
-        if (isPath(pathOrName)) {
-            return (T) getByPath(pathOrName, clazz, defaultVal);
-        } else {
-            return getByName(pathOrName, defaultVal);
-        }
-    }
-
-    /**
-     * @param pathOrName
-     * @param clazz
-     * @param defaultVal
-     * @param <T>
-     * @return
-     */
-    public <T> T getByExpression(String anchor, T defaultVal) {
+    public <T> T getByAnchor(String anchor, Class clazz, T defaultVal) {
         if (isPath(anchor)) {
-            return (T) getByPath(anchor, defaultVal);
+            return (T) getByExpression(anchor, clazz, defaultVal);
         } else {
             return getByName(anchor, defaultVal);
         }
     }
 
+    /**
+     * 按锚点(名称或者表达式)获取对象
+     * @param expression 表达式
+     * @param defaultVal 默认值
+     * @param <T> 泛型
+     * @return 获取的对象
+     */
+    public <T> T getByAnchor(String anchor, T defaultVal) {
+        if (isPath(anchor)) {
+            return (T) getByExpression(anchor, defaultVal);
+        } else {
+            return getByName(anchor, defaultVal);
+        }
+    }
+
+    /**
+     * 按类型获取对象
+     * @param clazz 对象的类型
+     * @param defaultVal 默认值
+     * @param <T> 泛型
+     * @return 获取的对象
+     */
     public <T> T getByType(Class clazz, T defaultVal) {
         return getByName(classKey(clazz), defaultVal);
     }
 
+    /**
+     * 获取对象
+     * @param mark 按表达式、名称、类型获取对象, 可以传递 String 和 Class 类型
+     * @param defaultVal 默认值
+     * @param <T> 泛型
+     * @return 获取的对象
+     */
     public <T> T get(Object mark, T defaultVal) {
         if(mark instanceof String) {
-            return getByExpression((String)mark, defaultVal);
+            return getByAnchor((String)mark, defaultVal);
         } else if(mark instanceof Class) {
             return getByType((Class)mark, defaultVal);
         } else {
@@ -204,10 +213,20 @@ public class Container {
     }
 
 
-    public boolean exists(String anchor) {
-        return configValues.containsKey(anchor) || beanValues.containsKey(anchor) || methodValues.containsKey(anchor);
+    /**
+     * 判断指定名称的对象是否存在
+     * @param name 描
+     * @return true: 存在, false: 不存在
+     */
+    public boolean exists(String name) {
+        return configValues.containsKey(name) || beanValues.containsKey(name);
     }
 
+    /**
+     * 判断指定类型的对象是否存在
+     * @param clazz 判断所检查的类型
+     * @return true: 存在, false: 不存在
+     */
     public boolean existsByType(Class clazz) {
         return exists(classKey(clazz));
     }
@@ -242,24 +261,19 @@ public class Container {
     }
 
     /**
-     * 增加组件
-     *
-     * @param name  组件名称
-     * @param value 组件值
+     * 初始化 Bean
+     * @param beanDefinition bean定义
+     * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
+     * @param <T> 泛型类型
      */
-    public void addMethodValue(String name, Object value) {
-        nameChecker(name);
-        methodValues.put(name, value);
-        methodValues.put(classKey(value.getClass()), value);
-    }
+    public <T> T initBean(BeanDefinition beanDefinition) {
+        if(beanDefinition==null){
+            return null;
+        }
 
-    public <T> T initBean(String beanName) {
-        BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
-        if(beanDefinition!=null && (!beanValues.containsKey(beanName) ||
-                beanDefinition.isPrimary() ||
-                !beanDefinition.isSingleton())
+        String beanName = beanDefinition.getName();
 
-        ) {
+        if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             //延迟加载处理
             if(Context.isIsInited() || !beanDefinition.isLazy()) {
                 T value = definitions.craeteBean(beanName);
@@ -275,23 +289,36 @@ public class Container {
         return null;
     }
 
-    public void initMethodBean(Class clazz) {
-        List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
-        for(MethodDefinition methodDefinition : methodDefinitionList) {
-            invokeMethodBean(methodDefinition);
-        }
+    /**
+     * 初始化 Bean
+     * @param beanName bean名称
+     * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
+     * @param <T> 泛型类型
+     */
+    public <T> T initBean(String beanName) {
+        BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
+        return initBean(beanDefinition);
     }
 
-
+    /**
+     * 初始化方法的Bean
+     * @param methodDefinition 定义在方法上的 bean 定义
+     * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
+     * @param <T> 泛型类型
+     */
     public <T> T invokeMethodBean(MethodDefinition methodDefinition) {
+        if(methodDefinition==null) {
+            return null;
+        }
+
         String beanName = methodDefinition.getName();
         BeanDefinition beanDefinition = definitions.getBeanDefinition(methodDefinition.getClazz());
-        if (methodDefinition != null && (!methodValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton())) {
+        if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
             if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isPrimary()) {
                 T value = definitions.createMethodBean(methodDefinition);
                 if (value != null) {
-                    addMethodValue(beanName, value);
+                    addBeanValue(beanName, value);
                     return value;
                 }
             }
@@ -300,8 +327,28 @@ public class Container {
         return null;
     }
 
+    /**
+     * 初始化方法的Bean
+     * @param beanName bean名称
+     * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
+     * @param <T> 泛型类型
+     */
     public <T> T invokeMethodBean(String beanName) {
         MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
         return invokeMethodBean(methodDefinition);
     }
+
+    /**
+     * 初始化类所有的方法Bean
+     * @param clazz 指定的类型
+     * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
+     */
+    public void initMethodBean(Class clazz) {
+        List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
+        for(MethodDefinition methodDefinition : methodDefinitionList) {
+            invokeMethodBean(methodDefinition);
+        }
+    }
+
+
 }
