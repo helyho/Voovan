@@ -14,7 +14,7 @@ import org.voovan.tools.ioc.Context;
 public class ContextUnit {
 
     public static void main(String[] args) {
-        Context.init("org.voovan.test.tools.ioc");
+        Context.init();
 
         Container container = Context.getDefaultContainer();
         IOC2 ioc2 = container.getByAnchor("IOC2", null);

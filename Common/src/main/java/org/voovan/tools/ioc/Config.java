@@ -17,7 +17,7 @@ import java.util.Map;
  * Licence: Apache v2 License
  */
 public class Config {
-    public static String configFile = "./ioc.json";
+    public static String configFile = "./application.json";
 
     public Map<String, Object> config;
 

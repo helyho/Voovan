@@ -8,6 +8,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.ioc.Utils.DEFAULT_SCOPE;
@@ -25,15 +26,22 @@ public class Context {
 
     private static ConcurrentHashMap<String, Container> CONTAINER_MAP = new ConcurrentHashMap<>();
 
-    private static String[] scanPaths;
+    private static List<String> scanPaths;
 
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
+
+    private static Container DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE);
+
+
+    static {
+        CONTAINER_MAP.put(DEFAULT_SCOPE, DEFAULT_CONTAINER);
+    }
 
     public static ConcurrentHashMap<String, Container> getContainerMap() {
         return CONTAINER_MAP;
     }
 
-    public static String[] getScanPaths() {
+    public static List<String> getScanPaths() {
         return scanPaths;
     }
 
@@ -41,8 +49,8 @@ public class Context {
         return inited;
     }
 
-    public static void init(String... scanPaths) {
-        Context.scanPaths = scanPaths;
+    public static void init() {
+        Context.scanPaths = DEFAULT_CONTAINER.get("scanPaths", null);
         for (String scanPath : scanPaths) {
             try {
                 //扫描类并加载 Bean, Method 定义
