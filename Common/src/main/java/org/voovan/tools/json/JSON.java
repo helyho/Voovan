@@ -1,12 +1,17 @@
 package org.voovan.tools.json;
 
 import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.function.Supplier;
 
@@ -163,6 +168,40 @@ public class JSON {
 		return toObject(jsonStr, type , false);
 	}
 
+	/**
+	 * 将 JSON字符串 转换成 Java 对象
+	 * @param <T>			范型
+	 * @param file			JSON 文件
+	 * @param type			转换的目标 java 类
+	 * @param ignoreCase    是否忽略字段大小写
+	 * @return				转换后的 Java 对象
+	 */
+	public static <T> T toObject(File file, Type type, boolean ignoreCase) {
+		if(file.exists()) {
+			String fileContent = null;
+			try {
+				fileContent = new String(TFile.loadFile(file),"UTF-8");
+				if(fileContent != null) {
+					return toObject(fileContent, type, ignoreCase);
+				}
+			} catch (UnsupportedEncodingException e) {
+				Logger.error(e);
+			}
+		}
+		return null;
+	}
+
+
+	/**
+	 * 将 JSON字符串 转换成 Java 对象
+	 * @param <T>			范型
+	 * @param file			JSON 文件
+	 * @param type			转换的目标 java 类
+	 * @return				转换后的 Java 对象
+	 */
+	public static <T> T toObject(File file, Type type) {
+		return toObject(file, type, true);
+	}
 
 	/**
 	 * 解析 JSON 字符串

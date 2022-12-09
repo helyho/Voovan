@@ -8,6 +8,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.WebServer;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.log.SingleLogger;
@@ -109,55 +110,23 @@ public class WebContext {
 	}
 
 	/**
-	 * 从 js 配置文件读取配置信息到 Map
-	 * @param configFile 配置文件的路径
-	 * @return Map 对象
-	 */
-	private static Map<String, Object> loadJsonFromFile(File configFile){
-		if(configFile.exists()) {
-			String fileContent = null;
-			try {
-				fileContent = new String(TFile.loadFile(configFile),"UTF-8");
-				Object configObject = loadJsonFromJSON(fileContent);
-				return (Map<String, Object>)configObject;
-			} catch (UnsupportedEncodingException e) {
-				Logger.error(e);
-			}
-		}
-		return new HashMap<String,Object>();
-	}
-
-	/**
 	 * 读取配置文件
 	 */
 	public static void loadWebConfig(){
 		synchronized (WEB_CONFIG) {
 			String confWeb = TFile.assemblyPath("conf", "web.json");
-			WEB_CONFIG = loadJsonFromFile(new File(TFile.getSystemPath(confWeb)));
+			WEB_CONFIG = JSON.toObject(new File(TFile.getSystemPath(confWeb)), Map.class);
 		}
 
 		synchronized (MIME_TYPES) {
 			String confMime = TFile.assemblyPath("conf", "mime.json");
-			MIME_TYPES = loadJsonFromFile(new File(TFile.getSystemPath(confMime)));
+			MIME_TYPES = JSON.toObject(new File(TFile.getSystemPath(confMime)), Map.class);
 		}
 
 		synchronized (ERROR_DEFINE) {
 			String confError = TFile.assemblyPath("conf", "error.json");
-			ERROR_DEFINE = loadJsonFromFile(new File(TFile.getSystemPath(confError)));
+			ERROR_DEFINE = JSON.toObject(new File(TFile.getSystemPath(confError)), Map.class);
 		}
-	}
-
-	/**
-	 * 从 js 配置字符串读取配置信息到 Map
-	 * @param json 配置字符串
-	 * @return Map 对象
-	 */
-	private static Map<String, Object> loadJsonFromJSON(String json){
-		if(json != null) {
-			Object configObject = JSONDecode.parse(json);
-			return (Map<String, Object>)configObject;
-		}
-		return new HashMap<String,Object>();
 	}
 
 	/**
@@ -205,7 +174,7 @@ public class WebContext {
 		String configFileFullPath = TFile.getContextPath()+ File.separator + configFilePath;
 		File configFile = new File(configFileFullPath);
 		if(configFile.exists()) {
-			return buildConfigFromMap(loadJsonFromFile(configFile));
+			return buildConfigFromMap(JSON.toObject(configFile, Map.class));
 		} else {
 			Logger.warn("Use the config file: " + configFilePath + " is not exists, now use default config.");
 			return null;
@@ -218,7 +187,7 @@ public class WebContext {
 	 * @return WebServerConfig 对象
 	 */
 	public static WebServerConfig buildConfigFromJSON(String json){
-		return buildConfigFromMap(loadJsonFromJSON(json));
+		return buildConfigFromMap(JSON.toObject(json, Map.class));
 	}
 
 	/**
