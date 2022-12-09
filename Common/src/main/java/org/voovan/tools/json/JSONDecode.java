@@ -1,21 +1,22 @@
 package org.voovan.tools.json;
 
 import org.voovan.Global;
-import org.voovan.tools.TEnv;
-import org.voovan.tools.TObject;
-import org.voovan.tools.TString;
+import org.voovan.tools.*;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * JSON字符串分析成 Map
@@ -35,6 +36,16 @@ import java.util.*;
  */
 public class JSONDecode {
 	public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
+
+
+	//JSON 引用问件时用来记录上下问地址, 默认当前工作目录
+	protected static FastThreadLocal<String> FILE_CONTEXT_PATH = FastThreadLocal.withInitial(new Supplier<String>() {
+		@Override
+		public String get() {
+			return TFile.getContextPath();
+		}
+	});
+
 	public final static IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
 
 	static {
@@ -103,6 +114,20 @@ public class JSONDecode {
 		}
 
 		return root;
+	}
+
+	/**
+	 * 基于文件的解析方法
+	 * @param file 基于文件的解析方法
+	 * @return
+	 */
+	private static Object parse(File file) {
+		if(file.exists()) {
+			String jsonContent = new String(TFile.loadFile(file));
+			return parse(new StringReader(jsonContent));
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -322,30 +347,28 @@ public class JSONDecode {
 //						}
 //					}
 
-//					if(!isFunction) {
-						//JSON对象字符串分组,取 Key 对象,当前字符是:则取 Key
-						if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
-							keyString = itemString.substring(0, itemString.length() - 1).trim();
-							itemString = new StringBuilder();
-						}
+					//JSON对象字符串分组,取 Key 对象,当前字符是:或=,则取 Key
+					if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
+						keyString = itemString.substring(0, itemString.length() - 1).trim();
+						itemString = new StringBuilder();
+					}
 
-						//JSON对象字符串分组,取 value 对象,当前字符是,则取 value
-						if (currentChar == Global.CHAR_COMMA) {
-							if (value == null) {
-								value = itemString.substring(0, itemString.length() - 1).trim();
-							}
-							itemString = new StringBuilder();
+					//JSON对象字符串分组,取 value 对象,当前字符是,则取 value
+					if (currentChar == Global.CHAR_COMMA) {
+						if (value == null) {
+							value = itemString.substring(0, itemString.length() - 1).trim();
 						}
+						itemString = new StringBuilder();
+					}
 
-						//JSON对象字符串分组,取 value 对象,当前字符是换行, 则取 value
-						if (currentChar == '\n') {
-							itemString.trimToSize();
-							if (value == null && itemString.length() > 0) {
-								value = itemString.toString().trim();
-							}
-							itemString = new StringBuilder();
+					//JSON对象字符串分组,取 value 对象,当前字符是换行, 则取 value
+					if (currentChar == '\n') {
+						itemString.trimToSize();
+						if (value == null && itemString.length() > 0) {
+							value = itemString.toString().trim();
 						}
-//					}
+						itemString = new StringBuilder();
+					}
 				}
 
 				//返回值处理
@@ -402,11 +425,26 @@ public class JSONDecode {
 						//判断是否是 boolean 类型
 						else if (TString.isBoolean(stringValue)) {
 							value = Boolean.parseBoolean((String) value);
-						} else if (value.equals("null")) {
-							value = null;
-						} else if(value.equals("")){
+						}
+						//null值处理
+						else if (value.equals("null")) {
 							value = null;
 						}
+						//空值处理
+						else if(value.equals("")){
+							value = null;
+						}
+
+						//引入文件处理
+						if(value instanceof String) {
+							//引用文件处理
+							try {
+								value = includeFile((String)value);
+							} catch (Exception e) {
+								Logger.warnf( "{}:{} not found", e, keyString, value);
+							}
+						}
+
 					}
 
 					//====================  创建根对象(无根包裹)  ====================
@@ -429,6 +467,7 @@ public class JSONDecode {
 							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_S_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_S_QUOTE) {
 								keyString = keyString.substring(1, keyString.length() - 1);
 							}
+
 							((Map)root).put(keyString, value);
 						}
 					} else if (root instanceof ArrayList && value != null) {
@@ -465,6 +504,26 @@ public class JSONDecode {
 		}
 	}
 
+
+	/**
+	 * 解析引入文件处理方法
+	 * @param value 当前引入文件的值
+	 * @return 文件解析后的对象, Map 或者 List
+	 * @throws IOException IO 异常
+	 */
+	private static Object includeFile(String value) throws IOException {
+		//引用文件处理
+		if(value.startsWith("@")) {
+			String filePath = FILE_CONTEXT_PATH.get() + value.substring(1, value.length());
+			File file = new File(filePath);
+			if(!file.exists()) {
+				throw new FileNotFoundException(file.getCanonicalPath());
+			}
+			return parse(file);
+		}
+
+		return value;
+	}
 	/**
 	 * 解析 JSON 字符串成为参数指定的类
 	 * @param <T>         范型

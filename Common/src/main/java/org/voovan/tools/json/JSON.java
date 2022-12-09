@@ -47,6 +47,7 @@ public class JSON {
 		}
 	});
 
+
 	/**
 	 * 是否进行 EscapeChar 的转换
 	 * @return true: 是, false: 否
@@ -182,10 +183,16 @@ public class JSON {
 			try {
 				fileContent = new String(TFile.loadFile(file),"UTF-8");
 				if(fileContent != null) {
+					//记录文件上下文
+					String filePath = TFile.getFileDirectory(file.getPath().replace(TFile.getContextPath(), ""));
+					JSONDecode.FILE_CONTEXT_PATH.set(filePath);
 					return toObject(fileContent, type, ignoreCase);
 				}
 			} catch (UnsupportedEncodingException e) {
 				Logger.error(e);
+			} finally {
+				//恢复文件上下文
+				JSONDecode.FILE_CONTEXT_PATH.set(TFile.getContextPath());
 			}
 		}
 		return null;

@@ -36,13 +36,10 @@ public class Config {
     }
 
     public void init() {
-        String fileName = TFile.getFileName(configFile);
-        this.name = fileName.substring(0, fileName.indexOf('.'));
-        byte[] confBytes = TFile.loadFileFromContextPath(configFile);
+        File file = new File(configFile);
 
-        if(confBytes != null) {
-            String content = new String(confBytes);
-            config = (Map<String, Object>) JSON.parse(content);
+        if(file.exists()) {
+            config = JSON.toObject(file, Map.class, true);
         } else {
             config = new ConcurrentHashMap<String, Object>();
         }
