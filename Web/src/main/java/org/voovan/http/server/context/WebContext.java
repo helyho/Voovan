@@ -122,8 +122,8 @@ public class WebContext {
 			if(WEB_CONFIG==null) {
 				String confWeb = TFile.assemblyPath("conf", "web.json");
 				WEB_CONFIG = JSON.toObject(new File(TFile.getSystemPath(confWeb)), Map.class);
-				WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
 			}
+			WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
 		}
 
 		synchronized (MIME_TYPES) {
@@ -132,8 +132,8 @@ public class WebContext {
 			if(MIME_TYPES==null) {
 				String confMime = TFile.assemblyPath("conf", "mime.json");
 				MIME_TYPES = JSON.toObject(new File(TFile.getSystemPath(confMime)), Map.class);
-				WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
 			}
+			MIME_TYPES = nullDefault(MIME_TYPES, new HashMap<String, Object>());
 		}
 
 		synchronized (ERROR_DEFINE) {
@@ -142,8 +142,8 @@ public class WebContext {
 			if(ERROR_DEFINE==null) {
 				String confError = TFile.assemblyPath("conf", "error.json");
 				ERROR_DEFINE = JSON.toObject(new File(TFile.getSystemPath(confError)), Map.class);
-				WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
 			}
+			ERROR_DEFINE = nullDefault(ERROR_DEFINE, new HashMap<String, Object>());
 		}
 	}
 

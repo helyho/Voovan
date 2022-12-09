@@ -1,5 +1,5 @@
 {
-  "scanPaths": [
+  ScanPaths: [
     org.voovan.test.tools.ioc
   ],
   ServerName: VoovanWebServer,
