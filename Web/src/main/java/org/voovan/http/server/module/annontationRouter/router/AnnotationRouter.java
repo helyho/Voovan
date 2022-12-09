@@ -37,7 +37,6 @@ public class AnnotationRouter implements HttpRouter {
 
     public static final List<RouterInfo> ROUTER_INFO_LIST = new ArrayList<RouterInfo>();
 
-
     private static Map<Class, Object> singletonObjs = new ConcurrentHashMap<Class, Object>();
 
     private String urlPath;
@@ -291,17 +290,6 @@ public class AnnotationRouter implements HttpRouter {
         }
     }
 
-//    /**
-//     * 修复路由路径
-//     * @param routePath 路由路径
-//     * @return 修复后的路由路径
-//     */
-//    private static String fixAnnotationRoutePath(String routePath){
-//        routePath = routePath.startsWith("/") ? TString.removePrefix(routePath) : routePath;
-//        routePath = routePath.endsWith("/") ? TString.removeSuffix(routePath) : routePath;
-//        return routePath;
-//    }
-
     /**
      * 将一个 Http 请求映射到一个类的方法调用
      * @param request   http 请求对象
@@ -374,7 +362,6 @@ public class AnnotationRouter implements HttpRouter {
                             if("".equals(defaultVal)) {
                                 if(((Param) annotation).isRequire()) {
                                     paramCheck.add(paramName);
-//                                    throw new AnnotationRouterException("Router " + path + " annotation @Param [" + paramName + " = null] error, data: " + request.getParameters());
 
                                 }
                                 continue;
@@ -401,7 +388,6 @@ public class AnnotationRouter implements HttpRouter {
                                 if("".equals(defaultVal)) {
                                     if(((BodyParam) annotation).isRequire()) {
                                         paramCheck.add(paramName);
-//                                        throw new AnnotationRouterException("Router " + path + " annotation @BodyParam [" + paramName + " = null] error, data: " + bodyMap);
                                     }
                                     continue;
                                 } else {
@@ -445,7 +431,6 @@ public class AnnotationRouter implements HttpRouter {
                             String defaultVal = ((Body) annotation).defaultVal();
                             if("".equals(defaultVal)) {
                                 if(((Body) annotation).isRequire()) {
-//                                    throw new AnnotationRouterException("Router annotation @Body = null] error, data: " + bodyString);
                                     params[i] = TObject.asMap();
                                 }
                                 continue;
@@ -474,11 +459,7 @@ public class AnnotationRouter implements HttpRouter {
                         }
 
                         continue;
-                    }
-//                    catch (AnnotationRouterException e) {
-//                        throw e;
-//                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         if(((Body) annotation).isRequire()) {
                             throw new AnnotationRouterException("Router " + path + " @Body required: " + bodyString, e).setPath(path);
                         }
@@ -495,7 +476,6 @@ public class AnnotationRouter implements HttpRouter {
                             if("".equals(defaultVal)) {
                                 if(((Header) annotation).isRequire()) {
                                     paramCheck.add(headName);
-//                                    throw new AnnotationRouterException("Router " + path + " annotation @Header [" + headName + " = null] error, data: " + request.header());
                                 }
                                 continue;
                             } else {
@@ -525,7 +505,6 @@ public class AnnotationRouter implements HttpRouter {
                             if("".equals(defaultVal)) {
                                 if(((Cookie) annotation).isRequire()) {
                                     paramCheck.add(cookieName);
-//                                    throw new AnnotationRouterException("Router " + path + " annotation @Cookie [" + cookieName + " = null] error, data: " + request.cookies());
                                 }
                                 continue;
                             } else {
@@ -550,7 +529,6 @@ public class AnnotationRouter implements HttpRouter {
                             if("".equals(defaultVal)) {
                                 if (((Attribute) annotation).isRequire()) {
                                     paramCheck.add(attrName);
-//                                    throw new AnnotationRouterException("Router annotation @Attribute [" + attrName + " = null] error, data: " + request.getAttributes());
                                 }
                                 continue;
                             } else {
@@ -581,7 +559,6 @@ public class AnnotationRouter implements HttpRouter {
                             if("".equals(defaultVal)) {
                                 if (((Session) annotation).isRequire()) {
                                     paramCheck.add(sessionName);
-//                                    throw new AnnotationRouterException("Router annotation @Session [" + sessionName + " = null] error, data: " + httpSession.attributes());
                                 }
                                 continue;
                             } else {
