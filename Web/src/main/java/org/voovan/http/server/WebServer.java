@@ -447,6 +447,11 @@ public class WebServer {
 	 * @param reloadInfoJson 重新读取 WebConfig 的配置信息
 	 */
 	public void reload(String reloadInfoJson){
+//		{
+//			"Type": [FILE, HTTP, JSON]
+//			"CONTENT": [FILEPATH, URL, STRING]
+//
+//		}
 
 		if(reloadInfoJson!=null) {
 			WebServerConfig config = this.config;
