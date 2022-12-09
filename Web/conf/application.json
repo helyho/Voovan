@@ -2,5 +2,7 @@
   "scanPaths": [
     org.voovan.test.tools.ioc
   ],
-  ServerName: VoovanWebServer
+  ServerName: VoovanWebServer,
+  //WebServer 配置文件引入
+  Web: @web.json
 }

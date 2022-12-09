@@ -8,6 +8,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.WebServer;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.ioc.Context;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.json.JSONDecode;
 import org.voovan.tools.log.Logger;
@@ -24,6 +25,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static org.voovan.tools.TObject.nullDefault;
 
 /**
  * Web上下文(配置信息读取)
@@ -114,18 +117,33 @@ public class WebContext {
 	 */
 	public static void loadWebConfig(){
 		synchronized (WEB_CONFIG) {
-			String confWeb = TFile.assemblyPath("conf", "web.json");
-			WEB_CONFIG = JSON.toObject(new File(TFile.getSystemPath(confWeb)), Map.class);
+			//优先使用 Context中的配置
+			WEB_CONFIG = Context.get("Web");
+			if(WEB_CONFIG==null) {
+				String confWeb = TFile.assemblyPath("conf", "web.json");
+				WEB_CONFIG = JSON.toObject(new File(TFile.getSystemPath(confWeb)), Map.class);
+				WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
+			}
 		}
 
 		synchronized (MIME_TYPES) {
-			String confMime = TFile.assemblyPath("conf", "mime.json");
-			MIME_TYPES = JSON.toObject(new File(TFile.getSystemPath(confMime)), Map.class);
+			//优先使用 Context中的配置
+			MIME_TYPES = Context.get("Web.Mime");
+			if(MIME_TYPES==null) {
+				String confMime = TFile.assemblyPath("conf", "mime.json");
+				MIME_TYPES = JSON.toObject(new File(TFile.getSystemPath(confMime)), Map.class);
+				WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
+			}
 		}
 
 		synchronized (ERROR_DEFINE) {
-			String confError = TFile.assemblyPath("conf", "error.json");
-			ERROR_DEFINE = JSON.toObject(new File(TFile.getSystemPath(confError)), Map.class);
+			//优先使用 Context中的配置
+			ERROR_DEFINE = Context.get("Web.Error");
+			if(ERROR_DEFINE==null) {
+				String confError = TFile.assemblyPath("conf", "error.json");
+				ERROR_DEFINE = JSON.toObject(new File(TFile.getSystemPath(confError)), Map.class);
+				WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
+			}
 		}
 	}
 
@@ -145,17 +163,12 @@ public class WebContext {
 		//使用反射工具自动加载配置信息
 		try {
 			WebContext.webServerConfig = (WebServerConfig) TReflect.getObjectFromMap(WebServerConfig.class, configMap, true);
-			WebContext.webServerConfig = TObject.nullDefault(WebContext.webServerConfig, new WebServerConfig());
+			WebContext.webServerConfig = nullDefault(WebContext.webServerConfig, new WebServerConfig());
 		} catch (ReflectiveOperationException e) {
 			Logger.error(e);
 		} catch (ParseException e) {
 			Logger.error(e);
 		}
-
-		//如果是相对路径则转换成绝对路
-//		if(!WebContext.webServerConfig.getContextPath().startsWith(File.separator)){
-//			WebContext.webServerConfig.setContextPath(System.getProperty("user.dir")+ File.separator + WebContext.webServerConfig.getContextPath());
-//		}
 
 		if(WebContext.webServerConfig.getContextPath().endsWith(File.separator)){
 			WebContext.webServerConfig.setContextPath(TString.removeSuffix(WebContext.webServerConfig.getContextPath()));
@@ -374,8 +387,8 @@ public class WebContext {
 		content.append(" "+response.protocol().getStatus());
 		content.append(" "+response.body().size());
 		content.append("\t "+request.protocol().getPath());
-		content.append("\t "+TObject.nullDefault(request.header().get("User-Agent"),""));
-		content.append("\t "+TObject.nullDefault(request.header().get("Referer"),""));
+		content.append("\t "+ nullDefault(request.header().get("User-Agent"),""));
+		content.append("\t "+ nullDefault(request.header().get("Referer"),""));
 		content.append("\r\n");
 		return content.toString();
 	}
@@ -403,7 +416,7 @@ public class WebContext {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T getContextParameter(String name, T defaultValue) {
-		return TObject.nullDefault((T) WEB_CONFIG.get(name),defaultValue);
+		return TObject.nullDefault((T) WEB_CONFIG.get(name), defaultValue);
 	}
 
 	/**
