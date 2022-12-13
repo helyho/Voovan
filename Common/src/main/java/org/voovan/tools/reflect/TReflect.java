@@ -2024,13 +2024,17 @@ public class TReflect {
                 ret = true;
             }
 
+            String className = getClassName(clazz);
             for (String systemPackage : systemPackages) {
-                if (getClassName(clazz).startsWith(systemPackage)) {
+                if (className.startsWith(systemPackage)) {
                     ret = true;
+                    break;
                 }
             }
 
-            ret = false;
+            if(ret == null) {
+                ret = false;
+            }
 
             IS_SYSTEM_TYPE_CLASS.put(mark, ret);
         }
