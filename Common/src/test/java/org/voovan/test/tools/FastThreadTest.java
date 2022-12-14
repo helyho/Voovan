@@ -1,7 +1,6 @@
 package org.voovan.test.tools;
 
 import org.voovan.Global;
-import org.voovan.test.Other;
 import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TEnv;
 
