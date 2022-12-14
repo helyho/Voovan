@@ -7,7 +7,7 @@ import org.voovan.tools.TUnsafe;
 import org.voovan.tools.exception.LargerThanMaxSizeException;
 import org.voovan.tools.exception.MemoryReleasedException;
 import org.voovan.tools.log.Logger;
-import jdk.internal.misc.Unsafe;
+import sun.misc.Unsafe;
 
 import java.io.File;
 import java.io.IOException;

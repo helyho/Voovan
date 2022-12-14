@@ -58,6 +58,9 @@ public class WebServerConfig {
     private List<HttpRouterConfig> routerConfigs = new Vector<HttpRouterConfig>();
     private List<HttpModuleConfig> moduleConfigs = new Vector<HttpModuleConfig>();
 
+    public WebServerConfig() {
+    }
+
     public String getServerName() {
         if(serverName==null){
             serverName = Global.FRAMEWORK_NAME;

@@ -116,35 +116,47 @@ public class WebContext {
 	 * 读取配置文件
 	 */
 	public static void loadWebConfig(){
+
+		String fullPath = null;
+
 		synchronized (WEB_CONFIG) {
 			//优先使用 Context中的配置
 			WEB_CONFIG = Context.get("Web");
+			fullPath = "@Context.web";
 			if(WEB_CONFIG==null) {
 				String confWeb = TFile.assemblyPath("conf", "web.json");
-				WEB_CONFIG = JSON.toObject(new File(TFile.getSystemPath(confWeb)), Map.class);
+				fullPath = TFile.getSystemPath(confWeb);
+				WEB_CONFIG = JSON.toObject(new File(fullPath), Map.class);
 			}
 			WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
 		}
+		Logger.simplef("[HTTP] Load WEB server config: " + fullPath);
 
 		synchronized (MIME_TYPES) {
 			//优先使用 Context中的配置
 			MIME_TYPES = Context.get("Web.Mime");
+			fullPath = "@Context.Mime";
 			if(MIME_TYPES==null) {
 				String confMime = TFile.assemblyPath("conf", "mime.json");
-				MIME_TYPES = JSON.toObject(new File(TFile.getSystemPath(confMime)), Map.class);
+				fullPath = TFile.getSystemPath(confMime);
+				MIME_TYPES = JSON.toObject(new File(fullPath), Map.class);
 			}
 			MIME_TYPES = nullDefault(MIME_TYPES, new HashMap<String, Object>());
 		}
+		Logger.simplef("[HTTP] Load MIME config: " + fullPath);
 
 		synchronized (ERROR_DEFINE) {
 			//优先使用 Context中的配置
 			ERROR_DEFINE = Context.get("Web.Error");
+			fullPath = "@Context.Error";
 			if(ERROR_DEFINE==null) {
 				String confError = TFile.assemblyPath("conf", "error.json");
-				ERROR_DEFINE = JSON.toObject(new File(TFile.getSystemPath(confError)), Map.class);
+				fullPath = TFile.getSystemPath(confError);
+				ERROR_DEFINE = JSON.toObject(new File(fullPath), Map.class);
 			}
 			ERROR_DEFINE = nullDefault(ERROR_DEFINE, new HashMap<String, Object>());
 		}
+		Logger.simplef("[HTTP] Load Error config: " + fullPath);
 	}
 
 	/**

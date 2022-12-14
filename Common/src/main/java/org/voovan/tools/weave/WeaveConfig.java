@@ -12,6 +12,9 @@ public class WeaveConfig {
     private String scan;    //扫描的包路径, 可逗号分割多个包
     private String inject;  //注入的包路径, 可逗号分割多个包
 
+    public WeaveConfig() {
+    }
+
     public WeaveConfig(String agent, String scan, String Injinjectect) {
         this.agent = agent;
         this.scan = scan;
