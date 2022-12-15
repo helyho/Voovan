@@ -10,7 +10,7 @@ import java.lang.annotation.*;
  *
  * @author helyho
  * voovan Framework.
- * WebSite: https://github.com/helyho/voovan
+ * WebSite: ht tps://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
@@ -29,4 +29,10 @@ public @interface Bean {
     boolean singleton()  default true;
 
     boolean lazy() default false;
+
+    //初始化方法, 必须是无参数方法
+    String init() default "";
+
+    //对象销毁方法, 必须是无参数方法
+    String destory() default "";
 }

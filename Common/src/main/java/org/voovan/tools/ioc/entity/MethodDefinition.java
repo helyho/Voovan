@@ -11,6 +11,8 @@ import java.lang.reflect.Method;
  * Licence: Apache v2 License
  */
 public class MethodDefinition extends BeanDefinition {
+
+    private Class returnType;
     private String owner;
     /**
      * 方法对象
@@ -19,6 +21,7 @@ public class MethodDefinition extends BeanDefinition {
 
     public MethodDefinition(String name, String owner, Method method, boolean singleton, boolean lazy, boolean primary) {
         super(name, method.getDeclaringClass(), singleton, lazy, primary);
+        this.returnType = method.getReturnType();
         this.owner = owner;
         this.method = method;
     }
@@ -29,6 +32,14 @@ public class MethodDefinition extends BeanDefinition {
 
     public Method getMethod() {
         return method;
+    }
+
+    public Class getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(Class returnType) {
+        this.returnType = returnType;
     }
 
     @Override

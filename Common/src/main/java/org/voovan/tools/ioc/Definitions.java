@@ -14,14 +14,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.TObject.cast;
-import static org.voovan.tools.ioc.Utils.getBeanNameInPath;
+import static org.voovan.tools.ioc.Utils.getBeanName;
 
 /**
  * 定义管理类
@@ -246,13 +245,29 @@ public class Definitions {
      */
     public BeanDefinition addBeanDefinition(Class clazz) {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
-        String beanName = getBeanNameInPath(clazz);
+        String beanName = Utils.getBeanName(clazz);
         String scope = TReflect.getAnnotationValue(bean, "scope");
         boolean singleton = TReflect.getAnnotationValue(bean, "singleton");
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
         boolean primary = clazz.getAnnotation(Primary.class)!=null;
 
-        return addBeanDefinition(beanName, clazz, singleton, lazy, primary);
+        Method initMethod = null;
+        String init = TReflect.getAnnotationValue(bean, "init");
+        if(!TString.isNullOrEmpty(init)) {
+            initMethod = TReflect.findMethod(clazz, init);
+        }
+
+        Method destoryMethod = null;
+        String destory = TReflect.getAnnotationValue(bean, "destory");
+        if(!TString.isNullOrEmpty(destory)) {
+            destoryMethod = TReflect.findMethod(clazz, destory);
+        }
+
+        BeanDefinition beanDefinition = addBeanDefinition(beanName, clazz, singleton, lazy, primary);
+        beanDefinition.setInit(initMethod);
+        beanDefinition.setDestory(destoryMethod);
+
+        return beanDefinition;
     }
 
     /**
@@ -279,14 +294,31 @@ public class Definitions {
      */
     public MethodDefinition addMethodDefinition(Method method) {
         Bean bean = (Bean) method.getAnnotation(Bean.class);
-        String beanName = getBeanNameInPath(method);
+        String beanName = getBeanName(method);
         String scope = TReflect.getAnnotationValue(bean, "scope");
         boolean singleton = TReflect.getAnnotationValue(bean, "singleton");
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
         boolean primary = method.getAnnotation(Primary.class)!=null;
 
-        String owner = getBeanNameInPath(method.getDeclaringClass());
-        return addMethodDefinition(beanName, owner, method, singleton, lazy, primary);
+        String owner = Utils.getBeanName(method.getDeclaringClass());
+
+
+        Method initMethod = null;
+        String init = TReflect.getAnnotationValue(bean, "init");
+        if(!TString.isNullOrEmpty(init)) {
+            initMethod = TReflect.findMethod(method.getReturnType(), init);
+        }
+
+        Method destoryMethod = null;
+        String destory = TReflect.getAnnotationValue(bean, "destory");
+        if(!TString.isNullOrEmpty(destory)) {
+            destoryMethod = TReflect.findMethod(method.getReturnType(), destory);
+        }
+
+        MethodDefinition methodDefinition = addMethodDefinition(beanName, owner, method, singleton, lazy, primary);
+        methodDefinition.setInit(initMethod);
+        methodDefinition.setDestory(destoryMethod);
+        return methodDefinition;
     }
 
 

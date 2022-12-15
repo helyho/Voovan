@@ -38,18 +38,17 @@ public class Utils {
         return TEnv.shortClassName(clazz.getName(), "");
     }
 
-    public static String getBeanNameInPath(Class clazz) {
+    public static String getBeanName(Class clazz) {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
-
             beanName = classKey(clazz);
         }
 
         return beanName;
     }
 
-    public static String getBeanNameInPath(Method method) {
+    public static String getBeanName(Method method) {
         Bean bean = (Bean) method.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {

@@ -5,7 +5,9 @@ import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.json.BeanVisitor;
+import org.voovan.tools.reflect.TReflect;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 import java.util.Map;
@@ -257,6 +259,33 @@ public class Container {
      */
     public void addBeanValue(String name, Object value) {
         nameChecker(name);
+        BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(name);
+        if(beanDefinition == null) {
+            beanDefinition = definitions.getMethodDefinitions().get(name);
+        }
+
+        try {
+            //执行初始化
+            if (beanDefinition != null) {
+                Method initMethod = beanDefinition.getInit();
+                if (initMethod != null) {
+                    TReflect.invokeMethod(value, initMethod);
+                }
+            }
+
+            Object preValue = beanValues.put(name, value);
+
+            //执行销毁方法
+            if (preValue != null && beanDefinition != null) {
+                Method destoryMethod = beanDefinition.getDestory();
+                if (destoryMethod != null) {
+                    TReflect.invokeMethod(preValue, destoryMethod);
+                }
+            }
+        } catch (Throwable e) {
+            throw new IOCException("Invoke init or destory method failed", e);
+        }
+
         beanValues.put(name, value);
         beanValues.put(classKey(value.getClass()), value);
     }

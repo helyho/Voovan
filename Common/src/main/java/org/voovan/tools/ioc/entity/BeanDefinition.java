@@ -1,5 +1,7 @@
 package org.voovan.tools.ioc.entity;
 
+import java.lang.reflect.Method;
+
 /**
  * Bean 定义信息
  *
@@ -24,6 +26,9 @@ public class BeanDefinition {
 
     private boolean primary = false;
 
+    private Method init;
+
+    private Method destory;
 
     public BeanDefinition(String objName, Class clazz, boolean singleton, boolean lazy, boolean primary) {
         this.name = objName;
@@ -51,6 +56,22 @@ public class BeanDefinition {
 
     public boolean isPrimary() {
         return primary;
+    }
+
+    public Method getInit() {
+        return init;
+    }
+
+    public void setInit(Method init) {
+        this.init = init;
+    }
+
+    public Method getDestory() {
+        return destory;
+    }
+
+    public void setDestory(Method destory) {
+        this.destory = destory;
     }
 
     @Override
