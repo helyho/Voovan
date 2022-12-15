@@ -1,6 +1,7 @@
 package org.voovan.tools.ioc;
 
 import org.voovan.tools.AnnotataionScaner;
+import org.voovan.tools.TObject;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
@@ -8,7 +9,9 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.ioc.Utils.DEFAULT_SCOPE;
@@ -28,11 +31,9 @@ public class Context {
 
     private final static Container DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE);
 
-    private static List<String> scanPaths;
+    private static List<String> scanPaths = new ArrayList<>();
 
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
-
-
 
     static {
         CONTAINER_MAP.put(DEFAULT_SCOPE, DEFAULT_CONTAINER);
@@ -47,14 +48,21 @@ public class Context {
         return scanPaths;
     }
 
+    public static void setScanPaths(String ... paths) {
+        scanPaths.addAll(TObject.asList(paths));
+    }
+
     public static boolean isIsInited() {
         return inited;
     }
 
     public static void init() {
-        Context.scanPaths = DEFAULT_CONTAINER.get("scanPaths", null);
+        List<String> configPaths = DEFAULT_CONTAINER.get("ScanPaths", null);
         if(scanPaths == null) {
+            Logger.warnf("ScanPaths is not defined or Application.json not exists, Config isn't load!");
             return;
+        } else {
+            Context.scanPaths.addAll(configPaths);
         }
 
         for (String scanPath : scanPaths) {

@@ -1,5 +1,5 @@
 {
-  "scanPaths"             : [org.voovan.test.tools.ioc],
+  ScanPaths              : [org.voovan.test.tools.ioc],
   ServerName             : VoovanWebServer,                               // 当前服务节点名称
   Host                   : 127.0.0.1,                                     // 服务 IP 地址,默认0.0.0.0
   Port                   : 28080,                                           // 服务端口,默认28080
