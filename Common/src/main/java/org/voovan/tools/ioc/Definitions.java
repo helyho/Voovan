@@ -184,6 +184,7 @@ public class Definitions {
         try {
             for (int i = 0; i < parameterTypes.length; i++) {
                 Annotation[] annotaions = paramAnnotations[i];
+
                 //尝试使用注解的名称选择参数
                 for (Annotation annotation : annotaions) {
                     if (annotation.annotationType().isAssignableFrom(Value.class)) {
@@ -199,8 +200,9 @@ public class Definitions {
                         }
                     }
                 }
+
+                //使用类型选择参数
                 if (params[i] == null) {
-                    //使用类型选择参数
                     params[i] = container.getByType(parameterTypes[i], null);
                 }
             }

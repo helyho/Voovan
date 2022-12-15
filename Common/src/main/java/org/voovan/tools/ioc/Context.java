@@ -11,7 +11,6 @@ import org.voovan.tools.reflect.TReflect;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.ioc.Utils.DEFAULT_SCOPE;
@@ -52,7 +51,7 @@ public class Context {
         scanPaths.addAll(TObject.asList(paths));
     }
 
-    public static boolean isIsInited() {
+    public static boolean isInited() {
         return inited;
     }
 

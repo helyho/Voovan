@@ -305,7 +305,7 @@ public class Container {
         //单例 及 Primary 支持
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             //延迟加载处理
-            if(Context.isIsInited() || !beanDefinition.isLazy()) {
+            if(Context.isInited() || !beanDefinition.isLazy()) {
                 T value = definitions.craeteBean(beanName);
                 if (value != null) {
                     definitions.initField(value, true);
@@ -346,7 +346,7 @@ public class Container {
         //单例 及 Primary 支持
         if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
-            if (Context.isIsInited() || !beanDefinition.isLazy() && !methodDefinition.isPrimary()) {
+            if (Context.isInited() || !beanDefinition.isLazy()) {
                 T value = definitions.createMethodBean(methodDefinition);
                 if (value != null) {
                     addBeanValue(beanName, value);
