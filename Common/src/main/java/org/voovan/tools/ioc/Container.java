@@ -69,14 +69,15 @@ public class Container {
     private <T> T getByExpression(String expression, Class<T> clazz, T defaultVal) {
         String beanName = getBeanNameFromExpression(expression);
 
-        //如果依赖的 Bean 不存在则创建
-        initBean(beanName);
+        //如果依赖的 Bean 不存在则创建, 忽略 lazy
+        initBean(beanName, true);
         T ret = beanVisitor.value(expression, clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
 
-        invokeMethodBean(beanName);
+        //如果依赖的 Bean 不存在则创建, 忽略 lazy
+        invokeMethodBean(beanName, true);
         ret = beanVisitor.value(expression,clazz, defaultVal);
         if (ret != null) {
             return ret;
@@ -97,14 +98,15 @@ public class Container {
     private <T> T getByExpression(String expression, T defaultVal) {
         String beanName = getBeanNameFromExpression(expression);
 
-        //如果依赖的 Bean 不存在则创建
-        initBean(beanName);
+        //如果依赖的 Bean 不存在则创建, 忽略 lazy
+        initBean(beanName, true);
         T ret = beanVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
         }
 
-        invokeMethodBean(beanName);
+        //如果依赖的 Bean 不存在则创建, 忽略 lazy
+        invokeMethodBean(beanName, true);
         ret = beanVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
@@ -122,14 +124,15 @@ public class Container {
      * @return 返回值
      */
     private <T> T getByName(String beanName, T defaultVal) {
-        //如果依赖的 Bean 不存在则创建
-        initBean(beanName);
+        //如果依赖的 Bean 不存在则创建, 忽略 lazy
+        initBean(beanName, true);
         T ret = (T) beanValues.getOrDefault(beanName, defaultVal);
         if (ret != null) {
             return ret;
         }
 
-        invokeMethodBean(beanName);
+        //如果依赖的 Bean 不存在则创建, 忽略 lazy
+        invokeMethodBean(beanName, true);
         ret = (T) beanValues.get(beanName);
         if (ret != null) {
             return ret;
@@ -229,7 +232,7 @@ public class Container {
 
         definitions.initField(value, false);
         addBeanValue(beanName, value);
-        initMethodBean(value.getClass());
+        initMethodBean(value.getClass(), true); //外部 Bean 的 bean 方法不支持 lazy
         return value;
     }
 
@@ -275,10 +278,11 @@ public class Container {
     /**
      * 初始化 Bean
      * @param beanDefinition bean定义
+     * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T initBean(BeanDefinition beanDefinition) {
+    public <T> T initBean(BeanDefinition beanDefinition, boolean ingoreLazy) {
         if(beanDefinition==null){
             return null;
         }
@@ -286,13 +290,15 @@ public class Container {
         String beanName = beanDefinition.getName();
         //单例 及 Primary 支持
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
-            //延迟加载处理
-            T value = definitions.craeteBean(beanName);
-            if (value != null) {
-                definitions.initField(value, true);
-                addBeanValue(beanName, value);
-                initMethodBean(beanDefinition.getClazz());
-                return value;
+            if (ingoreLazy || !beanDefinition.isLazy()) {
+                //延迟加载处理
+                T value = definitions.craeteBean(beanName);
+                if (value != null) {
+                    definitions.initField(value, true);
+                    addBeanValue(beanName, value);
+                    initMethodBean(beanDefinition.getClazz(), false); //bean 初始化时不忽略方法的 lazy
+                    return value;
+                }
             }
         }
 
@@ -302,17 +308,19 @@ public class Container {
     /**
      * 初始化 Bean
      * @param beanName bean名称
+     * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T initBean(String beanName) {
+    public <T> T initBean(String beanName, boolean ingoreLazy) {
         BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
-        return initBean(beanDefinition);
+        return initBean(beanDefinition, ingoreLazy);
     }
 
     /**
      * 初始化方法的Bean
      * @param methodDefinition 定义在方法上的 bean 定义
+     * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
@@ -326,7 +334,7 @@ public class Container {
         //单例 及 Primary 支持
         if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
-            if (ingoreLazy || !beanDefinition.isLazy()) {
+            if (ingoreLazy || !methodDefinition.isLazy()) {
                 T value = definitions.createMethodBean(methodDefinition);
                 if (value != null) {
                     addBeanValue(beanName, value);
@@ -341,20 +349,22 @@ public class Container {
     /**
      * 初始化方法的Bean
      * @param beanName bean名称
+     * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T invokeMethodBean(String beanName) {
+    public <T> T invokeMethodBean(String beanName, boolean ingore) {
         MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
-        return invokeMethodBean(methodDefinition, true);
+        return invokeMethodBean(methodDefinition, ingore);
     }
 
     /**
      * 初始化类中所有的方法Bean
      * @param clazz 指定的类型
+     * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      */
-    public void initMethodBean(Class<?> clazz) {
+    public void initMethodBean(Class<?> clazz, boolean ingoreLazy) {
         List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
 
         if(methodDefinitionList==null) {
@@ -362,7 +372,7 @@ public class Container {
         }
 
         for(MethodDefinition methodDefinition : methodDefinitionList) {
-            invokeMethodBean(methodDefinition, false);
+            invokeMethodBean(methodDefinition, ingoreLazy);
         }
     }
 }

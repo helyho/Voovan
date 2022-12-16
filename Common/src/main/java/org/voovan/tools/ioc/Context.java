@@ -87,21 +87,13 @@ public class Context {
             Definitions definitions = container.getDefinitions();
             for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
                 if(!beanDefinition.isLazy()) {
-                    container.initBean(beanDefinition);
+                    container.initBean(beanDefinition, false);
                 }
             }
 
             for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
                 if(!beanDefinition.isLazy()) {
-                    List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(beanDefinition.getClazz());
-
-                    if(methodDefinitionList==null) {
-                        return;
-                    }
-
-                    for(MethodDefinition methodDefinition : methodDefinitionList) {
-                        container.invokeMethodBean(methodDefinition, false);
-                    }
+                   container.initMethodBean(beanDefinition.getClazz(), false);
                 }
             }
         }
