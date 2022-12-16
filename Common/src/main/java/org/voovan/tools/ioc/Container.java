@@ -25,13 +25,10 @@ import static org.voovan.tools.ioc.Utils.*;
  */
 @SuppressWarnings("ALL")
 public class Container {
-    private final Map<String, Object> configValues = new ConcurrentHashMap<>();
     private final Map<String, Object> beanValues = new ConcurrentHashMap<>();
 
     private final String scope;
     private final Definitions definitions;
-
-    private final BeanVisitor configVisitor;
     private final BeanVisitor beanVisitor;
 
     public Container(String scope) {
@@ -40,12 +37,11 @@ public class Container {
 
         //Config 初始化
         Config config = new Config();
-        configValues.putAll(config.getConfig());
+        for(String key : config.getConfig().keySet()) {
+            beanValues.put(key, config.getConfig().get(key));
+        }
 
-        configVisitor = new BeanVisitor(configValues);
-        configVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
-
-        //Bean 初始化
+        //BeanVistor 初始化
         //.................
         beanVisitor = new BeanVisitor(beanValues);
         beanVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
@@ -71,15 +67,11 @@ public class Container {
      * @return 数据的值
      */
     private <T> T getByExpression(String expression, Class<T> clazz, T defaultVal) {
-        T ret = configVisitor.value(expression, clazz, defaultVal);
-        if (ret != null) {
-            return ret;
-        }
-
         String beanName = getBeanNameFromExpression(expression);
+
         //如果依赖的 Bean 不存在则创建
         initBean(beanName);
-        ret = beanVisitor.value(expression, clazz, defaultVal);
+        T ret = beanVisitor.value(expression, clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -103,15 +95,11 @@ public class Container {
      * @return 数据的值
      */
     private <T> T getByExpression(String expression, T defaultVal) {
-        T ret = configVisitor.value(expression, defaultVal);
-        if (ret != null) {
-            return ret;
-        }
+        String beanName = getBeanNameFromExpression(expression);
 
-        String beanName = getBeanNameFromExpression(expression);;
-
+        //如果依赖的 Bean 不存在则创建
         initBean(beanName);
-        ret = beanVisitor.value(expression, defaultVal);
+        T ret = beanVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -134,15 +122,9 @@ public class Container {
      * @return 返回值
      */
     private <T> T getByName(String beanName, T defaultVal) {
-        T ret = (T) configValues.getOrDefault(beanName, defaultVal);
-        if (ret != null) {
-            return ret;
-        }
-
         //如果依赖的 Bean 不存在则创建
-
         initBean(beanName);
-        ret = (T) beanValues.getOrDefault(beanName, defaultVal);
+        T ret = (T) beanValues.getOrDefault(beanName, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -222,7 +204,7 @@ public class Container {
      * @return true: 存在, false: 不存在
      */
     public boolean exists(String name) {
-        return configValues.containsKey(name) || beanValues.containsKey(name);
+        return beanValues.containsKey(name);
     }
 
     /**
@@ -305,14 +287,12 @@ public class Container {
         //单例 及 Primary 支持
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             //延迟加载处理
-            if(Context.isInited() || !beanDefinition.isLazy()) {
-                T value = definitions.craeteBean(beanName);
-                if (value != null) {
-                    definitions.initField(value, true);
-                    addBeanValue(beanName, value);
-                    initMethodBean(beanDefinition.getClazz());
-                    return value;
-                }
+            T value = definitions.craeteBean(beanName);
+            if (value != null) {
+                definitions.initField(value, true);
+                addBeanValue(beanName, value);
+                initMethodBean(beanDefinition.getClazz());
+                return value;
             }
         }
 
@@ -336,7 +316,7 @@ public class Container {
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T invokeMethodBean(MethodDefinition methodDefinition) {
+    public <T> T invokeMethodBean(MethodDefinition methodDefinition, boolean ingoreLazy) {
         if(methodDefinition==null) {
             return null;
         }
@@ -346,7 +326,7 @@ public class Container {
         //单例 及 Primary 支持
         if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
-            if (Context.isInited() || !beanDefinition.isLazy()) {
+            if (ingoreLazy || !beanDefinition.isLazy()) {
                 T value = definitions.createMethodBean(methodDefinition);
                 if (value != null) {
                     addBeanValue(beanName, value);
@@ -366,7 +346,7 @@ public class Container {
      */
     public <T> T invokeMethodBean(String beanName) {
         MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
-        return invokeMethodBean(methodDefinition);
+        return invokeMethodBean(methodDefinition, true);
     }
 
     /**
@@ -382,7 +362,7 @@ public class Container {
         }
 
         for(MethodDefinition methodDefinition : methodDefinitionList) {
-            invokeMethodBean(methodDefinition);
+            invokeMethodBean(methodDefinition, false);
         }
     }
 }

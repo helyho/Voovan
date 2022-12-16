@@ -12,12 +12,12 @@ import org.voovan.tools.ioc.Context;
  * Licence: Apache v2 License
  */
 public class ContextUnit {
-
     public static void main(String[] args) {
         Container container = Context.getDefaultContainer();
         IOC2 ioc2 = container.getByAnchor("IOC2", null);
-        IOC3 ioc3 = container.getByAnchor("IOC3", null);
+        IOC3 ioc30 = container.get("IOC3Method", null);
         IOC3 ioc31 = container.getByAnchor("IOC3", null);
+        IOC3 ioc32 = container.getByAnchor("IOC3", null);
         System.out.println("1111");
     }
 }

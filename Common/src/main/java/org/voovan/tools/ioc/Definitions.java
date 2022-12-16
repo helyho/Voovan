@@ -215,6 +215,10 @@ public class Definitions {
                 obj = methodDefinition.getClazz();
             }
 
+            if(obj == null) {
+                throw new IOCException("Invoke method but the owner object is null");
+            }
+
             T value = TReflect.invokeMethod(obj, method, params);
             return value;
         } catch (Throwable e) {

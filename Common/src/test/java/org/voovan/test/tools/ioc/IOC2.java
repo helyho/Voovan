@@ -34,13 +34,13 @@ public class IOC2 {
         return data;
     }
 
-    @Bean(value = "Filters", lazy = true)
     @Primary
+    @Bean("Filters")
     public String getFilters(@Value("Filters") List data, @Value("ServerName") String serverName){
         return serverName + "->" + data;
     }
 
-    @Bean("IOC3Method")
+    @Bean(value="IOC3Method", lazy = true)
     public IOC3 getIOC3(){
         System.out.println("ioc3 method");
         return new IOC3();
