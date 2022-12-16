@@ -57,7 +57,7 @@ public class Context {
 
     public static void init() {
         List<String> configPaths = DEFAULT_CONTAINER.get("ScanPaths", null);
-        if(scanPaths == null) {
+        if(configPaths == null) {
             Logger.warnf("ScanPaths is not defined or Application.json not exists, Config isn't load!");
             return;
         } else {
