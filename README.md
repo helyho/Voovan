@@ -1,9 +1,11 @@
 ![](http://git.oschina.net/uploads/images/2016/0510/122514_7d971a34_116083.jpeg)
 
 [![](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
+[![](https://jitpack.io/v/helyho/Voovan.svg)](https://jitpack.io/#helyho/Voovan)
 [![](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.voovan/voovan-framework)
 ![JDK 1.7](https://img.shields.io/badge/JDK-11-green.svg "JDK 11")
-[![jar size 720K](https://img.shields.io/badge/size-720K-green.svg "size 497K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
+[![jar size 830K](https://img.shields.io/badge/size-830K-green.svg "size 830K")](https://git.oschina.net/helyho/Voovan/raw/master/voovan-framework.jar)
+
 
 Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTTP客户端抓取、动态编译支持、数据库访问封装以及DateTime、String、Log、反射、对象工具、流操作、文件操作、异步双向通道等功能。旨在提供可靠、方便、可单元测试的代码。它是极少依赖的独立工具包，希望能够方便广大开发者快速的实现应用。
 
@@ -25,7 +27,7 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 | ------------- | ------------------------------------------------------------------------------------------------- |
 | **QQ Group:** | 454201740                                                                                         |
 | **Email:** | helyho@gmail.com                                                                                         |
-| **Issues**    | [GitHub](https://github.com/helyho/Voovan/issues) [Gitee](https://gitee.com/helyho/Voovan/issues) |
+| **Issues**    | [GitHub](https://github.com/helyho/Voovan/issues) 
 
 ---------------------
 
@@ -38,10 +40,24 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
     </dependency>
   ```
 
----------------------
-**Voovan 4.2.0+ 新特性:**
-[- 详情 -](https://gitee.com/helyho/Voovan/releases/v4.2.5)
+**JitPack仓库支持:**
+- 最新版请跟进 `jitpack` 仓库
+  ```xml
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
 
+    <dependency>
+        <groupId>com.github.helyho.Voovan</groupId>
+        <artifactId>voovan-framework</artifactId>
+        <version>-7d32cdb6bb-1</version>
+    </dependency>
+  ```
+
+---------------------
 **Web模块:**
   - WebServer 对注解形式路由的支持, 类似一个轻量化的 Spring MVC
   - WebServer 增加热部署支持, 修改类和 jar 中的类,无须重启 web 服务
@@ -193,10 +209,3 @@ Voovan 是一个高性能异步网络框架和WEB服务器框架,同时支持HTT
 | org.voovan.tools           |   基本工具包   |
 
 ---------------------
-
-
-**Voovan 在异步通信的范畴内的同类框架有:**
-  - [t-io](http://www.t-io.org:9292/): 长连接异步通信框架,提供心跳和连接保持的支持.
-  - [netty](http://netty.io/):  老牌异步通信框架和voovan有面对相同的场景, 两者相比的话 voovan 开发更易上手,针对 Socket 通信中粘包的处理 Voovan 提供了更加优雅的方式.
-
-大家可以根据自己的需要适应的场景选择不同框架.
