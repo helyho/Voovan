@@ -38,7 +38,7 @@ public class JSONDecode {
 	public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
 
 
-	//JSON 引用问件时用来记录上下问地址, 默认当前工作目录
+	//JSON 引用问件时用来记录上下文地址, 默认当前工作目录
 	protected static FastThreadLocal<String> FILE_CONTEXT_PATH = FastThreadLocal.withInitial(new Supplier<String>() {
 		@Override
 		public String get() {
@@ -513,7 +513,7 @@ public class JSONDecode {
 	 */
 	private static Object includeFile(String value) throws IOException {
 		//引用文件处理
-		if(value.startsWith("@")) {
+		if(value!=null && value.charAt(0)=='@') {
 			String filePath = FILE_CONTEXT_PATH.get() + value.substring(1, value.length());
 			File file = new File(filePath);
 			if(!file.exists()) {

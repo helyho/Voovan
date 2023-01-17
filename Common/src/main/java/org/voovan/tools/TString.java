@@ -503,7 +503,7 @@ public class TString {
 					tokenValue == null ? "null" : Matcher.quoteReplacement(tokenValue));
 		} else if ((tokenName == null || TString.isInteger(tokenName)) &&
 				source.contains(TOKEN_EMPTY)) {
-			return TString.fastReplaceFirst(source, TOKEN_EMPTY_REGEX, tokenValue);
+			return fastReplaceFirst(source, TOKEN_EMPTY_REGEX, tokenValue);
 		} else {
 			return source;
 		}

@@ -23,6 +23,9 @@ public class IOC3 {
     @Value("string")
     private String str;
 
+    @Value("Filters[0].ClassName")
+    private String filter0ClassName;
+
     @Value
     private List list;
     @Value(anchor = "Map", required = false)

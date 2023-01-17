@@ -35,7 +35,7 @@ public class IOC2 {
     }
 
     @Primary
-    @Bean("Filters")
+    @Bean("ServerName")
     public String getFilters(@Value("Filters") List data, @Value("ServerName") String serverName){
         return serverName + "->" + data;
     }
