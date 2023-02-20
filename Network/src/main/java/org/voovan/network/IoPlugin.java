@@ -100,7 +100,10 @@ public interface IoPlugin {
         pluginChain.rewind();
         while (pluginChain.hasPrevious()) {
             IoPlugin plugin = pluginChain.previous();
-            plugin.wrap(socketContext.getSession(), byteBuffer);
+            ByteBuffer tmpByteBuffer = plugin.wrap(socketContext.getSession(), byteBuffer);
+            if(tmpByteBuffer!=null){
+                byteBuffer = tmpByteBuffer;
+            }
         }
     }
 
