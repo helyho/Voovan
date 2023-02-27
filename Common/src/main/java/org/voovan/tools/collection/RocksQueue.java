@@ -179,6 +179,10 @@ public class RocksQueue<E> implements Queue<E> {
         throw new UnsupportedOperationException();
     }
 
+    public void compact(){
+        container.compact();
+    }
+
     public void flush(boolean sync, boolean allowStall){
         container.flush(sync, allowStall);
     }

@@ -203,6 +203,10 @@ public class RocksDelayQueue<E extends Delayed> implements Queue<E> {
         flush(true, false);
     }
 
+    public void compact(){
+        container.compact();
+    }
+
     @Override
     public String toString() {
         return container.toString();

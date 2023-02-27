@@ -1174,6 +1174,18 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         }
     }
 
+    /**
+     * 获取一个不精确的评估大小
+     * @return
+     */
+    public int estimateSize(){
+        try {
+            return Integer.valueOf(rocksDB.getProperty(dataColumnFamilyHandle, "rocksdb.estimate-num-keys"));
+        } catch (RocksDBException e) {
+            throw new RocksMapException("estimateSize error", e);
+        }
+    }
+
 
     /**
      * 遍历所有数据来获取 kv 记录的数量, 会消耗很多性能
