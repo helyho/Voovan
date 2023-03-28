@@ -58,7 +58,7 @@ public class Context {
     public static void init() {
         List<String> configPaths = DEFAULT_CONTAINER.get("ScanPaths", null);
         if(configPaths == null) {
-            Logger.warnf("ScanPaths is not defined or Application.json not exists, Config isn't load!");
+            Logger.warnf("ScanPaths is not defined or 'conf/application.json' not exists, Config isn't load!");
             return;
         } else {
             Context.scanPaths.addAll(configPaths);
@@ -81,30 +81,12 @@ public class Context {
         inited = true;
     }
 
-
-    private static void initBean() {
-        for (Container container : CONTAINER_MAP.values()) {
-            Definitions definitions = container.getDefinitions();
-            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
-                if(!beanDefinition.isLazy()) {
-                    container.initBean(beanDefinition, false);
-                }
-            }
-
-            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
-                if(!beanDefinition.isLazy()) {
-                   container.initMethodBean(beanDefinition.getClazz(), false);
-                }
-            }
-        }
-    }
-
     /**
      * 解析 class 的 bean 定义
      *
      * @param clazz 解析这个 class 的 bean 定义
      */
-    private static void loadClass(Class clazz) {
+    public static void loadClass(Class clazz) {
         String scope = getScope(clazz);
 
         Container container = getContainer(scope);
@@ -118,7 +100,7 @@ public class Context {
      *
      * @param clazz 解析这个类的 method 的 bean 定义
      */
-    private static void loadMethod(Class clazz) {
+    public static void loadMethod(Class clazz) {
         Method[] methods = TReflect.getMethods(clazz);
         for (Method method : methods) {
             Bean bean = method.getAnnotation(Bean.class);
@@ -134,6 +116,25 @@ public class Context {
         }
     }
 
+
+    private static void initBean() {
+        for (Container container : CONTAINER_MAP.values()) {
+            Definitions definitions = container.getDefinitions();
+            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
+                if(!beanDefinition.isLazy()) {
+                    container.initBean(beanDefinition, false);
+                }
+            }
+
+            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
+                if(!beanDefinition.isLazy()) {
+                    container.initMethodBean(beanDefinition.getClazz(), false);
+                }
+            }
+        }
+    }
+
+
     /**
      * 获取指定作用域的 Container
      *
@@ -144,8 +145,15 @@ public class Context {
         if(scope == null){
             scope = DEFAULT_SCOPE;
         }
-        String finalScope = scope;
-        return CONTAINER_MAP.computeIfAbsent(scope, key -> new Container(finalScope));
+        return CONTAINER_MAP.computeIfAbsent(scope, key -> new Container(key));
+    }
+
+    public static void addContainer(Container container){
+        if(container == null) {
+            return;
+        }
+
+        CONTAINER_MAP.put(container.getScope(), container);
     }
 
     public static Container getDefaultContainer() {

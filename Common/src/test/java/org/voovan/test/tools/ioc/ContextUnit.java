@@ -2,6 +2,7 @@ package org.voovan.test.tools.ioc;
 
 import org.voovan.tools.ioc.Container;
 import org.voovan.tools.ioc.Context;
+import org.voovan.tools.log.Logger;
 
 /**
  * Class name
@@ -15,12 +16,17 @@ public class ContextUnit {
     public static void main(String[] args) {
         Container container = Context.getDefaultContainer();
         IOC2 ioc2 = container.getByAnchor("IOC2", null);
-        System.out.println("=========ioc2=========");
+        Logger.simple("=========ioc2=========");
         IOC3 ioc30 = container.get("IOC3Method", null);
-        System.out.println("=========ioc30=========");
+        Logger.simple("=========ioc30=========");
         IOC3 ioc31 = container.getByAnchor("IOC3", null);
-        System.out.println("=========ioc31=========");
+        Logger.simple("=========ioc31=========");
         IOC3 ioc32 = container.getByAnchor("IOC3", null);
-        System.out.println("=========ioc32=========");
+        Logger.simple("=========ioc32=========");
+
+        container.addExtBean("IOCExt", new IOCExt());
+        IOCExt IOCExt = container.getByAnchor("IOCExt", null);
+        Logger.simple("=========iocext=========");
+
     }
 }

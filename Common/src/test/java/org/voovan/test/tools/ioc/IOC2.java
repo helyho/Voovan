@@ -3,6 +3,7 @@ package org.voovan.test.tools.ioc;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.annotation.Primary;
 import org.voovan.tools.ioc.annotation.Value;
+import org.voovan.tools.log.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -42,7 +43,7 @@ public class IOC2 {
 
     @Bean(value="IOC3Method", lazy = true)
     public IOC3 getIOC3(){
-        System.out.println("ioc3 method");
+        Logger.simple("ioc3 method");
         return new IOC3();
     }
 }

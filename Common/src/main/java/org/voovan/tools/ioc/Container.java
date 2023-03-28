@@ -31,12 +31,12 @@ public class Container {
     private final Definitions definitions;
     private final BeanVisitor beanVisitor;
 
-    public Container(String scope) {
+
+    public Container(String scope, Config config) {
         this.scope = scope;
         this.definitions = new Definitions(this);
 
         //Config 初始化
-        Config config = new Config();
         for(String key : config.getConfig().keySet()) {
             beanValues.put(key, config.getConfig().get(key));
         }
@@ -47,6 +47,9 @@ public class Container {
         beanVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
     }
 
+    public Container(String scope) {
+       this(scope, new Config());
+    }
 
     public String getScope() {
         return scope;
@@ -230,9 +233,13 @@ public class Container {
             beanName = classKey(value.getClass());
         }
 
-        definitions.initField(value, false);
+        //创建类和方法的Definition
+        Context.loadClass(value.getClass());
+        Context.loadMethod(value.getClass());
+
+        definitions.initField(value, false);  //外部 Bean 的属性不初始化值为null的属性
         addBeanValue(beanName, value);
-        initMethodBean(value.getClass(), true); //外部 Bean 的 bean 方法不支持 lazy
+        initMethodBean(value.getClass(), true); //外部 Bean 的方法不支持 lazy
         return value;
     }
 
@@ -292,7 +299,7 @@ public class Container {
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             if (ingoreLazy || !beanDefinition.isLazy()) {
                 //延迟加载处理
-                T value = definitions.craeteBean(beanName);
+                T value = definitions.createBean(beanName);
                 if (value != null) {
                     definitions.initField(value, true);
                     addBeanValue(beanName, value);

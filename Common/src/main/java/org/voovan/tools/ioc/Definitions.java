@@ -57,7 +57,7 @@ public class Definitions {
      * @param <T> 泛型
      * @return 创建的对象
      */
-    public <T> T craeteBean(String name) {
+    public <T> T createBean(String name) {
         BeanDefinition beanDefinition = beanDefinitions.get(name);
         Class clazz = beanDefinition.getClazz();
         Constructor[] constructors = TReflect.getConstructors(clazz);
@@ -109,7 +109,7 @@ public class Definitions {
                     }
                     if (params[i] == null) {
                         //使用类型选择参数
-                        params[i] = container.getByAnchor(null, parameterTypes[i], null);
+                        params[i] = container.getByType(parameterTypes[i], null);
                     }
                 }
 
