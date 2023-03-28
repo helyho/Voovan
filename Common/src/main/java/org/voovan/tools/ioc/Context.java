@@ -174,16 +174,16 @@ public class Context {
         return get(Utils.DEFAULT_SCOPE, mark, null);
     }
 
-    public static <T> T addExtBean(String scope, String beanName, T value) {
-        return getContainer(scope).addExtBean(beanName, value);
+    public static <T> void addExtBean(String scope, String beanName, T value) {
+        getContainer(scope).addExtBean(beanName, value);
     }
 
-    public static <T> T addExtBean(String beanName, T value) {
-        return addExtBean(DEFAULT_SCOPE, beanName, value);
+    public static <T> void addExtBean(String beanName, T value) {
+        addExtBean(DEFAULT_SCOPE, beanName, value);
     }
 
-    public static <T> T addExtBean(T value) {
-        return addExtBean(DEFAULT_SCOPE, null, value);
+    public static <T> void addExtBean(T value) {
+        addExtBean(DEFAULT_SCOPE, null, value);
     }
 
 }

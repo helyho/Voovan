@@ -162,7 +162,7 @@ public class Container {
 
     /**
      * 按锚点(名称或者表达式)获取对象
-     * @param expression 表达式
+     * @param anchor 表达式
      * @param defaultVal 默认值
      * @param <T> 泛型
      * @return 获取的对象
@@ -227,8 +227,9 @@ public class Container {
      * 增加外部类到容器中进行管理
      * @param beanName 名称
      * @param value 被增加到容器中对象
+     * @param <T> 泛型对象
      */
-    public <T> T addExtBean(String beanName, T value) {
+    public <T> void addExtBean(String beanName, T value) {
         if(TString.isNullOrEmpty(beanName)) {
             beanName = classKey(value.getClass());
         }
@@ -240,7 +241,6 @@ public class Container {
         definitions.initField(value, false);  //外部 Bean 的属性不初始化值为null的属性
         addBeanValue(beanName, value);
         initMethodBean(value.getClass(), true); //外部 Bean 的方法不支持 lazy
-        return value;
     }
 
     /**
@@ -360,16 +360,15 @@ public class Container {
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T invokeMethodBean(String beanName, boolean ingore) {
+    public <T> T invokeMethodBean(String beanName, boolean ingoreLazy) {
         MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
-        return invokeMethodBean(methodDefinition, ingore);
+        return invokeMethodBean(methodDefinition, ingoreLazy);
     }
 
     /**
      * 初始化类中所有的方法Bean
      * @param clazz 指定的类型
      * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
-     * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      */
     public void initMethodBean(Class<?> clazz, boolean ingoreLazy) {
         List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);

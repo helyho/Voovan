@@ -53,7 +53,6 @@ public class Definitions {
     /**
      * 创建 Bean
      * @param name  组件名称
-     * @param clazz 需要构造的类型
      * @param <T> 泛型
      * @return 创建的对象
      */

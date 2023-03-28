@@ -1176,7 +1176,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 获取一个不精确的评估大小
-     * @return
+     * @return 不精确的评估大小
      */
     public int estimateSize(){
         try {
