@@ -87,12 +87,14 @@ public class Context {
      * @param clazz 解析这个 class 的 bean 定义
      */
     public static void loadClass(Class clazz) {
-        String scope = getScope(clazz);
+        if(clazz.getAnnotation(Bean.class)!=null) {
+            String scope = getScope(clazz);
 
-        Container container = getContainer(scope);
-        Definitions definitions = container.getDefinitions();
+            Container container = getContainer(scope);
+            Definitions definitions = container.getDefinitions();
 
-        BeanDefinition beanDefinition = definitions.addBeanDefinition(clazz);
+            BeanDefinition beanDefinition = definitions.addBeanDefinition(clazz);
+        }
     }
 
     /**

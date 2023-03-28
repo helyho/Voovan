@@ -77,6 +77,7 @@ public class AnnotationRouter implements HttpRouter {
         if(classRouter.singleton() && !singletonObjs.containsKey(clazz)){
             try {
                 Object annotationObj  = clazz.newInstance();
+                //在 IOC 中注册注解路由
                 Context.addExtBean(annotationObj);
                 singletonObjs.put(clazz, annotationObj);
             } catch (Exception e) {
@@ -308,6 +309,7 @@ public class AnnotationRouter implements HttpRouter {
             annotationObj = singletonObjs.get(clazz);
         } else {
             annotationObj = clazz.newInstance();
+            //在 IOC 中注册注解路由
             Context.addExtBean(annotationObj);
         }
 
