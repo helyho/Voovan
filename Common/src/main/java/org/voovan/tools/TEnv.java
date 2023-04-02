@@ -149,11 +149,20 @@ public class TEnv {
 
 	/**
 	 * 构造一个系统进程
+	 *
+	 *  Process process = TEnv.createSysProcess("tmux -c ping 127.0.0.1", null, (String)null);
+	 *  InputStream inputStream = process.getInputStream();
+	 *
+	 *  while(inputStream.available()>0 || process.isAlive()) {
+	 *      Logger.simple(TStream.readLine(inputStream));
+	 *  }
+	 *
 	 * @param command 命令行
 	 * @param env 环境变量参数
 	 * @param workDir 工作目录
 	 * @return Process 对象
 	 * @throws IOException IO 异常
+	 *
 	 */
 	public static Process createSysProcess(String command, String[] env, File workDir) throws IOException {
 		Runtime runTime  = Runtime.getRuntime();
