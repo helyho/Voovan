@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.DelayQueue;
 
 /**
  *
@@ -30,20 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class WebSocketDispatcher {
-	public static HashWheelTimer HEARTBEAT_WHEEL_TIMER = null;
-
-	public static HashWheelTimer getHeartBeatWheelTimer() {
-		if(HEARTBEAT_WHEEL_TIMER == null) {
-			synchronized (IoSession.class) {
-				if(HEARTBEAT_WHEEL_TIMER == null) {
-					HEARTBEAT_WHEEL_TIMER = new HashWheelTimer("WS_HEART_BEAT", 60, 1000);
-					HEARTBEAT_WHEEL_TIMER.rotate();
-				}
-			}
-		}
-
-		return HEARTBEAT_WHEEL_TIMER;
-	}
 
 	private WebServerConfig webConfig;
 	private SessionManager sessionManager;
@@ -235,24 +222,6 @@ public class WebSocketDispatcher {
 					result = webSocketRouter.onOpen(webSocketSession);
 					//封包
 					responseMessage = (ByteBuffer) filterEncoder(webSocketSession, webFilterChain, result);
-
-					//通过触发 pong 来发送心跳消息
-					{
-						HashWheelTask pingTask = new HashWheelTask() {
-							@Override
-							public void run() {
-								//发送 ping 消息
-								if (session.isConnected()) {
-									firePoneEvent(session, request, null);
-								} else {
-									this.cancel();
-								}
-							}
-						};
-
-						WebSocketDispatcher.getHeartBeatWheelTimer().addTask(pingTask, 10);
-						webSocketSession.setAttribute("PING_TASK", pingTask);
-					}
 				} else if (event == WebSocketEvent.RECIVED) {
 					//解包
 					result = filterDecoder(webSocketSession, webFilterChain, result);
@@ -274,27 +243,14 @@ public class WebSocketDispatcher {
 					result = filterDecoder(webSocketSession, webFilterChain, byteBuffer);
 					webSocketRouter.onSent(webSocketSession, result);
 				} else if (event == WebSocketEvent.CLOSE) {
-					//删除心跳任务
-					HashWheelTask pingTask = (HashWheelTask) webSocketSession.getAttribute("PING_TASK");
-					pingTask.cancel();
-
 					webSocketRouter.onClose(webSocketSession);
 
 					//清理 webSocketSessions 中的 WebSocketSession
 					webSocketSessions.remove(session);
 				} else if (event == WebSocketEvent.PING) {
-					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, byteBuffer);
+					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PONG, false, null);
 				} else if (event == WebSocketEvent.PONG) {
-					if(webSocketSessions.containsKey(session)) {
-						try {
-							if (session.socketContext().isConnected()) {
-								session.syncSend(WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null));
-							}
-						} catch (SendMessageException e) {
-							session.close();
-							Logger.error("Send WebSocket ping error", e);
-						}
-					}
+					return WebSocketFrame.newInstance(true, WebSocketFrame.Opcode.PING, false, null);
 				}
 			} catch (WebSocketFilterException e) {
 				Logger.error(e);
