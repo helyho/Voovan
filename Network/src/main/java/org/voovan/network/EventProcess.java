@@ -135,10 +135,11 @@ public class EventProcess {
                 // 按消息包触发 onRecive 事件
                 Object result;
                 while (session.getReadByteBufferChannel().size()>0) {
+                    int splitLength = 0;
                     try {
                         session.getState().setReceive(true);
 
-                        int splitLength = session.getMessageLoader().read();
+                        splitLength = session.getMessageLoader().read();
                         if (splitLength >= 0) {
                             result = doRecive(session, splitLength);
                         } else {
@@ -152,6 +153,7 @@ public class EventProcess {
                     //发送消息
                     sendMessage(session, result);
                     result = null;
+                    session.getReadByteBufferChannel().shrink(splitLength);
                 }
             } finally {
                 //异步模式自动 flush 并触发事件
@@ -182,27 +184,8 @@ public class EventProcess {
             return TByteBuffer.EMPTY_BYTE_BUFFER;
         }
 
-        ByteBuffer byteBuffer = TByteBuffer.allocateDirect();
-        byteBuffer.clear();
-
-        //扩容线程本地变量
-        if (byteBuffer.capacity() < splitLength) {
-            TByteBuffer.reallocate(byteBuffer, splitLength);
-        }
-
-        try {
-            byteBuffer.limit(splitLength);
-        } catch (Exception e){
-            Logger.error(e);
-        }
-
-       if ((session.socketContext().getConnectType() == ConnectType.UDP && session.isOpen())
-                || session.isConnected()) {
-            session.getReadByteBufferChannel().readHead(byteBuffer);
-            return byteBuffer;
-        } else {
-            return null;
-        }
+        ByteBuffer byteBuffer = session.getReadByteBufferChannel().slice(splitLength);
+        return byteBuffer;
     }
 
     /**
