@@ -1,13 +1,11 @@
 package org.voovan.tools.ioc;
 
-import org.voovan.tools.TFile;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.json.JSONPath;
 
-import java.io.File;
+import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 配置文件类
@@ -18,39 +16,22 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class Config {
-    public static String configFile = "conf/application.json";
 
     public Map<String, Object> config;
 
-    public String name;
-
-    public Config() {
-        this.name = "config";
-        init();
+    public Config(){
+        config = new LinkedHashMap<>();
+    }
+    public Config(URL url){
+        init(url);
     }
 
-
-    public Config(String configFile) {
-        this.configFile = configFile;
-        init();
-    }
-
-    public void init() {
-        File file = new File(configFile);
-
-        if(file.exists()) {
-            config = JSON.toObject(file, Map.class, true);
-        } else {
-            config = new ConcurrentHashMap<String, Object>();
-        }
+    public void init(URL url) {
+        config = JSON.toObject(url, Map.class, true);
 
         if(!(config instanceof Map)) {
             throw new IOCException("ConfigFile must be a Map style file");
         }
-    }
-
-    public String getName() {
-        return name;
     }
 
     public Map<String, Object> getConfig() {

@@ -8,10 +8,9 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.function.Supplier;
 
@@ -179,22 +178,36 @@ public class JSON {
 	 */
 	public static <T> T toObject(File file, Type type, boolean ignoreCase) {
 		if(file.exists()) {
+			try {
+	 			return toObject(file.toURI().toURL(), type, ignoreCase);
+			} catch (Exception e) {
+				Logger.error(e);
+			}
+		}
+		return null;
+	}
+
+
+	public static <T> T toObject(URL url, Type type, boolean ignoreCase) {
 			String fileContent = null;
 			try {
-				fileContent = new String(TFile.loadFile(file),"UTF-8");
+				fileContent = TString.loadURL(url.toString());
 				if(fileContent != null) {
+					String urlString = url.toString();
+					int lastSlashIndex = urlString.lastIndexOf("/");
+					int firstQuestion = urlString.indexOf("?");
+					urlString = urlString.substring(0, lastSlashIndex+1) + "{path}" + (firstQuestion>0?urlString.substring(firstQuestion, urlString.length()):"");
 					//记录文件上下文
-					String filePath = TFile.getFileDirectory(file.getPath().replace(TFile.getContextPath(), ""));
-					JSONDecode.FILE_CONTEXT_PATH.set(filePath);
+					String filePath = urlString;
+					JSONDecode.CONTEXT_PATH.set(filePath);
 					return toObject(fileContent, type, ignoreCase);
 				}
-			} catch (UnsupportedEncodingException e) {
+			} catch (IOException e) {
 				Logger.error(e);
 			} finally {
 				//恢复文件上下文
-				JSONDecode.FILE_CONTEXT_PATH.set(TFile.getContextPath());
+				JSONDecode.CONTEXT_PATH.set(TFile.getContextPath());
 			}
-		}
 		return null;
 	}
 

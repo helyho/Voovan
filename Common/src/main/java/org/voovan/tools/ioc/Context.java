@@ -1,14 +1,20 @@
 package org.voovan.tools.ioc;
 
 import org.voovan.tools.AnnotataionScaner;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
+import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,13 +34,24 @@ public class Context {
 
     private final static ConcurrentHashMap<String, Container> CONTAINER_MAP = new ConcurrentHashMap<>();
 
-    private final static Container DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE);
+    private final static Container DEFAULT_CONTAINER;
 
     private static List<String> scanPaths = new ArrayList<>();
 
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
 
     static {
+        String iocConfig = TEnv.getSystemProperty("IocConfig", "conf/application.json");
+        try {
+            //判断是否是 url 形式, 如果不是则进行转换
+            if(TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://")==0) {
+                iocConfig = "file://" + new File(iocConfig).getCanonicalPath();
+            }
+
+            DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE, new Config(new URL(iocConfig)));
+        } catch (IOException e) {
+            throw new IOCException("Load IOC config failed", e);
+        }
         CONTAINER_MAP.put(DEFAULT_SCOPE, DEFAULT_CONTAINER);
         init();
     }

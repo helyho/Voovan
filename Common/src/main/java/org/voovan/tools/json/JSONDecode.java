@@ -9,11 +9,11 @@ import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.*;
 import java.util.function.Supplier;
@@ -39,7 +39,7 @@ public class JSONDecode {
 
 
 	//JSON 引用问件时用来记录上下文地址, 默认当前工作目录
-	protected static FastThreadLocal<String> FILE_CONTEXT_PATH = FastThreadLocal.withInitial(new Supplier<String>() {
+	protected static FastThreadLocal<String> CONTEXT_PATH = FastThreadLocal.withInitial(new Supplier<String>() {
 		@Override
 		public String get() {
 			return TFile.getContextPath();
@@ -128,6 +128,17 @@ public class JSONDecode {
 		} else {
 			return null;
 		}
+	}
+
+
+	/**
+	 * 基于文件的解析方法
+	 * @param file 基于文件的解析方法
+	 * @return
+	 */
+	private static Object parse(URL url) throws IOException {
+		String jsonContent = TString.loadURL(url.toString());
+		return parse(new StringReader(jsonContent));
 	}
 
 	/**
@@ -439,7 +450,7 @@ public class JSONDecode {
 						if(value instanceof String) {
 							//引用文件处理
 							try {
-								value = includeFile((String)value);
+								value = include((String)value);
 							} catch (Exception e) {
 								Logger.warnf( "{}:{} not found", e, keyString, value);
 							}
@@ -506,24 +517,22 @@ public class JSONDecode {
 
 
 	/**
-	 * 解析引入文件处理方法
-	 * @param value 当前引入文件的值
+	 * 解析引入URL内容处理方法
+	 * @param value 当前引入URL的值
 	 * @return 文件解析后的对象, Map 或者 List
 	 * @throws IOException IO 异常
 	 */
-	private static Object includeFile(String value) throws IOException {
+	private static Object include(String value) throws IOException {
 		//引用文件处理
 		if(value!=null && value.charAt(0)=='@') {
-			String filePath = FILE_CONTEXT_PATH.get() + value.substring(1, value.length());
-			File file = new File(filePath);
-			if(!file.exists()) {
-				throw new FileNotFoundException(file.getCanonicalPath());
-			}
-			return parse(file);
+			String url = CONTEXT_PATH.get().replace("{path}", value.substring(1, value.length()));
+			System.out.println(url);
+			return parse(new URL(url));
 		}
 
 		return value;
 	}
+
 	/**
 	 * 解析 JSON 字符串成为参数指定的类
 	 * @param <T>         范型

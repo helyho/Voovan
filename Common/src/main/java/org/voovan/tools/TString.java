@@ -6,8 +6,12 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.net.URL;
+import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -561,8 +565,8 @@ public class TString {
 			for (int i = 0; i < indentCount; i++) {
 				indent.append(" ");
 			}
-			source = indent.toString() + source;
-			source = fastReplaceAll(source, "\n", "\n" + indent.toString());
+			source = indent + source;
+			source = fastReplaceAll(source, "\n", "\n" + indent);
 		}
 		return source;
 	}
@@ -1229,6 +1233,20 @@ public class TString {
 		} else { // E
 			return formatUnits(value, EXA, "E" + unit);
 		}
+	}
+
+	/**
+	 * 从指定的 URL 读取内容
+	 * @param endPoint url的短点字符串
+	 * @return 读取的内容
+	 * @throws IOException 异常
+	 */
+	public static String loadURL(String endPoint) throws IOException {
+		URL url = new URL(endPoint);
+		URLConnection urlConnection =  url.openConnection();
+		urlConnection.connect();
+		InputStream stream = (InputStream)urlConnection.getContent();
+		return new String(TStream.readAll(stream));
 	}
 
 }
