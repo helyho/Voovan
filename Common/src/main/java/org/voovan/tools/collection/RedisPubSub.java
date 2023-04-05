@@ -208,12 +208,4 @@ public class RedisPubSub<T> {
            }, channelPattern);
         }    
     }
-
-    public static void main(String[] args) {
-        RedisPubSub<String> redisPubSub = new RedisPubSub<>("10.11.11.106", 6379, 5000, 10);
-        redisPubSub.subString("SYMBOL_PRICE", (channel, msg)->{
-            System.out.println(channel + " " + msg);
-        });
-    }
-
 }
