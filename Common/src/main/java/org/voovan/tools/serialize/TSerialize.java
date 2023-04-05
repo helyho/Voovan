@@ -154,7 +154,8 @@ public class TSerialize {
     }
 
     protected static Class getClassByHash(Integer hashcode) throws ClassNotFoundException {
-        Class clazz = HASH_AND_CLASS.get(hashcode);
+        
+        Class clazz = hashcode == null  ? null : HASH_AND_CLASS.get(hashcode);
 
         if(clazz == null) {
 //            Logger.error("Class hash " + hashcode + " is not found, please register this class first");

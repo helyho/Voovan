@@ -51,7 +51,9 @@ public class DefaultJSONSerialize implements Serialize {
         try {
             JSONPath jsonPath = new JSONPath(new String(bytes));
 
-            Class mainClazz = TSerialize.getClassByHash(jsonPath.value("/T", Integer.class));
+            Class mainClazz = TSerialize.getClassByHash(jsonPath.value("/T", Integer.class)); 
+
+            mainClazz = mainClazz == null ? String.class : mainClazz;
 
             List<Integer> genericClazzStrs = jsonPath.listObject("/G", Integer.class);
             Class[] genericClazzs = null;
