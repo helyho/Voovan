@@ -53,8 +53,6 @@ public class DefaultJSONSerialize implements Serialize {
 
             Class mainClazz = TSerialize.getClassByHash(jsonPath.value("/T", Integer.class)); 
 
-            mainClazz = mainClazz == null ? String.class : mainClazz;
-
             List<Integer> genericClazzStrs = jsonPath.listObject("/G", Integer.class);
             Class[] genericClazzs = null;
             if(genericClazzStrs!=null) {
