@@ -41,7 +41,8 @@ public class Context {
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
 
     static {
-        String iocConfig = TEnv.getSystemProperty("IocConfig", "conf/application.json");
+        String iocConfig = TEnv.getSystemProperty("IocConfig", null);
+        iocConfig = iocConfig == null? TEnv.getEnv("VOOVAN_IOC_CONFIG", "conf/application.json") : iocConfig;
         try {
             //判断是否是 url 形式, 如果不是则进行转换
             if(TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://")==0) {
