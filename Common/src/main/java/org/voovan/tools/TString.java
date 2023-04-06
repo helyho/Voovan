@@ -487,6 +487,10 @@ public class TString {
 	public static String TOKEN_SUFFIX_REGEX = "\\" + TOKEN_SUFFIX;
 	public static String TOKEN_EMPTY_REGEX  = TOKEN_PREFIX_REGEX + TOKEN_SUFFIX_REGEX;
 
+	public static String wrapToken(String token) {
+		return TString.TOKEN_PREFIX + token + TString.TOKEN_SUFFIX;
+	}
+
 	/**
 	 * 按照标识符进行替换
 	 * tokenName 为 null 则使用 {} 进行替换

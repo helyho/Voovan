@@ -43,7 +43,7 @@ public class IOC2 {
 
     @Bean(value="IOC3Method", lazy = true)
     public IOC3 getIOC3(){
-        Logger.simple("ioc3 method");
+        Logger.simple("ioc2 get ioc3 method");
         return new IOC3();
     }
 }

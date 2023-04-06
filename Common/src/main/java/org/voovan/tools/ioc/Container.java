@@ -1,10 +1,12 @@
 package org.voovan.tools.ioc;
 
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.json.BeanVisitor;
+import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
@@ -45,6 +47,39 @@ public class Container {
         //.................
         beanVisitor = new BeanVisitor(beanValues);
         beanVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
+
+        TEnv.addLastShutDownHook(()->{
+            Logger.infof("Begin destory contianer {} bean ......", scope);
+            for(BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()){
+                Method destoryMethod = beanDefinition.getDestory();
+                if (destoryMethod != null) {
+                    Object value = beanValues.get(beanDefinition.getName());
+                    if(value!=null) {
+                        try {
+                            Object[] params = prepareParam(this, destoryMethod);
+                            TReflect.invokeMethod(value, destoryMethod, params);
+                        } catch (Exception e) {
+                            throw new IOCException("invoke destory method failed when process down", e);
+                        }
+                    }
+                }
+            }
+
+            for(MethodDefinition methodDefinition : definitions.getMethodDefinitions().values()){
+                Method destoryMethod = methodDefinition.getDestory();
+                if (destoryMethod != null) {
+                    Object value = beanValues.get(methodDefinition.getName());
+                    if (value != null) {
+                        try {
+                            Object[] params = prepareParam(this, destoryMethod);
+                            TReflect.invokeMethod(value, destoryMethod, params);
+                        } catch (Exception e) {
+                            throw new IOCException("invoke destory method failed when process down", e);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public Container(String scope) {
