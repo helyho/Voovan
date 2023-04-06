@@ -20,8 +20,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.TObject.cast;
-import static org.voovan.tools.ioc.Utils.getBeanName;
-import static org.voovan.tools.ioc.Utils.prepareParam;
+import static org.voovan.tools.ioc.Utils.*;
 
 /**
  * 定义管理类
@@ -124,10 +123,10 @@ public class Definitions {
                 String anchor = TReflect.getAnnotationValue(value, "anchor");
 
                 Object data = null;
-                if(TString.isNullOrEmpty(anchor)) {
-                    data = container.getByType(field.getType(), null);
-                } else {
+                if(!TString.isNullOrEmpty(anchor)) {
                     data = container.getByAnchor(anchor, null);
+                } else {
+                    data = container.getByType(field.getType(), null);
                 }
 
                 if(value.required() && data == null) {

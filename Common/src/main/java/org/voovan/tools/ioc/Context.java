@@ -51,6 +51,8 @@ public class Context {
                 iocConfig = "file://" + new File(iocConfig).getCanonicalPath();
             }
 
+            Logger.infof("IOC Context load from: {}", iocConfig);
+
             DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE, new Config(new URL(iocConfig)));
         } catch (IOException e) {
             throw new IOCException("Load IOC config failed", e);

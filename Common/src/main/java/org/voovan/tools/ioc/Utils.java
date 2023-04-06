@@ -99,19 +99,19 @@ public class Utils {
                 if (annotation.annotationType().isAssignableFrom(Value.class)) {
                     Value valueAnnotation = cast(annotation);
                     String anchor = TReflect.getAnnotationValue(annotation, "anchor");
-                    if (TString.isNullOrEmpty(anchor)) {
-                        continue;
+
+                    if(!TString.isNullOrEmpty(anchor)) {
+                        params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
+                    } else {
+                        params[i] = container.getByType(parameterTypes[i], null);
                     }
-                    params[i] = container.getByAnchor(anchor, parameterTypes[i], EMPTY);
-                    if(valueAnnotation.required() && params[i] == EMPTY) {
+
+                    if(valueAnnotation.required() && params[i] == null) {
                         Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
                     }
                 }
             }
-            if (params[i] == null) {
-                //使用类型选择参数
-                params[i] = container.getByType(parameterTypes[i], null);
-            }
+
         }
 
         return params;
