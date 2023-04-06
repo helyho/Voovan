@@ -10,7 +10,6 @@ import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -19,8 +18,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.voovan.tools.TObject.cast;
-import static org.voovan.tools.ioc.Utils.*;
+import static org.voovan.tools.ioc.IOCUtils.*;
 
 /**
  * 定义管理类
@@ -198,7 +196,7 @@ public class Definitions {
      */
     public BeanDefinition addBeanDefinition(Class clazz) {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
-        String beanName = Utils.getBeanName(clazz);
+        String beanName = IOCUtils.getBeanName(clazz);
         String scope = TReflect.getAnnotationValue(bean, "scope");
         boolean singleton = TReflect.getAnnotationValue(bean, "singleton");
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
@@ -239,7 +237,7 @@ public class Definitions {
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
         boolean primary = method.getAnnotation(Primary.class)!=null;
 
-        String owner = Utils.getBeanName(method.getDeclaringClass());
+        String owner = IOCUtils.getBeanName(method.getDeclaringClass());
 
         MethodDefinition methodDefinition = addMethodDefinition(beanName, owner, method, singleton, lazy, primary);
 

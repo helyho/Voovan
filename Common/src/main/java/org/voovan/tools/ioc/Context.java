@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.voovan.tools.ioc.Utils.DEFAULT_SCOPE;
-import static org.voovan.tools.ioc.Utils.getScope;
+import static org.voovan.tools.ioc.IOCUtils.DEFAULT_SCOPE;
+import static org.voovan.tools.ioc.IOCUtils.getScope;
 
 /**
  * Class name
@@ -204,11 +204,11 @@ public class Context {
     }
 
     public static <T> T get(Object mark, T defaultVal) {
-        return get(Utils.DEFAULT_SCOPE, mark, defaultVal);
+        return get(IOCUtils.DEFAULT_SCOPE, mark, defaultVal);
     }
 
     public static <T> T get(Object mark) {
-        return get(Utils.DEFAULT_SCOPE, mark, null);
+        return get(IOCUtils.DEFAULT_SCOPE, mark, null);
     }
 
     public static <T> void addExtBean(String scope, String beanName, T value) {

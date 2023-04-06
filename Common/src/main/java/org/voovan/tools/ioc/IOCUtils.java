@@ -24,7 +24,7 @@ import static org.voovan.tools.TObject.cast;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class Utils {
+public class IOCUtils {
     public static final String DEFAULT_SCOPE = "defalut";
 
     public static final Object EMPTY = new Object();
@@ -50,7 +50,11 @@ public class Utils {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
-            beanName = classKey(clazz);
+            if(bean.useClassName()) {
+                beanName = clazz.getSimpleName();
+            } else {
+                beanName = classKey(clazz);
+            }
         }
 
         return beanName;
@@ -61,7 +65,11 @@ public class Utils {
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
             Class clazz = method.getReturnType();
-            beanName = classKey(clazz);
+            if(bean.useClassName()) {
+                beanName = clazz.getSimpleName();
+            } else {
+                beanName = classKey(clazz);
+            }
         }
 
         return beanName;
