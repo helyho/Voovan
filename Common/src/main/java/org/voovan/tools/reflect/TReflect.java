@@ -2172,7 +2172,7 @@ public class TReflect {
             }
 
             return (T) ret;
-        } catch (ReflectiveOperationException e) {
+        } catch (Exception e) {
             Logger.errorf("Get annotation value faile: {} {}", e, obj, name);
         }
 

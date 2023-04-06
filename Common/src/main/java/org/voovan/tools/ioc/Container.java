@@ -261,7 +261,8 @@ public class Container {
             if (beanDefinition != null) {
                 Method initMethod = beanDefinition.getInit();
                 if (initMethod != null) {
-                    TReflect.invokeMethod(value, initMethod);
+                    Object[] params = prepareParam(this,initMethod);
+                    TReflect.invokeMethod(value, initMethod, params);
                 }
             }
 
@@ -271,7 +272,8 @@ public class Container {
             if (preValue != null && beanDefinition != null) {
                 Method destoryMethod = beanDefinition.getDestory();
                 if (destoryMethod != null) {
-                    TReflect.invokeMethod(preValue, destoryMethod);
+                    Object[] params = prepareParam(this,destoryMethod);
+                    TReflect.invokeMethod(preValue, destoryMethod, params);
                 }
             }
         } catch (Throwable e) {

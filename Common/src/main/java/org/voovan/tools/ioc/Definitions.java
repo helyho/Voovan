@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.TObject.cast;
 import static org.voovan.tools.ioc.Utils.getBeanName;
+import static org.voovan.tools.ioc.Utils.prepareParam;
 
 /**
  * 定义管理类
@@ -85,33 +86,7 @@ public class Definitions {
             }
             //使用构造方法构造
             else {
-                Annotation[][] paramAnnotations = constructor.getParameterAnnotations();
-                Class[] parameterTypes = constructor.getParameterTypes();
-
-                Object[] params = new Object[parameterTypes.length];
-
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    Annotation[] annotaions = paramAnnotations[i];
-                    //尝试使用注解的名称选择参数
-                    for (Annotation annotation : annotaions) {
-                        if (annotation.annotationType().isAssignableFrom(Value.class)) {
-                            Value valueAnnotation = cast(annotation);
-                            String anchor = TReflect.getAnnotationValue(annotation, "anchor");
-                            if (TString.isNullOrEmpty(anchor)) {
-                                continue;
-                            }
-                            params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
-                            if(valueAnnotation.required() && params[i] == null) {
-                                Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, constructor.getDeclaringClass(), constructor.getName(), parameterTypes[i], i);
-                            }
-                        }
-                    }
-                    if (params[i] == null) {
-                        //使用类型选择参数
-                        params[i] = container.getByType(parameterTypes[i], null);
-                    }
-                }
-
+                Object[] params = prepareParam(container, constructor);
                 value = TReflect.newInstance(constructor, params);
             }
 
@@ -174,37 +149,11 @@ public class Definitions {
      * @param <T> 泛型
      */
     public <T> T createMethodBean(MethodDefinition methodDefinition) {
-        Annotation[][] paramAnnotations     = methodDefinition.getMethod().getParameterAnnotations();
-        Class[] parameterTypes              = methodDefinition.getMethod().getParameterTypes();
         Method method = methodDefinition.getMethod();
 
-        Object[] params = new Object[parameterTypes.length];
 
         try {
-            for (int i = 0; i < parameterTypes.length; i++) {
-                Annotation[] annotaions = paramAnnotations[i];
-
-                //尝试使用注解的名称选择参数
-                for (Annotation annotation : annotaions) {
-                    if (annotation.annotationType().isAssignableFrom(Value.class)) {
-                        Value valueAnnotation = cast(annotation);
-                        String anchor = TReflect.getAnnotationValue(annotation, "anchor");
-                        if (TString.isNullOrEmpty(anchor)) {
-                            continue;
-                        }
-                        params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
-
-                        if (valueAnnotation.required() && params[i] == null) {
-                            Logger.warnf("Bean '{}' not found -> {method: {}@{}(...), type: {}, No: {}}, On invoke method ", anchor, method.getDeclaringClass(), method.getName(), parameterTypes[i], i);
-                        }
-                    }
-                }
-
-                //使用类型选择参数
-                if (params[i] == null) {
-                    params[i] = container.getByType(parameterTypes[i], null);
-                }
-            }
+            Object[] params = prepareParam(container, method);
 
             Object obj = null;
             //获取方法的所属的对象, 静态方法无所属对象, 则使用方法所有的 class 作为对象
@@ -256,21 +205,7 @@ public class Definitions {
         boolean lazy = TReflect.getAnnotationValue(bean, "lazy");
         boolean primary = clazz.getAnnotation(Primary.class)!=null;
 
-        Method initMethod = null;
-        String init = TReflect.getAnnotationValue(bean, "init");
-        if(!TString.isNullOrEmpty(init)) {
-            initMethod = TReflect.findMethod(clazz, init);
-        }
-
-        Method destoryMethod = null;
-        String destory = TReflect.getAnnotationValue(bean, "destory");
-        if(!TString.isNullOrEmpty(destory)) {
-            destoryMethod = TReflect.findMethod(clazz, destory);
-        }
-
         BeanDefinition beanDefinition = addBeanDefinition(beanName, clazz, singleton, lazy, primary);
-        beanDefinition.setInit(initMethod);
-        beanDefinition.setDestory(destoryMethod);
 
         return beanDefinition;
     }
@@ -307,22 +242,8 @@ public class Definitions {
 
         String owner = Utils.getBeanName(method.getDeclaringClass());
 
-
-        Method initMethod = null;
-        String init = TReflect.getAnnotationValue(bean, "init");
-        if(!TString.isNullOrEmpty(init)) {
-            initMethod = TReflect.findMethod(method.getReturnType(), init);
-        }
-
-        Method destoryMethod = null;
-        String destory = TReflect.getAnnotationValue(bean, "destory");
-        if(!TString.isNullOrEmpty(destory)) {
-            destoryMethod = TReflect.findMethod(method.getReturnType(), destory);
-        }
-
         MethodDefinition methodDefinition = addMethodDefinition(beanName, owner, method, singleton, lazy, primary);
-        methodDefinition.setInit(initMethod);
-        methodDefinition.setDestory(destoryMethod);
+
         return methodDefinition;
     }
 

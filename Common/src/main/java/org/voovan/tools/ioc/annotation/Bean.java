@@ -29,10 +29,4 @@ public @interface Bean {
     boolean singleton()  default true;
 
     boolean lazy() default false;
-
-    //初始化方法, 必须是无参数方法
-    String init() default "";
-
-    //对象销毁方法, 必须是无参数方法
-    String destory() default "";
 }

@@ -6,6 +6,8 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
+import org.voovan.tools.ioc.annotation.Destory;
+import org.voovan.tools.ioc.annotation.Initialize;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.log.Logger;
@@ -107,11 +109,11 @@ public class Context {
     public static void loadClass(Class clazz) {
         if(clazz.getAnnotation(Bean.class)!=null) {
             String scope = getScope(clazz);
-
             Container container = getContainer(scope);
             Definitions definitions = container.getDefinitions();
 
             BeanDefinition beanDefinition = definitions.addBeanDefinition(clazz);
+            initLifeCycleMethod(beanDefinition,clazz);
         }
     }
 
@@ -123,16 +125,31 @@ public class Context {
     public static void loadMethod(Class clazz) {
         Method[] methods = TReflect.getMethods(clazz);
         for (Method method : methods) {
-            Bean bean = method.getAnnotation(Bean.class);
-            if (bean == null) {
-                continue;
-            }
-            String scope = getScope(method);
-
+            String scope = getScope(clazz);
             Container container = getContainer(scope);
             Definitions definitions = container.getDefinitions();
 
-            MethodDefinition methodDefinition = container.getDefinitions().addMethodDefinition(method);
+            Bean bean = method.getAnnotation(Bean.class);
+            if (bean != null) {
+                MethodDefinition methodDefinition = definitions.addMethodDefinition(method);
+                initLifeCycleMethod(methodDefinition, methodDefinition.getReturnType());
+            }
+        }
+    }
+
+    public static void initLifeCycleMethod(BeanDefinition beanDefinition, Class clazz) {
+        Method[] initAndDestoryMethod = new Method[2];
+        Method[] methods = TReflect.getMethods(clazz);
+        for (Method method : methods) {
+            Initialize initMethod = method.getAnnotation(Initialize.class);
+            if(initMethod!=null) {
+                beanDefinition.setInit(method);
+            }
+
+            Destory destoryMethod = method.getAnnotation(Destory.class);
+            if(destoryMethod!=null){
+                beanDefinition.setDestory(method);
+            }
         }
     }
 
