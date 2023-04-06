@@ -149,13 +149,15 @@ public class TEnv {
 
 	/**
 	 * 构造一个系统进程
-	 *
+	 *  <pre>{@code
 	 *  Process process = TEnv.createSysProcess("tmux -c ping 127.0.0.1", null, (String)null);
 	 *  InputStream inputStream = process.getInputStream();
 	 *
 	 *  while(inputStream.available()>0 || process.isAlive()) {
 	 *      Logger.simple(TStream.readLine(inputStream));
 	 *  }
+	 *  }
+	 *  </pre>
 	 *
 	 * @param command 命令行
 	 * @param env 环境变量参数
