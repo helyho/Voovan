@@ -23,7 +23,6 @@ public @interface Value {
     //如果值为 null 则取其默认值
     @Alias("value")
     String anchor() default "";
-    String defaultVal() default "";
 
     boolean required()  default true;
     //todo:
