@@ -12,6 +12,7 @@ import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.tools.TObject;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.AnnotataionScaner;
+import org.voovan.tools.ioc.Context;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -53,12 +54,13 @@ public class AnnotationModule extends HttpModule {
 
     /**
      * 获取注解路由过滤器
-     * @return 注解路由的扫描时间间隔
+     * @return 注解路由过滤器
      */
     public AnnotationRouterFilter getAnnotationRouterFilter(){
         if(annotationRouterFilter == null) {
             try {
                 annotationRouterFilter = TReflect.newInstance(getParamters("Filter").toString());
+                Context.addExtBean(annotationRouterFilter);
             } catch (Exception e) {
                 annotationRouterFilter = AnnotationRouterFilter.EMPYT;
             }

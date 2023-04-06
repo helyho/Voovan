@@ -5,6 +5,7 @@ import org.voovan.http.server.context.HttpModuleConfig;
 import org.voovan.http.websocket.WebSocketRouter;
 import org.voovan.tools.collection.Attributes;
 import org.voovan.tools.collection.Chain;
+import org.voovan.tools.ioc.Context;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -188,6 +189,7 @@ public abstract class HttpModule extends Attributes {
             if(TReflect.isImp(clazz, HttpModuleLifeCycle.class)){
                 httpModuleLifeCycle = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
                 httpModuleLifeCycle.init(this);
+                Context.addExtBean(httpModuleLifeCycle);
             } else {
                 Logger.warn("["+moduleConfig.getName()+"] The HttpModule lifeCycle class " + lifeCycleClass + " is not a class implement by " + HttpModuleLifeCycle.class.getName());
             }

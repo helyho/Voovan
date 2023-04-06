@@ -13,6 +13,7 @@ import org.voovan.network.messagesplitter.HttpMessageSplitter;
 import org.voovan.network.plugin.SSLPlugin;
 import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.*;
+import org.voovan.tools.ioc.Context;
 import org.voovan.tools.threadpool.ThreadPool;
 import org.voovan.tools.weave.Weave;
 import org.voovan.tools.hotswap.Hotswaper;
@@ -136,9 +137,13 @@ public class WebServer {
 			String className = httpRouterConfig.getClassName();
 
 			if(!method.equals("WEBSOCKET")) {
-				otherMethod(method, route, httpRouterConfig.getHttpRouterInstance());
+				HttpRouter router = httpRouterConfig.getHttpRouterInstance();
+				otherMethod(method, route, router);
+				Context.addExtBean(router);
 			} else {
-				socket(route, httpRouterConfig.getWebSocketRouterInstance());
+				WebSocketRouter webSocketRouter = httpRouterConfig.getWebSocketRouterInstance();
+				socket(route, webSocketRouter);
+				Context.addExtBean(webSocketRouter);
 			}
 		}
 	}
@@ -152,6 +157,7 @@ public class WebServer {
 			if(httpModule!=null){
 				httpModule.lifeCycleInit();
 				httpModule.install();
+				Context.addExtBean(httpModule);
 			}
 
 		}
@@ -527,6 +533,7 @@ public class WebServer {
 			if(TReflect.isImp(clazz, WebServerLifeCycle.class)){
 				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
 				webServerLifeCycle.init(webServer);
+				Context.addExtBean(webServerLifeCycle);
 
 			} else {
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
