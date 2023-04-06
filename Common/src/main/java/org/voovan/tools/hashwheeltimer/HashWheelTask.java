@@ -192,7 +192,7 @@ public abstract class HashWheelTask {
                     finalHashWheel.removeTask(finaltask);
                     run();
                 } catch (Throwable throwable) {
-                    Logger.error("HashWheelTimerTask error:", throwable);
+                    Logger.errorf("HashWheelTimerTask error, task: ", throwable, finaltask.toString());
                 }
 
                 if(!finaltask.isCancel()) {
