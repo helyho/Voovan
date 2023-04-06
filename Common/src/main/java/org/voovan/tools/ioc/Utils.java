@@ -27,6 +27,8 @@ import static org.voovan.tools.TObject.cast;
 public class Utils {
     public static final String DEFAULT_SCOPE = "defalut";
 
+    public static final Object EMPTY = new Object();
+
     public static void nameChecker(String name) {
         if(name.indexOf('.') >= 0) {
             throw new IOCException("Bean name errro cause it has '.'");
@@ -83,6 +85,7 @@ public class Utils {
         return bean == null ? DEFAULT_SCOPE : TReflect.getAnnotationValue(bean, "scope");
     }
 
+
     public static Object[] prepareParam(Container container, Executable executable) {
         Annotation[][] paramAnnotations = executable.getParameterAnnotations();
         Class[] parameterTypes          = executable.getParameterTypes();
@@ -99,8 +102,8 @@ public class Utils {
                     if (TString.isNullOrEmpty(anchor)) {
                         continue;
                     }
-                    params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
-                    if(valueAnnotation.required() && params[i] == null) {
+                    params[i] = container.getByAnchor(anchor, parameterTypes[i], EMPTY);
+                    if(valueAnnotation.required() && params[i] == EMPTY) {
                         Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
                     }
                 }

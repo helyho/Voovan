@@ -213,7 +213,7 @@ public class BeanVisitor {
                 }
             }
         } catch (Exception e) {
-            Logger.error("Parse " + pathQry + "error", e);
+            Logger.error("Parse " + pathQry + " error", e);
         }
 
         return (T)obj;
@@ -249,7 +249,7 @@ public class BeanVisitor {
         try {
             return (T)TReflect.getObjectFromMap(Map.class, mapValue, genericType, false);
         } catch (Exception e) {
-            Logger.error("Parse " + pathQry + "error", e);
+            Logger.error("Parse " + pathQry + " error", e);
         }
 
         return null;
@@ -331,7 +331,7 @@ public class BeanVisitor {
                     T obj = (T) TReflect.getObjectFromMap(elemClazz, map, true);
                     resultList.add(obj);
                 } catch (Exception e) {
-                    Logger.error("Parse " + pathQry + "error", e);
+                    Logger.error("Parse " + pathQry + " error", e);
                 }
             }
         }
