@@ -66,7 +66,7 @@ public class WebContext {
 			public void run() {
 				RESPONSE_COMMON_HEADER =  TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 			}
-		}, 1);
+		}, 1, true);
 	}
 
 	/**

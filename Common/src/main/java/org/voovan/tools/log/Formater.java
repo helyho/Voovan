@@ -3,6 +3,7 @@ package org.voovan.tools.log;
 import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 
 import java.io.*;
 import java.util.*;
@@ -65,7 +66,7 @@ public class Formater {
         FATAL       = LOG_LEVEL.indexOf("FATAL");
         SIMPLE      = LOG_LEVEL.indexOf("SIMPLE");
 
-        Global.getHashWheelTimer().addTask(new HashWheelTask() {
+        HashWheelTimer.newInstance("LOGGER", 60).rotate().addTask(new HashWheelTask() {
             @Override
             public void run() {
                 DATE = TDateTime.now("yyyyMMdd");

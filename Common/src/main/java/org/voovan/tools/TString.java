@@ -1242,15 +1242,28 @@ public class TString {
 	/**
 	 * 从指定的 URL 读取内容
 	 * @param endPoint url的短点字符串
+	 * @param timeout  超时时间
+	 * @return 读取的内容
+	 * @throws IOException 异常
+	 */
+	public static String loadURL(String endPoint, int timeout) throws IOException {
+		URL url = new URL(endPoint);
+		URLConnection urlConnection =  url.openConnection();
+		urlConnection.setConnectTimeout(timeout);
+		urlConnection.connect();
+		InputStream stream = (InputStream)urlConnection.getContent();
+		return new String(TStream.readAll(stream));
+	}
+
+	/**
+	 * 从指定的 URL 读取内容
+	 * 		默认 5s 超时
+	 * @param endPoint url的短点字符串
 	 * @return 读取的内容
 	 * @throws IOException 异常
 	 */
 	public static String loadURL(String endPoint) throws IOException {
-		URL url = new URL(endPoint);
-		URLConnection urlConnection =  url.openConnection();
-		urlConnection.connect();
-		InputStream stream = (InputStream)urlConnection.getContent();
-		return new String(TStream.readAll(stream));
+		return loadURL(endPoint, 5000);
 	}
 
 }

@@ -452,7 +452,7 @@ public class JSONDecode {
 							try {
 								value = include((String)value);
 							} catch (Exception e) {
-								Logger.warnf( "{}:{} not found", e, keyString, value);
+								Logger.warnf( "Load JSON reference failed, {}:{} not found", e, keyString, value);
 							}
 						}
 
@@ -523,14 +523,24 @@ public class JSONDecode {
 	 * @throws IOException IO 异常
 	 */
 	private static Object include(String value) throws IOException {
+		String url = null;
+		Object ret = value;
 		//引用文件处理
-		if(value!=null && value.charAt(0)=='@') {
-			String url = CONTEXT_PATH.get().replace("{path}", value.substring(1, value.length()));
-			System.out.println(url);
-			return parse(new URL(url));
+		if (value != null && value.charAt(0) == '@') {
+			url = value.substring(1, value.length());
+			url = CONTEXT_PATH.get().replace("{path}", url);
+		} else if (value != null && value.charAt(0) == '#') {
+			url = value.substring(1, value.length());
+			if (TString.regexMatch(url, "^[a-z,A-Z]*?://") == 0) {
+				url = "file://" + url;
+			}
 		}
 
-		return value;
+
+		if(url!=null) {
+			ret = parse(new URL(url));
+		}
+		return ret;
 	}
 
 	/**

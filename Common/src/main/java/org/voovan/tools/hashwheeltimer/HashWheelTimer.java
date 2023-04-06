@@ -2,6 +2,7 @@ package org.voovan.tools.hashwheeltimer;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
 import org.voovan.tools.log.Logger;
 
 import java.util.Timer;
@@ -38,7 +39,7 @@ public class HashWheelTimer {
      * @param tickStep 每槽的步长, 单位: 毫秒
      */
     public HashWheelTimer(int size, int tickStep) {
-        this(null, size, tickStep);
+        this(TString.generateShortUUID(), size, tickStep);
     }
 
     /**
@@ -121,9 +122,9 @@ public class HashWheelTimer {
 
     /**
      * 启动时间轮的轮转
-     * @return true:成功启动, false:时间轮已经启动
+     * @return HashWheelTimer 对象
      */
-    public boolean rotate(){
+    public HashWheelTimer rotate(){
 
         final HashWheel rotateWheel = wheel;
 
@@ -146,7 +147,7 @@ public class HashWheelTimer {
             }
         }, 0, tickStep);
 
-        return true;
+        return this;
     }
 
     /**
@@ -162,5 +163,21 @@ public class HashWheelTimer {
      */
     public void cancel(){
         timer.cancel();
+    }
+
+    public static HashWheelTimer newInstance(String name, int size, int tickStep) {
+        return new HashWheelTimer(name, size, tickStep);
+    }
+
+    public static HashWheelTimer newInstance(int size, int tickStep) {
+        return new HashWheelTimer(size, tickStep);
+    }
+
+    public static HashWheelTimer newInstance(String name, int size) {
+        return new HashWheelTimer(name, size);
+    }
+
+    public static HashWheelTimer newInstance(int size) {
+        return new HashWheelTimer(size);
     }
 }

@@ -75,12 +75,12 @@ public class Utils {
 
     public static String getScope(Class clazz){
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
-        return TReflect.getAnnotationValue(bean, "scope");
+        return bean == null ? DEFAULT_SCOPE : TReflect.getAnnotationValue(bean, "scope");
     }
 
     public static String getScope(Method method){
         Bean bean = (Bean) method.getAnnotation(Bean.class);
-        return TReflect.getAnnotationValue(bean, "scope");
+        return bean == null ? DEFAULT_SCOPE : TReflect.getAnnotationValue(bean, "scope");
     }
 
     public static Object[] prepareParam(Container container, Executable executable) {
