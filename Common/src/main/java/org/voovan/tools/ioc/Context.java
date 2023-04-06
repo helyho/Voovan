@@ -51,7 +51,7 @@ public class Context {
                 iocConfig = "file://" + new File(iocConfig).getCanonicalPath();
             }
 
-            Logger.infof("IOC Context load from: {}", iocConfig);
+            Logger.simplef("[FRAMEWRORK] IOC Context load from: {}", iocConfig);
 
             DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE, new Config(new URL(iocConfig)));
         } catch (IOException e) {
