@@ -188,8 +188,8 @@ public abstract class HttpModule extends Attributes {
             Class clazz = Class.forName(lifeCycleClass);
             if(TReflect.isImp(clazz, HttpModuleLifeCycle.class)){
                 httpModuleLifeCycle = (HttpModuleLifeCycle)TReflect.newInstance(clazz);
-                httpModuleLifeCycle.init(this);
                 Context.addExtBean(httpModuleLifeCycle);
+                httpModuleLifeCycle.init(this);
             } else {
                 Logger.warn("["+moduleConfig.getName()+"] The HttpModule lifeCycle class " + lifeCycleClass + " is not a class implement by " + HttpModuleLifeCycle.class.getName());
             }

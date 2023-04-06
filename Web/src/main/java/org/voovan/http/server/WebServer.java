@@ -138,12 +138,12 @@ public class WebServer {
 
 			if(!method.equals("WEBSOCKET")) {
 				HttpRouter router = httpRouterConfig.getHttpRouterInstance();
-				otherMethod(method, route, router);
 				Context.addExtBean(router);
+				otherMethod(method, route, router);
 			} else {
 				WebSocketRouter webSocketRouter = httpRouterConfig.getWebSocketRouterInstance();
-				socket(route, webSocketRouter);
 				Context.addExtBean(webSocketRouter);
+				socket(route, webSocketRouter);
 			}
 		}
 	}
@@ -532,8 +532,8 @@ public class WebServer {
 			Class clazz = Class.forName(lifeCycleClass);
 			if(TReflect.isImp(clazz, WebServerLifeCycle.class)){
 				webServerLifeCycle = (WebServerLifeCycle)TReflect.newInstance(clazz);
-				webServerLifeCycle.init(webServer);
 				Context.addExtBean(webServerLifeCycle);
+				webServerLifeCycle.init(webServer);
 
 			} else {
 				Logger.warn("The WebServer lifeCycle class " + lifeCycleClass + " is not a class implement by " + WebServerLifeCycle.class.getName());
