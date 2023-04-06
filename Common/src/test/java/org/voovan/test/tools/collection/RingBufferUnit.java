@@ -51,7 +51,7 @@ public class RingBufferUnit extends TestCase {
 		RingBuffer ringBuffer = new RingBuffer(1000);
 		for(int i=0;i<500;i++) {
 			int finalI = i;
-			Global.getThreadPool().execute(()->{
+			Global.async(()->{
 				ringBuffer.push(finalI);
 			});
 		}
@@ -60,7 +60,7 @@ public class RingBufferUnit extends TestCase {
 		Vector k = new Vector();
 		for(int i=0;i<500;i++) {
 			int finalI = i;
-			Global.getThreadPool().execute(()->{
+			Global.async(()->{
 				Integer m = (Integer) ringBuffer.pop();
 				if(m==null) {
 					n.getAndIncrement();

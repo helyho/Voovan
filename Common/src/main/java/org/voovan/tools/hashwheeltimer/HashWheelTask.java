@@ -168,7 +168,7 @@ public abstract class HashWheelTask {
 
             if(asynchronous){
                 if(!Global.getThreadPool().isShutdown()) {
-                    Global.getThreadPool().execute(new Runnable() {
+                    Global.async(new Runnable() {
                         @Override
                         public void run() {
                             try {

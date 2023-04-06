@@ -111,7 +111,7 @@ public class RedisMapUnit extends TestCase{
 
         for(int i=0;i<1000;i++) {
             final int t = i;
-            Global.getThreadPool().execute(new Runnable() {
+            Global.async(new Runnable() {
                 @Override
                 public void run() {
                     if(t%100==0){

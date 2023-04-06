@@ -1,5 +1,6 @@
 package org.voovan.test;
 
+import org.voovan.Global;
 import org.voovan.http.client.HttpClient;
 import org.voovan.http.message.Response;
 import org.voovan.tools.json.JSONPath;

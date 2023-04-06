@@ -56,7 +56,7 @@ public class ByteBufferAnalysis {
 
     static {
         if(BYTE_BUFFER_ANALYSIS > 0) {
-            Global.getHashWheelTimer().addTask(() -> {
+            Global.schedual(() -> {
                 Logger.simple(getByteBufferAnalysis());
             }, BYTE_BUFFER_ANALYSIS);
         }

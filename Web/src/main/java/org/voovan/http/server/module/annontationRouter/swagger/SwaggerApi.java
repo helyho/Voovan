@@ -66,7 +66,7 @@ public class SwaggerApi {
             SwaggerApi.buildModuleSwagger(moduleName);
 
             if(refreshInterval > 0) {
-                Global.getHashWheelTimer().addTask(() -> {
+                Global.schedual(() -> {
                     MODULE_SWAGGER.put(moduleName, new Swagger(modulePath, description, version));
 
                     SwaggerApi.buildModuleSwagger(moduleName);

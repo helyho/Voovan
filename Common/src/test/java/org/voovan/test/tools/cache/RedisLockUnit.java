@@ -40,7 +40,7 @@ public class RedisLockUnit extends TestCase{
         for(int i=0;i<200;i++) {
             final int t = i;
             int finalI = i;
-            Global.getThreadPool().execute(new Runnable() {
+            Global.async(new Runnable() {
                 @Override
                 public void run() {
                     while(!redisLock.lock(1000*60, 5000)){

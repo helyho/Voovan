@@ -35,7 +35,7 @@ public class JSONEncode {
 
     static {
         if(JSON_HASH) {
-            Global.getHashWheelTimer().addTask(new HashWheelTask() {
+            Global.schedual(new HashWheelTask() {
                 @Override
                 public void run() {
                     JSON_ENCODE_CACHE.clear();

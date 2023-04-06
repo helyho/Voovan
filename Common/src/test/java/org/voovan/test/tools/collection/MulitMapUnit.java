@@ -21,14 +21,14 @@ public class MulitMapUnit extends TestCase {
         String key = "key";
         for(int i=0;i<1000;i++){
             int mi = i;
-            Global.getThreadPool().execute(()->{
+            Global.async(()->{
                 m.putValue(key, mi);
             });
         }
 
         for(int i=5;i<1000;i++){
             int mi = i;
-            Global.getThreadPool().execute(()->{
+            Global.async(()->{
                 m.removeValue(key, 1);
             });
         }

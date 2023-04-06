@@ -66,7 +66,7 @@ public class WebServerDemo {
 		webServer.get("/async", new HttpRouter(){
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				HttpResponse asyncResponse = resp.getAsyncResponse();
-				Global.getThreadPool().execute(()->{
+				Global.async(()->{
 					TEnv.sleep(100);
 					asyncResponse.write("async response");
 					try {
@@ -203,7 +203,7 @@ public class WebServerDemo {
 			}
 		}.addFilterChain(new StringFilter()));
 
-//		Global.getHashWheelTimer().addTask(()->{
+//		Global.schedual(()->{
 //			((TcpServerSocket)webServer.getServerSocket()).restart();;
 //			System.out.println("restart ....");
 //		}, 3);

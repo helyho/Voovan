@@ -251,7 +251,7 @@ public class ByteBufferChannelUnit extends TestCase {
 		ByteBufferChannel byteBufferChannel  = new ByteBufferChannel();
 		byteBufferChannel.setThreadSafe(true);
 		for(int i=0; i < 200; i++){
-			Global.getThreadPool().execute(() -> {
+			Global.async(() -> {
 				Random random = new Random();
 				int r = random.nextInt();
 				r = r < 0 ? (r*-1) : r;

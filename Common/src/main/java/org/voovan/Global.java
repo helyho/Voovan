@@ -3,10 +3,13 @@ package org.voovan;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.UniqueId;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.hashwheeltimer.HashWheelTimer;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.nio.charset.Charset;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -120,6 +123,17 @@ public class Global {
         return ThreadPoolEnum.THREAD_POOL.getValue();
     }
 
+    public static Future<?> async(Runnable task){
+        return Global.getThreadPool().submit(task);
+    }
+
+    public static <T> Future<T> async(Runnable task, T result){
+        return Global.getThreadPool().submit(task, result);
+    }
+
+    public static <T> Future<T> async(Callable<T> task){
+        return Global.getThreadPool().submit(task);
+    }
 
     private enum HashTimeWheelEnum {
         HASHWHEEL;
@@ -142,6 +156,29 @@ public class Global {
      */
     public static HashWheelTimer getHashWheelTimer(){
         return HashTimeWheelEnum.HASHWHEEL.getValue();
+    }
+
+
+    public static HashWheelTask schedual(Runnable task, int interval) {
+        HashWheelTask hashWheelTask = HashWheelTask.newInstance(task);
+        getHashWheelTimer().addTask(hashWheelTask, interval);
+        return hashWheelTask;
+    }
+
+    public static HashWheelTask schedual(Runnable task, int interval, boolean async) {
+        HashWheelTask hashWheelTask = HashWheelTask.newInstance(task);
+        getHashWheelTimer().addTask(hashWheelTask, interval, async);
+        return hashWheelTask;
+    }
+
+    public static HashWheelTask schedual(HashWheelTask task, int interval) {
+        getHashWheelTimer().addTask(task, interval);
+        return task;
+    }
+
+    public static HashWheelTask schedual(HashWheelTask task, int interval, boolean async) {
+        getHashWheelTimer().addTask(task, interval, async);
+        return task;
     }
 
     /**

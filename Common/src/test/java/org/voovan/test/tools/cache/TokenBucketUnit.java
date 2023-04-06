@@ -46,7 +46,7 @@ public class TokenBucketUnit extends TestCase {
     public void testParaller(){
         final TokenBucket tokenBucket = new TokenBucket(5, 1000);
         for(int i=0; i <20; i++) {
-            Global.getThreadPool().execute(() -> {
+            Global.async(() -> {
                 TEnv.sleep((int) (Math.random() * 1000));
                 try {
                     tokenBucket.acquire(1000);

@@ -56,7 +56,7 @@ public class LeakBucketUnit extends TestCase {
     public void testParaller(){
         final LeakBucket leakBucket = new LeakBucket(2, 1000);
         for(int i=0; i <20; i++) {
-            Global.getThreadPool().execute(() -> {
+            Global.async(() -> {
                 TEnv.sleep((int) (Math.random() * 1000));
                 try {
                     leakBucket.acquire(1000);
