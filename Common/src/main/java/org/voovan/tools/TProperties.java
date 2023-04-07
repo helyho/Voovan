@@ -1,5 +1,6 @@
 package org.voovan.tools;
 
+import javassist.NotFoundException;
 import org.voovan.Global;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 
@@ -68,7 +69,8 @@ public class TProperties {
 			return properites;
 
 		} catch (IOException e) {
-			System.out.println("Load properites file failed. File:" + url.toString() + "-->" + e.getMessage());
+			System.out.println("Load properites URL failed. File:" + url.toString() + "-->" + e.getMessage());
+			new NotFoundException(url.toString()).printStackTrace();
 			return null;
 		}
 	}
@@ -105,6 +107,7 @@ public class TProperties {
 
 		} catch (IOException e) {
 			System.out.println("Load properites file failed. File:" + file.getAbsolutePath() + "-->" + e.getMessage());
+			new NotFoundException(file.getAbsolutePath()).printStackTrace();
 			return null;
 		}
 	}
@@ -172,7 +175,8 @@ public class TProperties {
 					propertiesName.put(fileName, properties);
 					return properties;
 				} else {
-					System.out.println("[PROPERTIES] Load properites file failed. File:" + (configFile!=null ? configFile.getAbsolutePath() : "") + " not exists");
+					System.out.println("[PROPERTIES] Load properites file failed. File:" + fileName + " not exists");
+					new NotFoundException(fileName).printStackTrace();
 					return null;
 				}
 			} else {
