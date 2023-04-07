@@ -42,7 +42,7 @@ public class JSONEncodeUnit extends TestCase {
 		testObject.getList().remove(null);
 		testObject.getList().remove(null);
 
-		TestObject testObject2 = JSONDecode.fromJSON(jsonStr,TestObject.class);
+		TestObject testObject2 = JSONDecode.toObject(jsonStr,TestObject.class);
 
 //		assertEquals(testObject,testObject2);
 	}
