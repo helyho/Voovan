@@ -193,16 +193,16 @@ public class JSONDecode {
 			String keyString = null;
 			Object value = null;
 			char stringWarpFlag = '\0';
-			int functionWarpFlag = 0;
-			boolean isString = false;
-			boolean isFunction = false;
-			int isComment = 0;
+			boolean stringMode = false;
+			int commentMode = 0;
+
 			StringBuilder itemString = new StringBuilder();
 
 			char currentChar = 0;
 			char nextChar = 0;
 			char prevChar = 0;
 			boolean isConvertChar = false; //是否处于转移字符状态
+
 
 			while (true) {
 				currentChar = (char) reader.read();
@@ -217,21 +217,21 @@ public class JSONDecode {
 				reader.reset();
 
 				//====================  处理注释  ====================
-				if (!isString) {
+				if (!stringMode) {
 					//单行注释开始, # ......
 					if (currentChar == Global.CHAR_SHAPE){
-						isComment = 1;
+						commentMode = 1;
 					}
 
-					if(currentChar == Global.CHAR_BACKSLASH && isComment == 0) {
+					if(currentChar == Global.CHAR_BACKSLASH && commentMode == 0) {
 						//单行注释开始, like: // ......
 						if (nextChar != 0 && nextChar == Global.CHAR_BACKSLASH){
-							isComment = 1;
+							commentMode = 1;
 						}
 
 						//多行注释开始, like: /* ...... */
 						if (nextChar != 0 && nextChar == Global.CHAR_STAR) {
-							isComment = 2;
+							commentMode = 2;
 							if (currentChar == 65535) {
 								return root;
 							}
@@ -240,22 +240,22 @@ public class JSONDecode {
 					}
 
 					//在无逗号结尾的行,带有注释时准确区分数据
-					if(itemString.length()>0 && isComment>0) {
+					if(itemString.length()>0 && commentMode>0) {
 						reader.skip(-1);
 						nextChar = currentChar;
 						currentChar = ',';
-						isComment = 0;
+						commentMode = 0;
 					}
 
-					if(isComment > 0) {
+					if(commentMode > 0) {
 						//单行注释结束
-						if (isComment == 1 && currentChar == Global.CHAR_LF) {
-							isComment = 0;
+						if (commentMode == 1 && currentChar == Global.CHAR_LF) {
+							commentMode = 0;
 						}
 
 						//多行注释结束
-						if (isComment == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
-							isComment = 0;
+						if (commentMode == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
+							commentMode = 0;
 							if (currentChar == 65535) {
 								return root;
 							}
@@ -270,7 +270,7 @@ public class JSONDecode {
 				}
 
 				//====================  创建根对象(有根包裹)  ====================
-				if (root == null && !isString && isComment==0 /*&& !isFunction*/) {
+				if (root == null && !stringMode && commentMode==0) {
 					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES ||
 							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_COMMA) {
 						char flag = currentChar;
@@ -291,24 +291,24 @@ public class JSONDecode {
 				//分析字符串,如果是字符串不作任何处理
 				if (currentChar == Global.CHAR_QUOTE || currentChar == Global.CHAR_S_QUOTE) {
 					//非注释状态, 并且不是转移字符
-					if (isComment==0 && !isConvertChar) {
+					if (commentMode==0 && !isConvertChar) {
 						//字符串起始的 " 或 '
 						if (stringWarpFlag == Global.CHAR_EOF) {
 							stringWarpFlag = currentChar;
-							isString = true;
+							stringMode = true;
 						}
 
 						//字符串结束的"
 						else if (stringWarpFlag != Global.CHAR_EOF && currentChar == stringWarpFlag) {
 							stringWarpFlag = Global.CHAR_EOF;
-							isString = false;
+							stringMode = false;
 						}
 					}
 				}
 
 
 				//====================  处理对象的包裹  ====================
-				if(!isString /*&&  !isFunction*/) {
+				if(!stringMode) {
 					//数组 []
 					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
@@ -359,7 +359,7 @@ public class JSONDecode {
 
 				//如果为字符串则无条件拼装
 				//如果不是字符串,则只拼装可见字符
-				if (isString || (!isString && !Character.isWhitespace(currentChar))) {
+				if (stringMode || (!stringMode && !Character.isWhitespace(currentChar))) {
 					if(currentChar == Global.CHAR_SLASH && !isConvertChar) {
 						isConvertChar = true;
 					}
@@ -372,25 +372,7 @@ public class JSONDecode {
 				}
 
 				//处理数据
-				if(!isString) {
-					//如果是函数 function 起始
-//					if (itemString.toString().trim().startsWith("function")) {
-//
-//						if (currentChar == Global.CHAR_LC_BRACES) {
-//							functionWarpFlag++;
-//						} else if (currentChar == Global.CHAR_RC_BRACES) {
-//							functionWarpFlag--;
-//
-//							if (functionWarpFlag == 0) {
-//								isFunction = false;
-//								value = itemString.toString();
-//								itemString = new StringBuilder();
-//							}
-//						} else {
-//							isFunction = true;
-//						}
-//					}
-
+				if(!stringMode) {
 					//JSON对象字符串分组,取 Key 对象,当前字符是:或=,则取 Key
 					if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
 						keyString = itemString.substring(0, itemString.length() - 1).trim();
