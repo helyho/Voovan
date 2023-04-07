@@ -616,7 +616,6 @@ public class JSONDecode {
 			}
 		}
 
-
 		if(url!=null) {
 			ret = parse(new URL(url), enableToken, enablbeRef);
 		}
