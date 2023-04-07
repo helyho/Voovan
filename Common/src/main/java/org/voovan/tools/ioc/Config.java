@@ -2,6 +2,7 @@ package org.voovan.tools.ioc;
 
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.log.Logger;
 
 import java.net.URL;
 import java.util.LinkedHashMap;
@@ -28,6 +29,7 @@ public class Config {
 
     public void init(URL url) {
         config = JSON.toObject(url, Map.class, true, true, true);
+        Logger.debug(config);
         if(!(config instanceof Map)) {
             throw new IOCException("ConfigFile must be a Map style file");
         }

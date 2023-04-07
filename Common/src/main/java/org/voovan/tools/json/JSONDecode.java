@@ -126,13 +126,13 @@ public class JSONDecode {
 	 * @param file 基于文件的解析方法
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
-	 * @param parentKey 上级的 key 字符串
+	 * @param parentPath 上级的 key 字符串
 	 * @param parentRoot 上级的 root 节点
 	 * @return
 	 */
-	private static Object parse(URL url, boolean enableToken, boolean enablbeRef, String parentKey, Object parentRoot) throws IOException {
+	private static Object parse(URL url, boolean enableToken, boolean enablbeRef, String parentPath, Object parentRoot) throws IOException {
 		String jsonContent = TString.loadURL(url.toString());
-		return parse(new StringReader(jsonContent), enableToken, enablbeRef, parentKey, parentRoot);
+		return parse(new StringReader(jsonContent), enableToken, enablbeRef, parentPath, parentRoot);
 	}
 
 
@@ -180,11 +180,11 @@ public class JSONDecode {
 	 * @param reader    待解析的 JSON 字符串
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
-	 * @param parentKey 上级的 key 字符串
+	 * @param parentPath 上级的 key 字符串
 	 * @param parentRoot 上级的 root 节点
 	 * @return 解析后的对象
 	 */
-	private static Object parse(StringReader reader, boolean enableToken, boolean enablbeRef, String parentKey, Object parentRoot) {
+	private static Object parse(StringReader reader, boolean enableToken, boolean enablbeRef, String path, Object parentRoot) {
 
 		try {
 
@@ -193,6 +193,12 @@ public class JSONDecode {
 			}
 
 			Object root = null;
+			String parentPath = path == null ? "" : path;
+			String parentKey = null;
+			if(!parentPath.isEmpty()) {
+				int index = parentPath.lastIndexOf(".");
+				parentKey = parentPath.substring(index+1);
+			}
 
 			String key = null;
 			Object value = null;
@@ -281,11 +287,11 @@ public class JSONDecode {
 						root = createRootObj(flag);
 
 						//增加回写, 将数据回写至上层
-						if(parentRoot instanceof List && parentKey == null) {
+						if(parentRoot instanceof List) {
 							((List) parentRoot).add(root);
 						}
 
-						if(parentRoot instanceof Map && parentKey != null) {
+						if(parentRoot instanceof Map && parentKey!=null) {
 							((Map) parentRoot).put(parentKey, root);
 						}
 
@@ -329,7 +335,8 @@ public class JSONDecode {
 							currentChar = ',';
 						} else {
 							//递归解析处理,取 value 对象
-							value = JSONDecode.parse(reader, enableToken, enablbeRef, key, root);
+							String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
+							value = JSONDecode.parse(reader, enableToken, enablbeRef, tmpPath, root);
 							continue;
 						}
 
@@ -353,7 +360,8 @@ public class JSONDecode {
 							currentChar = ':';
 						} else {
 							//递归解析处理,取 value 对象
-							value = JSONDecode.parse(reader, enableToken, enablbeRef, key, root);
+							String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
+							value = JSONDecode.parse(reader, enableToken, enablbeRef, tmpPath, root);
 							continue;
 						}
 					} else if (currentChar == Global.CHAR_RC_BRACES) {
@@ -486,13 +494,14 @@ public class JSONDecode {
 						if(value instanceof String) {
 							//######  插值处理  #######
 							if(enableToken) {
-								value = tokenReplace(value.toString(), root);
+								value = tokenReplace(value.toString(), root, parentPath);
 							}
 
 							//######  URL引入处理  #######
 							if(enablbeRef) {
 								try {
-									value = include(value.toString(), enableToken, enablbeRef, key, root);
+									String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
+									value = include(value.toString(), enableToken, enablbeRef, tmpPath, root);
 								} catch (Exception e) {
 									Logger.warnf("Load JSON reference failed, {}:{} not found", e, key, value);
 								}
@@ -513,14 +522,14 @@ public class JSONDecode {
 					//判断返回对象的类型,填充返回对象
 					if (root instanceof HashMap && key!=null) {
 //						Map 和 List 在创建根对象时已经写如过了
-//						if( !(value instanceof Map || value instanceof List) ) {
+						if( !(value instanceof Map || value instanceof List) ) {
 							((Map) root).put(key, value);
-//						}
+						}
 					} else if (root instanceof ArrayList && value != null) {
 //						Map 和 List 在创建根对象时已经写如过了
-//						if( !(value instanceof Map || value instanceof List) ) {
+						if( !(value instanceof Map || value instanceof List) ) {
 							((List) root).add(value);
-//						}
+						}
 					} else
 						if(root == null){
 						root = value;
@@ -557,13 +566,12 @@ public class JSONDecode {
 
 	/**
 	 * 插值替换
-	 * 	<li>以"$"作为引导的字符表示从根开始应用</li>
-	 * 	<li>按照解析顺序引入, 所以引入的内容必须在引入之前的 json 文本中出现</li>
+	 * 	<li>通过".."操作引用上一级</li>
 	 * @param value 字符串
 	 * @param data 当前已解析的数据
 	 * @return
 	 */
-	private static String tokenReplace(String value, Object data) {
+	private static String tokenReplace(String value, Object data, String path) {
 
 		int empthMarkLength = 2;
 		//找到所有的插值替换标记
@@ -590,14 +598,11 @@ public class JSONDecode {
 			String mark = marks.get(i);
 			String token = tokens.get(i);
 
-			boolean useRoot = false;
-			//根应用判断
-			if(token.startsWith("$")) {
-				token = TString.removePrefix(token);
-				useRoot = true;
+			if(token.startsWith("..")) {
+				token = path + token;
 			}
 
-			Object pathValue = useRoot ? rootVisitor.value(token) : loaclVisitor.value(token);
+			Object pathValue = rootVisitor.value(token);
 
 			if(pathValue!=null) {
 				value = value.replace(mark, JSON.toJSON(pathValue));
@@ -615,12 +620,12 @@ public class JSONDecode {
 	 * @param value 当前引入URL的值
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
-	 * @param key 上级的 key 字符串
+	 * @param path 挡墙的 key 字符串
 	 * @param root 上级的 root 节点
 	 * @return 文件解析后的对象, Map 或者 List
 	 * @throws IOException IO 异常
 	 */
-	private static Object include( String value, boolean enableToken, boolean enablbeRef, String key, Object root) throws IOException {
+	private static Object include( String value, boolean enableToken, boolean enablbeRef, String path, Object root) throws IOException {
 		String url = null;
 		Object ret = value;
 		//引用文件处理
@@ -635,7 +640,7 @@ public class JSONDecode {
 		}
 
 		if(url!=null) {
-			ret = parse(new URL(url), enableToken, enablbeRef,  key, root);
+			ret = parse(new URL(url), enableToken, enablbeRef,  path, root);
 		}
 		return ret;
 	}

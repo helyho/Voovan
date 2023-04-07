@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class BeanVisitor {
 
     public enum SplitChar {
-        POINT("\\."),
+        POINT("."),
         BACKSLASH(Global.STR_BACKSLASH);
         private final String value;
 
@@ -74,9 +74,16 @@ public class BeanVisitor {
     }
 
     public Object parse(String pathQry, Object parsedObj) {
+
+        switch (pathSplitor) {
+            case POINT : pathQry=TString.fastReplaceAll(pathQry, "[^\\/]+\\.\\." , ""); break;
+            case BACKSLASH: pathQry=TString.fastReplaceAll(pathQry, "[^\\.]+\\.\\.\\." , ""); break;
+            default: ;
+        }
+
         Object currentPathObject = parsedObj;
 
-        String[] pathElems = pathQry.split(pathSplitor.getValue());
+        String[] pathElems = pathQry.split("\\"+pathSplitor.getValue());
 
         for (int m=0;m<pathElems.length;m++) {
             String pathElem = pathElems[m];
