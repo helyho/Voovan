@@ -269,7 +269,7 @@ public class JSONDecode {
 					}
 				}
 
-				//====================  创建根对象((有根包裹)  ====================
+				//====================  创建根对象(有根包裹)  ====================
 				if (root == null && !isString && isComment==0 /*&& !isFunction*/) {
 					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES ||
 							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_COMMA) {
@@ -277,7 +277,7 @@ public class JSONDecode {
 
 						//通过结构形式推断根对象类型
 						flag = flag == Global.CHAR_COLON ? '{' : flag;
-						flag = flag == Global.CHAR_COLON ? '[' : flag;
+						flag = flag == Global.CHAR_COMMA ? '[' : flag;
 						root = createRootObj(flag);
 
 						//推断根对象类型, 则字符不表意, 则继续处理
