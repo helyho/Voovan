@@ -17,7 +17,7 @@ public class JSONDecodeUnit extends TestCase {
 		String jsonString = "/*asdfasdf*/"+
 							" "+
 								"\"bint\":32,"+
-								"\"token0\": \"---{string}---\","+
+								"\"token0\": \"---|string|---\","+
 								"\"string\":\"helyho\","+
 								"\"tb2\":{"+
 									"\"bint\":56,"+
@@ -25,12 +25,11 @@ public class JSONDecodeUnit extends TestCase {
 									"\"list\":["+
 										"\"tb2 list item\""+
 									"],"+
-									"\"token1\": \"---{$string}---\","+
+									"\"token1\": \"---|$string|---\","+
 									"\"map\":{"+
 										"\"tb2 map item\":\"tb2 map item\""+
 									"}"+
 								"},"+
-								"\"token2\": \"---{tb2.bint}---\","+
 								"\"list\":["+
 									"\"listitem1\","+
 									"\"listitem2\","+
@@ -40,6 +39,7 @@ public class JSONDecodeUnit extends TestCase {
 									"\"mapitem2\":\"mapitem2\","+
 									"\"mapitem1\":\"mapitem1\""+
 								"} " +
+								"\"token2\": \"---|tb2.bint|---\","+
 							" ";
 
 		System.out.println(jsonString);
