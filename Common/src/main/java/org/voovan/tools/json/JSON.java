@@ -144,17 +144,39 @@ public class JSON {
 	 * @param jsonStr		待转换的 JSON 字符串
 	 * @param type			转换的目标 java 类
 	 * @param ignoreCase    是否忽略字段大小写
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
 	 * @return				转换后的 Java 对象
 	 */
-	public static <T> T toObject(String jsonStr, Type type, boolean ignoreCase){
+	public static <T> T toObject(String jsonStr, Type type, boolean ignoreCase, boolean enableToken, boolean enablbeRef){
 		T valueObject = null;
 		try {
-			valueObject = JSONDecode.fromJSON(jsonStr, type, ignoreCase);
+			valueObject = JSONDecode.toObject(jsonStr, type, ignoreCase, enableToken, enablbeRef);
 		} catch (ReflectiveOperationException | ParseException e) {
 			Logger.error("Reflective Operation failed",e);
 		}
 		return valueObject;
 	}
+
+
+	/**
+	 * 将 JSON字符串 转换成 Java 对象
+	 * @param <T>			范型
+	 * @param jsonStr		待转换的 JSON 字符串
+	 * @param type			转换的目标 java 类
+	 * @param ignoreCase    是否忽略字段大小写
+	 * @return				转换后的 Java 对象
+	 */
+	public static <T> T toObject(String jsonStr, Type type, boolean ignoreCase){
+		T valueObject = null;
+		try {
+			valueObject = JSONDecode.toObject(jsonStr, type, ignoreCase, false, false);
+		} catch (ReflectiveOperationException | ParseException e) {
+			Logger.error("Reflective Operation failed",e);
+		}
+		return valueObject;
+	}
+
 
 
 	/**
@@ -169,6 +191,27 @@ public class JSON {
 	}
 
 	/**
+	 * 将 文件内容 转换成 Java 对象
+	 * @param <T>			范型
+	 * @param file			JSON 文件
+	 * @param type			转换的目标 java 类
+	 * @param ignoreCase    是否忽略字段大小写
+	 * @param enableToken 	开启插值功能
+	 * @param enablbeRef 	开启引用功能
+	 * @return				转换后的 Java 对象
+	 */
+	public static <T> T toObject(File file, Type type, boolean ignoreCase, boolean enableToken, boolean enablbeRef) {
+		if(file.exists()) {
+			try {
+	 			return toObject(file.toURI().toURL(), type, ignoreCase, enableToken, enablbeRef);
+			} catch (Exception e) {
+				Logger.error(e);
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * 将 JSON字符串 转换成 Java 对象
 	 * @param <T>			范型
 	 * @param file			JSON 文件
@@ -177,18 +220,20 @@ public class JSON {
 	 * @return				转换后的 Java 对象
 	 */
 	public static <T> T toObject(File file, Type type, boolean ignoreCase) {
-		if(file.exists()) {
-			try {
-	 			return toObject(file.toURI().toURL(), type, ignoreCase);
-			} catch (Exception e) {
-				Logger.error(e);
-			}
-		}
-		return null;
+		return toObject(file, type, ignoreCase, false, false);
 	}
 
-
-	public static <T> T toObject(URL url, Type type, boolean ignoreCase) {
+	/**
+	 * 将 URL内容 转换成 Java 对象
+	 * @param <T>			范型
+	 * @param file			JSON 文件
+	 * @param type			转换的目标 java 类
+	 * @param ignoreCase    是否忽略字段大小写
+	 * @param enableToken 	开启插值功能
+	 * @param enablbeRef 	开启引用功能
+	 * @return				转换后的 Java 对象
+	 */
+	public static <T> T toObject(URL url, Type type, boolean ignoreCase, boolean enableToken, boolean enablbeRef) {
 			String fileContent = null;
 			try {
 				fileContent = TString.loadURL(url.toString());
@@ -200,7 +245,7 @@ public class JSON {
 					//记录文件上下文
 					String filePath = urlString;
 					JSONDecode.CONTEXT_PATH.set(filePath);
-					return toObject(fileContent, type, ignoreCase);
+					return toObject(fileContent, type, ignoreCase, enableToken, enablbeRef);
 				}
 			} catch (IOException e) {
 				Logger.error(e);
@@ -213,14 +258,34 @@ public class JSON {
 
 
 	/**
-	 * 将 JSON字符串 转换成 Java 对象
+	 * 将 URL内容 转换成 Java 对象
 	 * @param <T>			范型
 	 * @param file			JSON 文件
 	 * @param type			转换的目标 java 类
+	 * @param ignoreCase    是否忽略字段大小写
 	 * @return				转换后的 Java 对象
 	 */
-	public static <T> T toObject(File file, Type type) {
-		return toObject(file, type, true);
+	public static <T> T toObject(URL url, Type type, boolean ignoreCase) {
+		return toObject(url, type, ignoreCase, false, false);
+	}
+
+
+	/**
+	 * 解析 JSON 字符串
+	 * 		如果是{}包裹的字符串解析成 HashMap,如果是[]包裹的字符串解析成 ArrayList
+	 * @param jsonStr	待解析的 JSON 字符串
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
+	 * @return 接口后的对象
+	 */
+	public static Object parse(String jsonStr, boolean enableToken, boolean enablbeRef){
+		if(jsonStr==null) {
+			return null;
+		}
+
+		Object parseObject = null;
+		parseObject = JSONDecode.parse(jsonStr, enableToken, enablbeRef);
+		return parseObject;
 	}
 
 	/**
@@ -230,14 +295,9 @@ public class JSON {
 	 * @return 接口后的对象
 	 */
 	public static Object parse(String jsonStr){
-		if(jsonStr==null) {
-			return null;
-		}
-
-		Object parseObject = null;
-		parseObject = JSONDecode.parse(jsonStr);
-		return parseObject;
+		return parse(jsonStr, false, false);
 	}
+
 
 	/**
 	 * 格式化 JSON

@@ -17,6 +17,7 @@ import java.net.URL;
 import java.text.ParseException;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * JSON字符串分析成 Map
@@ -37,14 +38,15 @@ import java.util.function.Supplier;
 public class JSONDecode {
 	public static boolean JSON_HASH = TEnv.getSystemProperty("JsonHash", false);
 
-
-	//JSON 引用问件时用来记录上下文地址, 默认当前工作目录
+	//JSON URL 引用时用来记录上下文地址, 默认当前工作目录
 	protected static FastThreadLocal<String> CONTEXT_PATH = FastThreadLocal.withInitial(new Supplier<String>() {
 		@Override
 		public String get() {
 			return TFile.getContextPath();
 		}
 	});
+
+	protected static FastThreadLocal<Object> ROOT = new FastThreadLocal<Object>();
 
 	public final static IntKeyMap<Object> JSON_DECODE_CACHE = new IntKeyMap<Object>(1024);
 
@@ -62,7 +64,15 @@ public class JSONDecode {
 	private static int E_OBJECT = 1;
 	private static int E_ARRAY = -1;
 
-	public static Object parse(String jsonStr) {
+
+	/**
+	 * 基于字符串的解析方法
+	 * @param jsonStr json 字符串
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
+	 * @return
+	 */
+	public static Object parse(String jsonStr, boolean enableToken, boolean enablbeRef) {
 		Object value;
 		int jsonHash = 0;
 		if(JSON_HASH) {
@@ -74,14 +84,55 @@ public class JSONDecode {
 			}
 		}
 
-		value = parse(new StringReader(jsonStr.trim()));
+		value = parse(new StringReader(jsonStr.trim()), enableToken, enablbeRef);
 
 		if(JSON_HASH) {
 			JSON_DECODE_CACHE.put(jsonHash, value);
 		}
 
+		ROOT.set(null);
+
 		return value;
 	}
+
+	/**
+	 * 基于字符串的解析方法
+	 * @param json 字符串
+	 * @return
+	 */
+	public static Object parse(String jsonStr) {
+		return parse(jsonStr, false, false);
+	}
+
+
+	/**
+	 * 基于文件的解析方法
+	 * @param file 基于文件的解析方法
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
+	 * @return
+	 */
+	private static Object parse(File file, boolean enableToken, boolean enablbeRef) {
+		if(file.exists()) {
+			String jsonContent = new String(TFile.loadFile(file));
+			return parse(jsonContent, enableToken, enablbeRef);
+		} else {
+			return null;
+		}
+	}
+
+	/**
+	 * 基于URL的解析方法
+	 * @param file 基于文件的解析方法
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
+	 * @return
+	 */
+	private static Object parse(URL url, boolean enableToken, boolean enablbeRef) throws IOException {
+		String jsonContent = TString.loadURL(url.toString());
+		return parse(jsonContent, enableToken, enablbeRef);
+	}
+
 
 	/**
 	 * 创建根对象
@@ -113,41 +164,23 @@ public class JSONDecode {
 			Logger.errorf("JSONDecode: create root objec failed {}", flag);
 		}
 
-		return root;
-	}
-
-	/**
-	 * 基于文件的解析方法
-	 * @param file 基于文件的解析方法
-	 * @return
-	 */
-	private static Object parse(File file) {
-		if(file.exists()) {
-			String jsonContent = new String(TFile.loadFile(file));
-			return parse(new StringReader(jsonContent));
-		} else {
-			return null;
+		//为插值替换做准备
+		if(ROOT.get()==null) {
+			ROOT.set(root);
 		}
-	}
 
-
-	/**
-	 * 基于文件的解析方法
-	 * @param file 基于文件的解析方法
-	 * @return
-	 */
-	private static Object parse(URL url) throws IOException {
-		String jsonContent = TString.loadURL(url.toString());
-		return parse(new StringReader(jsonContent));
+		return root;
 	}
 
 	/**
 	 * 解析 JSON 字符串
 	 *         如果是{}包裹的对象解析成 HashMap,如果是[]包裹的对象解析成 ArrayList
 	 * @param reader    待解析的 JSON 字符串
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
 	 * @return 解析后的对象
 	 */
-	private static Object parse(StringReader reader) {
+	private static Object parse(StringReader reader, boolean enableToken, boolean enablbeRef) {
 
 		try {
 
@@ -286,7 +319,7 @@ public class JSONDecode {
 							currentChar = ':';
 						} else {
 							//递归解析处理,取 value 对象
-							value = JSONDecode.parse(reader);
+							value = JSONDecode.parse(reader, enableToken, enablbeRef);
 							continue;
 						}
 
@@ -310,7 +343,7 @@ public class JSONDecode {
 							currentChar = ':';
 						} else {
 							//递归解析处理,取 value 对象
-							value = JSONDecode.parse(reader);
+							value = JSONDecode.parse(reader, enableToken, enablbeRef);
 							continue;
 						}
 					} else if (currentChar == Global.CHAR_RC_BRACES) {
@@ -446,13 +479,20 @@ public class JSONDecode {
 							value = null;
 						}
 
-						//引入文件处理
+
 						if(value instanceof String) {
-							//引用文件处理
-							try {
-								value = include((String)value);
-							} catch (Exception e) {
-								Logger.warnf( "Load JSON reference failed, {}:{} not found", e, keyString, value);
+							//######  插值处理  #######
+							if(enableToken) {
+								value = tokenReplace((String) value, root);
+							}
+
+							//######  URL引入处理  #######
+							if(enablbeRef) {
+								try {
+									value = include((String) value, enableToken, enablbeRef);
+								} catch (Exception e) {
+									Logger.warnf("Load JSON reference failed, {}:{} not found", e, keyString, value);
+								}
 							}
 						}
 
@@ -517,12 +557,66 @@ public class JSONDecode {
 
 
 	/**
+	 * 插值替换
+	 * 	<li>以"$"作为引导的字符表示从根开始应用</li>
+	 * 	<li>按照解析顺序引入, 所以引入的内容必须在引入之前的 json 文本中出现</li>
+	 * @param value 字符串
+	 * @param data 当前已解析的数据
+	 * @return
+	 */
+	private static String tokenReplace(String value, Object data) {
+		BeanVisitor loaclVisitor = BeanVisitor.newInstance(data);
+		BeanVisitor rootVisitor = BeanVisitor.newInstance(ROOT.get());
+		loaclVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
+		rootVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
+
+		int empthMarkLength = TString.TOKEN_EMPTY_REGEX.length();
+		//找到所有的插值替换标记
+		String[] markArr = TString.searchByRegex(value, TString.TOKEN_PREFIX_REGEX+"(.*?)"+TString.TOKEN_SUFFIX_REGEX);
+
+		if(markArr.length==0) {
+			return value;
+		}
+
+		List<String> marks = List.of(markArr);
+		List<String> tokens= List.of(markArr).stream()
+				.filter(mark->mark.length()>empthMarkLength)
+				.map(mark->mark.substring(1, mark.length()-1))
+				.collect(Collectors.toList());
+
+		//插值替换
+		for(int i=0; i<marks.size(); i++) {
+			String mark = marks.get(i);
+			String token = tokens.get(i);
+
+			boolean useRoot = false;
+			//根应用判断
+			if(token.startsWith("$")) {
+				token = TString.removePrefix(token);
+				useRoot = true;
+			}
+
+			Object pathValue = useRoot ? rootVisitor.value(token) : loaclVisitor.value(token);
+
+			String replaceMark = TString.TOKEN_PREFIX_REGEX + token + TString.TOKEN_SUFFIX_REGEX;
+			if(pathValue!=null) {
+				value = value.replace(mark, JSON.toJSON(pathValue));
+			}
+		}
+
+		return value;
+	}
+
+
+	/**
 	 * 解析引入URL内容处理方法
 	 * @param value 当前引入URL的值
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
 	 * @return 文件解析后的对象, Map 或者 List
 	 * @throws IOException IO 异常
 	 */
-	private static Object include(String value) throws IOException {
+	private static Object include(String value, boolean enableToken, boolean enablbeRef) throws IOException {
 		String url = null;
 		Object ret = value;
 		//引用文件处理
@@ -538,7 +632,7 @@ public class JSONDecode {
 
 
 		if(url!=null) {
-			ret = parse(new URL(url));
+			ret = parse(new URL(url), enableToken, enablbeRef);
 		}
 		return ret;
 	}
@@ -549,17 +643,19 @@ public class JSONDecode {
 	 * @param jsonStr    JSON字符串
 	 * @param type        JSON 字符串将要转换的目标类
 	 * @param ignoreCase 是否在字段匹配时忽略大小写
+	 * @param enableToken 开启插值功能
+	 * @param enablbeRef 开启引用功能
 	 * @return                    JSON 转换后的 Java 对象
 	 * @throws ReflectiveOperationException  反射异常
 	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T fromJSON(String jsonStr, Type type, boolean ignoreCase) throws ReflectiveOperationException, ParseException {
+	public static <T>T toObject(String jsonStr, Type type, boolean ignoreCase, boolean enableToken, boolean enablbeRef) throws ReflectiveOperationException, ParseException {
 		if(jsonStr==null){
 			return null;
 		}
 
-		Object parseObject = parse(jsonStr);
+		Object parseObject = parse(jsonStr, enableToken, enablbeRef);
 
 		if(parseObject == null){
 			parseObject = jsonStr;
@@ -588,6 +684,23 @@ public class JSONDecode {
 		}
 	}
 
+
+	/**
+	 * 解析 JSON 字符串成为参数指定的类
+	 * @param <T>         范型
+	 * @param jsonStr    JSON字符串
+	 * @param type        JSON 字符串将要转换的目标类
+	 * @param ignoreCase 是否在字段匹配时忽略大小写
+	 * @return                    JSON 转换后的 Java 对象
+	 * @throws ReflectiveOperationException  反射异常
+	 * @throws ParseException 解析异常
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T>T toObject(String jsonStr, Type type, boolean ignoreCase) throws ReflectiveOperationException, ParseException {
+		return toObject(jsonStr, type, ignoreCase, false, false);
+
+	}
+
 	/**
 	 * 解析 JSON 字符串成为参数指定的类,默认严格限制字段大小写
 	 * @param <T>         范型
@@ -599,7 +712,7 @@ public class JSONDecode {
 	 * @throws IOException IO 异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T fromJSON(String jsonStr,Class<T> clazz) throws ParseException, ReflectiveOperationException, IOException {
-		return fromJSON(jsonStr, clazz, false);
+	public static <T>T toObject(String jsonStr, Class<T> clazz) throws ParseException, ReflectiveOperationException, IOException {
+		return toObject(jsonStr, clazz, false, false, false);
 	}
 }

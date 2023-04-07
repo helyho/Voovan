@@ -126,7 +126,7 @@ public class WebContext {
 			if(WEB_CONFIG==null) {
 				String confWeb = TFile.assemblyPath("conf", "web.json");
 				fullPath = TFile.getSystemPath(confWeb);
-				WEB_CONFIG = JSON.toObject(new File(fullPath), Map.class);
+				WEB_CONFIG = JSON.toObject(new File(fullPath), Map.class, false, true, true);
 			}
 			WEB_CONFIG = nullDefault(WEB_CONFIG, new HashMap<String, Object>());
 		}
@@ -139,7 +139,7 @@ public class WebContext {
 			if(MIME_TYPES==null) {
 				String confMime = TFile.assemblyPath("conf", "mime.json");
 				fullPath = TFile.getSystemPath(confMime);
-				MIME_TYPES = JSON.toObject(new File(fullPath), Map.class);
+				MIME_TYPES = JSON.toObject(new File(fullPath), Map.class, false, true, true);
 			}
 			MIME_TYPES = nullDefault(MIME_TYPES, new HashMap<String, Object>());
 		}
@@ -152,7 +152,7 @@ public class WebContext {
 			if(ERROR_DEFINE==null) {
 				String confError = TFile.assemblyPath("conf", "error.json");
 				fullPath = TFile.getSystemPath(confError);
-				ERROR_DEFINE = JSON.toObject(new File(fullPath), Map.class);
+				ERROR_DEFINE = JSON.toObject(new File(fullPath), Map.class, false, true, true);
 			}
 			ERROR_DEFINE = nullDefault(ERROR_DEFINE, new HashMap<String, Object>());
 		}
@@ -199,7 +199,7 @@ public class WebContext {
 		String configFileFullPath = TFile.getContextPath()+ File.separator + configFilePath;
 		File configFile = new File(configFileFullPath);
 		if(configFile.exists()) {
-			return buildConfigFromMap(JSON.toObject(configFile, Map.class));
+			return buildConfigFromMap(JSON.toObject(configFile, Map.class, false, true, true));
 		} else {
 			Logger.warn("Use the config file: " + configFilePath + " is not exists, now use default config.");
 			return null;
