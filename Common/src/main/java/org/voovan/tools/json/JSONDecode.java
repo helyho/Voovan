@@ -272,11 +272,13 @@ public class JSONDecode {
 				//====================  创建根对象(有根包裹)  ====================
 				if (root == null && !stringMode && commentMode==0) {
 					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES ||
-							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_COMMA) {
+							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL ||
+							currentChar == Global.CHAR_COMMA) {
 						char flag = currentChar;
 
 						//通过结构形式推断根对象类型
 						flag = flag == Global.CHAR_COLON ? '{' : flag;
+						flag = flag == Global.CHAR_EQUAL ? '{' : flag;
 						flag = flag == Global.CHAR_COMMA ? '[' : flag;
 						root = createRootObj(flag);
 
@@ -316,7 +318,7 @@ public class JSONDecode {
 						//支持{ key [...] }的形式, 插入一个 : 作为分割
 						if(itemString.length() >0) {
 							nextChar = currentChar;
-							currentChar = ':';
+							currentChar = ',';
 						} else {
 							//递归解析处理,取 value 对象
 							value = JSONDecode.parse(reader, enableToken, enablbeRef);
@@ -547,18 +549,20 @@ public class JSONDecode {
 	 * @return
 	 */
 	private static String tokenReplace(String value, Object data) {
+
+		int empthMarkLength = 2;
+		//找到所有的插值替换标记
+		String[] markArr = TString.searchByRegex(value, "\\|(.*?)\\|");
+
+		if(markArr.length==0) {
+			return value;
+		}
+
 		BeanVisitor loaclVisitor = BeanVisitor.newInstance(data);
 		BeanVisitor rootVisitor = BeanVisitor.newInstance(ROOT.get());
 		loaclVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
 		rootVisitor.setPathSplitor(BeanVisitor.SplitChar.POINT);
 
-		int empthMarkLength = TString.TOKEN_EMPTY_REGEX.length();
-		//找到所有的插值替换标记
-		String[] markArr = TString.searchByRegex(value, TString.TOKEN_PREFIX_REGEX+"(.*?)"+TString.TOKEN_SUFFIX_REGEX);
-
-		if(markArr.length==0) {
-			return value;
-		}
 
 		List<String> marks = List.of(markArr);
 		List<String> tokens= List.of(markArr).stream()
@@ -580,7 +584,7 @@ public class JSONDecode {
 
 			Object pathValue = useRoot ? rootVisitor.value(token) : loaclVisitor.value(token);
 
-			String replaceMark = TString.TOKEN_PREFIX_REGEX + token + TString.TOKEN_SUFFIX_REGEX;
+			String replaceMark = "\\|" + token + "\\|";
 			if(pathValue!=null) {
 				value = value.replace(mark, JSON.toJSON(pathValue));
 			}
