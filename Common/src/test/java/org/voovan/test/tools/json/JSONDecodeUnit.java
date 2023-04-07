@@ -2,6 +2,7 @@ package org.voovan.test.tools.json;
 
 import junit.framework.TestCase;
 import org.voovan.tools.json.JSONDecode;
+import org.voovan.tools.log.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -15,36 +16,36 @@ public class JSONDecodeUnit extends TestCase {
 	@SuppressWarnings("rawtypes")
 	public void testRun() throws Exception{
 		String jsonString = "/*asdfasdf*/"+
-							" "+
-								"\"bint\":32,"+
-								"\"token0\": \"---|string|---\","+
-								"\"string\":\"helyho\","+
-								"\"tb2\":{"+
-									"\"bint\":56,"+
-									"\"string\":\"bi\\\"ngo\","+
-									"\"list\":["+
-										"\"tb2 list item\""+
-									"],"+
-									"\"token1\": \"---|$string|---\","+
-									"\"map\":{"+
-										"\"tb2 map item\":\"tb2 map item\""+
-									"}"+
-								"},"+
-								"\"list\":["+
-									"\"listitem1\","+
-									"\"listitem2\","+
-									"\"listitem3\""+
-								"],"+
-								"\"map\":{"+
-									"\"mapitem2\":\"mapitem2\","+
-									"\"mapitem1\":\"mapitem1\""+
-								"} " +
-								"\"token2\": \"---|tb2.bint|---\","+
-							" ";
+				" "+
+				"\"bint\":32,"+
+				"\"token0\": \"---|string|---\","+
+				"\"string\":\"helyho\","+
+				"\"tb2\":{"+
+				"\"bint\":56,"+
+				"\"string\":\"bi\\\"ngo\","+
+				"\"list\":["+
+				"\"tb2 list item\""+
+				"],"+
+				"\"token1\": \"---|$string|---\","+
+				"\"map\":{"+
+				"\"tb2 map item\":\"tb2 map item\""+
+				"}"+
+				"},"+
+				"\"list\":["+
+				"\"listitem1\","+
+				"\"listitem2\","+
+				"\"listitem3\""+
+				"],"+
+				"\"map\":{"+
+				"\"mapitem2\":\"mapitem2\","+
+				"\"mapitem1\":\"mapitem1\""+
+				"} " +
+				"\"token2\": \"---|tb2.bint|---\","+
+				" ";
 
-		System.out.println(jsonString);
+		Logger.simple(jsonString);
 		Map<String, Object> obj = (Map<String, Object>)JSONDecode.parse(jsonString, true, true);
-		System.out.println(obj);
+		Logger.simple(obj);
 //		assertTrue((Integer)obj.size()==5);
 //		assertTrue((Integer)obj.get("bint")==32);
 //		assertEquals((String)obj.get("string"),"helyho");

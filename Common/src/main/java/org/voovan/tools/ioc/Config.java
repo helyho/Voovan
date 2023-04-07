@@ -28,7 +28,6 @@ public class Config {
 
     public void init(URL url) {
         config = JSON.toObject(url, Map.class, true, true, true);
-
         if(!(config instanceof Map)) {
             throw new IOCException("ConfigFile must be a Map style file");
         }

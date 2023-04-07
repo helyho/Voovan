@@ -84,7 +84,7 @@ public class JSONDecode {
 			}
 		}
 
-		value = parse(new StringReader(jsonStr.trim()), enableToken, enablbeRef);
+		value = parse(new StringReader(jsonStr.trim()), enableToken, enablbeRef, null, null);
 
 		if(JSON_HASH) {
 			JSON_DECODE_CACHE.put(jsonHash, value);
@@ -115,7 +115,7 @@ public class JSONDecode {
 	private static Object parse(File file, boolean enableToken, boolean enablbeRef) {
 		if(file.exists()) {
 			String jsonContent = new String(TFile.loadFile(file));
-			return parse(jsonContent, enableToken, enablbeRef);
+			return parse(new StringReader(jsonContent), enableToken, enablbeRef, null, null);
 		} else {
 			return null;
 		}
@@ -126,11 +126,13 @@ public class JSONDecode {
 	 * @param file 基于文件的解析方法
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
+	 * @param parentKey 上级的 key 字符串
+	 * @param parentRoot 上级的 root 节点
 	 * @return
 	 */
-	private static Object parse(URL url, boolean enableToken, boolean enablbeRef) throws IOException {
+	private static Object parse(URL url, boolean enableToken, boolean enablbeRef, String parentKey, Object parentRoot) throws IOException {
 		String jsonContent = TString.loadURL(url.toString());
-		return parse(jsonContent, enableToken, enablbeRef);
+		return parse(new StringReader(jsonContent), enableToken, enablbeRef, parentKey, parentRoot);
 	}
 
 
@@ -178,9 +180,11 @@ public class JSONDecode {
 	 * @param reader    待解析的 JSON 字符串
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
+	 * @param parentKey 上级的 key 字符串
+	 * @param parentRoot 上级的 root 节点
 	 * @return 解析后的对象
 	 */
-	private static Object parse(StringReader reader, boolean enableToken, boolean enablbeRef) {
+	private static Object parse(StringReader reader, boolean enableToken, boolean enablbeRef, String parentKey, Object parentRoot) {
 
 		try {
 
@@ -190,7 +194,7 @@ public class JSONDecode {
 
 			Object root = null;
 
-			String keyString = null;
+			String key = null;
 			Object value = null;
 			char stringWarpFlag = '\0';
 			boolean stringMode = false;
@@ -232,9 +236,6 @@ public class JSONDecode {
 						//多行注释开始, like: /* ...... */
 						if (nextChar != 0 && nextChar == Global.CHAR_STAR) {
 							commentMode = 2;
-							if (currentChar == 65535) {
-								return root;
-							}
 							continue;
 						}
 					}
@@ -256,13 +257,10 @@ public class JSONDecode {
 						//多行注释结束
 						if (commentMode == 2 && currentChar == Global.CHAR_BACKSLASH && (prevChar != 0 && prevChar == Global.CHAR_STAR)) {
 							commentMode = 0;
-							if (currentChar == 65535) {
-								return root;
-							}
 							continue;
 						}
 
-						if (currentChar == 65535) {
+						if (nextChar == 65535 && commentMode==0) {
 							return root;
 						}
 						continue;
@@ -281,6 +279,16 @@ public class JSONDecode {
 						flag = flag == Global.CHAR_EQUAL ? '{' : flag;
 						flag = flag == Global.CHAR_COMMA ? '[' : flag;
 						root = createRootObj(flag);
+
+						//增加回写, 将数据回写至上层
+						if(parentRoot instanceof List && parentKey == null) {
+							((List) parentRoot).add(root);
+						}
+
+						if(parentRoot instanceof Map && parentKey != null) {
+							((Map) parentRoot).put(parentKey, root);
+						}
+
 
 						//推断根对象类型, 则字符不表意, 则继续处理
 						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
@@ -321,7 +329,7 @@ public class JSONDecode {
 							currentChar = ',';
 						} else {
 							//递归解析处理,取 value 对象
-							value = JSONDecode.parse(reader, enableToken, enablbeRef);
+							value = JSONDecode.parse(reader, enableToken, enablbeRef, key, root);
 							continue;
 						}
 
@@ -345,7 +353,7 @@ public class JSONDecode {
 							currentChar = ':';
 						} else {
 							//递归解析处理,取 value 对象
-							value = JSONDecode.parse(reader, enableToken, enablbeRef);
+							value = JSONDecode.parse(reader, enableToken, enablbeRef, key, root);
 							continue;
 						}
 					} else if (currentChar == Global.CHAR_RC_BRACES) {
@@ -377,8 +385,19 @@ public class JSONDecode {
 				if(!stringMode) {
 					//JSON对象字符串分组,取 Key 对象,当前字符是:或=,则取 Key
 					if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
-						keyString = itemString.substring(0, itemString.length() - 1).trim();
-						itemString = new StringBuilder();
+						itemString.setLength(itemString.length()-1);
+						//判断是字符串去掉头尾的包裹符号
+						if (itemString.length() >= 2 && itemString.charAt(0) == Global.CHAR_QUOTE && itemString.charAt(itemString.length()-1) == Global.CHAR_QUOTE) {
+							key = itemString.substring(1, itemString.length() - 1).trim();
+						}
+						//判断是字符串去掉头尾的包裹符号
+						else if (itemString.length() >= 2 && itemString.charAt(0) == Global.CHAR_S_QUOTE && itemString.charAt(itemString.length()-1) == Global.CHAR_S_QUOTE) {
+							key = itemString.substring(1, itemString.length() - 1).trim();
+						} else {
+							key = itemString.substring(0);
+						}
+
+						itemString.setLength(0);
 					}
 
 					//JSON对象字符串分组,取 value 对象,当前字符是,则取 value
@@ -386,16 +405,16 @@ public class JSONDecode {
 						if (value == null) {
 							value = itemString.substring(0, itemString.length() - 1).trim();
 						}
-						itemString = new StringBuilder();
+						itemString.setLength(0);
 					}
 
 					//JSON对象字符串分组,取 value 对象,当前字符是换行, 则取 value
-					if (currentChar == '\n') {
+					if (currentChar == '\n' || nextChar == 65535) {
 						itemString.trimToSize();
 						if (value == null && itemString.length() > 0) {
 							value = itemString.toString().trim();
 						}
-						itemString = new StringBuilder();
+						itemString.setLength(0);
 					}
 				}
 
@@ -420,7 +439,7 @@ public class JSONDecode {
 							}
 						}
 						//判断科学技术转换成 BigDecimal
-						else if (stringValue.indexOf(".")>0 && stringValue.indexOf("E")>0) {
+						else if (TString.regexMatch(stringValue, "\\d\\.\\d*?E[+-]\\d+$")>0) {
 							value = new BigDecimal(stringValue);
 						}
 						//判断不包含.即为整形
@@ -467,15 +486,15 @@ public class JSONDecode {
 						if(value instanceof String) {
 							//######  插值处理  #######
 							if(enableToken) {
-								value = tokenReplace((String) value, root);
+								value = tokenReplace(value.toString(), root);
 							}
 
 							//######  URL引入处理  #######
 							if(enablbeRef) {
 								try {
-									value = include((String) value, enableToken, enablbeRef);
+									value = include(value.toString(), enableToken, enablbeRef, key, root);
 								} catch (Exception e) {
-									Logger.warnf("Load JSON reference failed, {}:{} not found", e, keyString, value);
+									Logger.warnf("Load JSON reference failed, {}:{} not found", e, key, value);
 								}
 							}
 						}
@@ -484,7 +503,7 @@ public class JSONDecode {
 
 					//====================  创建根对象(无根包裹)  ====================
 					if(root == null) {
-						if(keyString!=null) {
+						if(key!=null) {
 							root = (Map) new LinkedHashMap<String, Object>(1024);
 						} else {
 							root = (List) new ArrayList<Object>(1024);
@@ -492,31 +511,27 @@ public class JSONDecode {
 					}
 
 					//判断返回对象的类型,填充返回对象
-					if (root instanceof HashMap) {
-						if (keyString != null) {
-							//判断是字符串去掉头尾的包裹符号
-							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_QUOTE) {
-								keyString = keyString.substring(1, keyString.length() - 1);
-							}
-							//判断是字符串去掉头尾的包裹符号
-							if (keyString.length() >= 2 && keyString.charAt(0) == Global.CHAR_S_QUOTE && keyString.charAt(keyString.length()-1) == Global.CHAR_S_QUOTE) {
-								keyString = keyString.substring(1, keyString.length() - 1);
-							}
-
-							((Map)root).put(keyString, value);
-						}
+					if (root instanceof HashMap && key!=null) {
+//						Map 和 List 在创建根对象时已经写如过了
+//						if( !(value instanceof Map || value instanceof List) ) {
+							((Map) root).put(key, value);
+//						}
 					} else if (root instanceof ArrayList && value != null) {
-						((List)root).add(value);
-					} else if(root == null){
+//						Map 和 List 在创建根对象时已经写如过了
+//						if( !(value instanceof Map || value instanceof List) ) {
+							((List) root).add(value);
+//						}
+					} else
+						if(root == null){
 						root = value;
 					}
 					//处理完侯将 value 放空
-					keyString = null;
+					key = null;
 					value = null;
 				}
 
 				if (nextChar == 65535) {
-					if(root==null && value == null && keyString == null) {
+					if(root==null && value == null && key == null) {
 						root = itemString.toString();
 					}
 					break;
@@ -584,9 +599,10 @@ public class JSONDecode {
 
 			Object pathValue = useRoot ? rootVisitor.value(token) : loaclVisitor.value(token);
 
-			String replaceMark = "\\|" + token + "\\|";
 			if(pathValue!=null) {
 				value = value.replace(mark, JSON.toJSON(pathValue));
+			} else {
+				Logger.warnf("Replace value {} -> |{}| failed, target data is null", value, token);
 			}
 		}
 
@@ -599,10 +615,12 @@ public class JSONDecode {
 	 * @param value 当前引入URL的值
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
+	 * @param key 上级的 key 字符串
+	 * @param root 上级的 root 节点
 	 * @return 文件解析后的对象, Map 或者 List
 	 * @throws IOException IO 异常
 	 */
-	private static Object include(String value, boolean enableToken, boolean enablbeRef) throws IOException {
+	private static Object include( String value, boolean enableToken, boolean enablbeRef, String key, Object root) throws IOException {
 		String url = null;
 		Object ret = value;
 		//引用文件处理
@@ -617,7 +635,7 @@ public class JSONDecode {
 		}
 
 		if(url!=null) {
-			ret = parse(new URL(url), enableToken, enablbeRef);
+			ret = parse(new URL(url), enableToken, enablbeRef,  key, root);
 		}
 		return ret;
 	}
