@@ -39,7 +39,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
         objectPool.add(t);
 
         for(int k=0;k<30;k++) {
-            Global.getThreadPool().execute(()->{
+            Global.async(()->{
                 for (int i = 0; i < 50; i++) {
                     TestPoolObject t1 = (TestPoolObject) objectPool.borrow();
                     System.out.println(Thread.currentThread().getName() + " " + i + " " + t1);
@@ -95,7 +95,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
 
         ArrayList<TestPoolObject> arrayList = new ArrayList<TestPoolObject>();
         for(int i=0;i<50;i++){
-            Global.getThreadPool().execute(()->{
+            Global.async(()->{
                 TestPoolObject objectId = objectPool.borrow();
                 arrayList.add(objectId);
                 System.out.println("borrow1->" + objectId);
@@ -117,7 +117,7 @@ public class ObjectCachedPooledObjectUnit extends TestCase {
         System.out.println("===================");
 
         for(int i=0;i<100;i++){
-            Global.getThreadPool().execute(()->{
+            Global.async(()->{
                 TestPoolObject objectId = objectPool.borrow();
                 arrayList.add(objectId);
                 System.out.println("borrow2->" +objectId);

@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.voovan.tools.ioc.Utils.*;
+import static org.voovan.tools.ioc.IOCUtils.*;
 
 /**
  * 容器类

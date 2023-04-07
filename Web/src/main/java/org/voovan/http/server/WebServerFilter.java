@@ -33,7 +33,7 @@ public class WebServerFilter implements IoFilter {
 	public static int MAX_REQUEST_SIZE = WebContext.getWebServerConfig().getMaxRequestSize() * 1024;
 
 	static {
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+		Global.schedual(new HashWheelTask() {
 			@Override
 			public void run() {
 				MAX_REQUEST_SIZE = WebContext.getWebServerConfig().getMaxRequestSize() * 1024;

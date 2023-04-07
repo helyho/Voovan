@@ -61,7 +61,7 @@ public class WebContext {
 	public static byte[] RESPONSE_COMMON_HEADER = TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 
 	static{
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+		Global.schedual(new HashWheelTask() {
 			@Override
 			public void run() {
 				RESPONSE_COMMON_HEADER =  TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");

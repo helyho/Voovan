@@ -28,7 +28,7 @@ public class TProperties {
 	private static ConcurrentHashMap<File, Long> propertiesWatcher = new ConcurrentHashMap<File, Long>();
 
 	static {
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+		Global.schedual(new HashWheelTask() {
 			@Override
 			public void run() {
 				Iterator<Map.Entry<File, Long>> iterator = propertiesWatcher.entrySet().iterator();

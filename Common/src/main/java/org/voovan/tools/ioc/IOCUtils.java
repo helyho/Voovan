@@ -24,8 +24,10 @@ import static org.voovan.tools.TObject.cast;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class Utils {
+public class IOCUtils {
     public static final String DEFAULT_SCOPE = "defalut";
+
+    public static final Object EMPTY = new Object();
 
     public static void nameChecker(String name) {
         if(name.indexOf('.') >= 0) {
@@ -48,7 +50,11 @@ public class Utils {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
-            beanName = classKey(clazz);
+            if(bean.useClassName()) {
+                beanName = clazz.getSimpleName();
+            } else {
+                beanName = classKey(clazz);
+            }
         }
 
         return beanName;
@@ -59,7 +65,11 @@ public class Utils {
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
             Class clazz = method.getReturnType();
-            beanName = classKey(clazz);
+            if(bean.useClassName()) {
+                beanName = clazz.getSimpleName();
+            } else {
+                beanName = classKey(clazz);
+            }
         }
 
         return beanName;
@@ -83,6 +93,7 @@ public class Utils {
         return bean == null ? DEFAULT_SCOPE : TReflect.getAnnotationValue(bean, "scope");
     }
 
+
     public static Object[] prepareParam(Container container, Executable executable) {
         Annotation[][] paramAnnotations = executable.getParameterAnnotations();
         Class[] parameterTypes          = executable.getParameterTypes();
@@ -96,19 +107,19 @@ public class Utils {
                 if (annotation.annotationType().isAssignableFrom(Value.class)) {
                     Value valueAnnotation = cast(annotation);
                     String anchor = TReflect.getAnnotationValue(annotation, "anchor");
-                    if (TString.isNullOrEmpty(anchor)) {
-                        continue;
+
+                    if(!TString.isNullOrEmpty(anchor)) {
+                        params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
+                    } else {
+                        params[i] = container.getByType(parameterTypes[i], null);
                     }
-                    params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
+
                     if(valueAnnotation.required() && params[i] == null) {
                         Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
                     }
                 }
             }
-            if (params[i] == null) {
-                //使用类型选择参数
-                params[i] = container.getByType(parameterTypes[i], null);
-            }
+
         }
 
         return params;

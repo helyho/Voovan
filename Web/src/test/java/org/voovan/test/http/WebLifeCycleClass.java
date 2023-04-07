@@ -2,6 +2,7 @@ package org.voovan.test.http;
 
 import org.voovan.http.server.WebServer;
 import org.voovan.http.server.WebServerLifeCycle;
+import org.voovan.tools.ioc.annotation.Value;
 import org.voovan.tools.log.Logger;
 
 /**
@@ -13,9 +14,12 @@ import org.voovan.tools.log.Logger;
  * Licence: Apache v2 License
  */
 public class WebLifeCycleClass implements WebServerLifeCycle {
+    @Value("Web.Host")
+    private String host;
+    private int port;
     @Override
     public void init(WebServer webServer) {
-        Logger.simple("Init messsage");
+        Logger.simple("Init messsage" + host + ":" + port);
     }
 
     @Override

@@ -61,7 +61,7 @@ public class HttpParser {
 	public static final int PARSER_TYPE_RESPONSE = 1;
 
 	static {
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+		Global.schedual(new HashWheelTask() {
 			@Override
 			public void run() {
 				PARSED_PACKET_MAP.clear();

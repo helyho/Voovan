@@ -49,7 +49,7 @@ public class CacheMapTest extends TestCase{
 
         for(int x=0;x<100;x++) {
             int finalX = x;
-            Global.getThreadPool().execute(new Runnable() {
+            Global.async(new Runnable() {
                 @Override
                 public void run() {
                     ThreadLocalRandom random = ThreadLocalRandom.current();
@@ -98,7 +98,7 @@ public class CacheMapTest extends TestCase{
             final int fi = i;
 
             long cn =System.nanoTime();
-            Global.getThreadPool().execute(new Runnable() {
+            Global.async(new Runnable() {
                 @Override
                 public void run() {
                     for(int x=0; x<1; x++) {

@@ -14,7 +14,7 @@ import java.util.Map;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-@Bean(name="IOC3", lazy = true, singleton = false)
+@Bean(useClassName = true, lazy = true, singleton = false)
 public class IOC3 {
     @Value
     private IOC1 ioc1;

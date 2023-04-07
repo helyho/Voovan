@@ -69,7 +69,7 @@ public class SocketSelector implements Closeable {
 
 		//调试日志信息
 		if(Global.IS_DEBUG_MODE) {
-			Global.getHashWheelTimer().addTask(new HashWheelTask() {
+			Global.schedual(new HashWheelTask() {
 				@Override
 				public void run() {
 					System.out.print(eventRunner.getThread().getName() + " " + selector.keys().size() + " = " + eventRunner.getEventQueue().size());

@@ -217,7 +217,7 @@ public class WebServerCli {
                     case "exit" : {
                         response =  "Bye, see you later";
 
-                        Global.getHashWheelTimer().addTask(()->{
+                        Global.schedual(()->{
                             session.close();
                         }, 1);
 

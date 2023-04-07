@@ -68,7 +68,7 @@ public class AnnotationRouterTest {
                                 @BodyParam(value = "array", isRequire = false) List<String> array,
                                 HttpResponse response){
         HttpResponse asyncResponse = response.getAsyncResponse();
-        Global.getThreadPool().execute(()->{
+        Global.async(()->{
             TEnv.sleep(50);
             asyncResponse.write(System.currentTimeMillis() + " " + data + " " + number);
             try {

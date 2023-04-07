@@ -18,7 +18,7 @@ public class FastThreadTest {
         for(int i=0;i<24;i++) {
             int finalI = i;
             TEnv.sleep(i);
-            Global.getThreadPool().execute(new mmmmm());
+            Global.async(new mmmmm());
         }
 
         TEnv.sleep(1000);

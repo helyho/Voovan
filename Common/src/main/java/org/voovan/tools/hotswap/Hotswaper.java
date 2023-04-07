@@ -240,7 +240,7 @@ public class Hotswaper {
             }
         };
 
-        Global.getHashWheelTimer().addTask(reloadTask, intervals, true);
+        Global.schedual(reloadTask, intervals, true);
     }
 
     /**

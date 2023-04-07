@@ -1,6 +1,7 @@
 package org.voovan.http.server.context;
 
 import org.voovan.http.server.HttpFilter;
+import org.voovan.tools.ioc.Context;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -122,6 +123,7 @@ public class HttpFilterConfig {
             //单例模式
             if (httpFilter == null) {
                 httpFilter = TReflect.newInstance(className);
+                Context.addExtBean(httpFilter);
             }
             return httpFilter;
         } catch (ReflectiveOperationException e) {

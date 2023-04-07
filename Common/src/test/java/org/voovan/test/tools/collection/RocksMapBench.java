@@ -80,7 +80,7 @@ public class RocksMapBench {
                 TEnv.measure(() -> {
                     for (int i = 1; i < threadSize+1; i++) {
                         final int finalI = i;
-                        Global.getThreadPool().execute(() -> {
+                        Global.async(() -> {
                             Map<String, TestObject> data = new HashMap<>();
                             Integer basekey = finalI * 100000000;
                             for (int m = 0; m < loopSize; m++) {

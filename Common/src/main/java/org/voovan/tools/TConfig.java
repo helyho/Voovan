@@ -29,7 +29,7 @@ public class TConfig {
 	private static ConcurrentHashMap<File, Long> configWatcher = new ConcurrentHashMap<File, Long>();
 
 	static {
-		Global.getHashWheelTimer().addTask(new HashWheelTask() {
+		Global.schedual(new HashWheelTask() {
 			@Override
 			public void run() {
 				Iterator<Map.Entry<File, Long>> iterator = configWatcher.entrySet().iterator();

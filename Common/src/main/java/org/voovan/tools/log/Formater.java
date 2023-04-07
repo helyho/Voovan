@@ -110,7 +110,7 @@ public class Formater {
         this.dateStamp = DATE;
 
         final Formater finalFormater = this;
-        Global.getHashWheelTimer().addTask(new HashWheelTask() {
+        Global.schedual(new HashWheelTask() {
             @Override
             public void run() {
                 if(Logger.isEnable()) {

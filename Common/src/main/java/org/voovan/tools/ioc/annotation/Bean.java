@@ -1,6 +1,6 @@
 package org.voovan.tools.ioc.annotation;
 
-import org.voovan.tools.ioc.Utils;
+import org.voovan.tools.ioc.IOCUtils;
 import org.voovan.tools.reflect.annotation.Alias;
 
 import java.lang.annotation.*;
@@ -24,7 +24,10 @@ public @interface Bean {
     @Alias("value")
     String name() default "";
 
-    String scope() default Utils.DEFAULT_SCOPE;
+    String scope() default IOCUtils.DEFAULT_SCOPE;
+
+    //使用 class 的名称作为 bean 的名称
+    boolean useClassName()  default false;
 
     boolean singleton()  default true;
 

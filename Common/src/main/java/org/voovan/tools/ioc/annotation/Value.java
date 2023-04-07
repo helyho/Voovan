@@ -25,5 +25,4 @@ public @interface Value {
     String anchor() default "";
 
     boolean required()  default true;
-    //todo:
 }
