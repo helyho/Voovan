@@ -14,15 +14,15 @@ import java.util.Random;
 public class ByteBufferChannelUnit extends TestCase {
 
 	private ByteBufferChannel byteBufferChannel;
-	private String tmp1 = "helyho is a hero!!!";
-	private String tmp2 = " -=======!";
+	private String testString1 = "helyho is a hero!!!";
+	private String testString2 = " -=======!";
 
 	public ByteBufferChannelUnit(String name) {
 		super(name);
 	}
 
 	public void init() {
-		ByteBuffer buffer = ByteBuffer.wrap(tmp1.getBytes());
+		ByteBuffer buffer = ByteBuffer.wrap(testString1.getBytes());
 		byteBufferChannel = new ByteBufferChannel();
 		byteBufferChannel.writeEnd(buffer);
 		assertEquals(byteBufferChannel.size(),19);
@@ -31,7 +31,7 @@ public class ByteBufferChannelUnit extends TestCase {
 	public void testWrite() throws IOException{
 		init();
 		int size = byteBufferChannel.size();
-		byteBufferChannel.write(1, ByteBuffer.wrap(tmp2.getBytes()));
+		byteBufferChannel.write(1, ByteBuffer.wrap(testString2.getBytes()));
 		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()), "h -=======!elyho is a hero!!!");
 		byteBufferChannel.release();
 	}
@@ -39,15 +39,15 @@ public class ByteBufferChannelUnit extends TestCase {
 	public void testWriteEnd() throws IOException{
 		init();
 		int size = byteBufferChannel.size();
-		byteBufferChannel.writeEnd(ByteBuffer.wrap(tmp2.getBytes()));
-		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp1+tmp2);
+		byteBufferChannel.writeEnd(ByteBuffer.wrap(testString2.getBytes()));
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),testString1+testString2);
 		byteBufferChannel.release();
 	}
 
 	public void testWriteHead() throws IOException{
 		init();
-		byteBufferChannel.writeHead(ByteBuffer.wrap(tmp2.getBytes()));
-		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),tmp2+tmp1);
+		byteBufferChannel.writeHead(ByteBuffer.wrap(testString2.getBytes()));
+		assertEquals(TByteBuffer.toString(byteBufferChannel.getByteBuffer()),testString2+testString1);
 		byteBufferChannel.release();
 	}
 
@@ -83,7 +83,7 @@ public class ByteBufferChannelUnit extends TestCase {
 
 	public void testArray(){
 		init();
-		assertEquals(new String(byteBufferChannel.array()), tmp1);
+		assertEquals(new String(byteBufferChannel.array()), testString1);
 		byteBufferChannel.release();
 	}
 
