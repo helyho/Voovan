@@ -295,6 +295,12 @@ public class JSONDecode {
 							((Map) parentRoot).put(parentKey, root);
 						}
 
+						if(itemString.length() >0) {
+							reader.skip(-1);
+							nextChar = currentChar;
+							currentChar = ':';
+						}
+
 
 						//推断根对象类型, 则字符不表意, 则继续处理
 						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
@@ -332,7 +338,7 @@ public class JSONDecode {
 						//支持{ key [...] }的形式, 插入一个 : 作为分割
 						if(itemString.length() >0) {
 							nextChar = currentChar;
-							currentChar = ',';
+							currentChar = ':';
 						} else {
 							//递归解析处理,取 value 对象
 							String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
