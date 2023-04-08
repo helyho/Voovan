@@ -247,6 +247,12 @@ public class JSONDecode {
 						}
 					}
 
+					if(currentChar == Global.CHAR_SHAPE && commentMode==0) {
+						if (nextChar != 0){
+							commentMode = 1;
+						}
+					}
+
 					//在无逗号结尾的行,带有注释时准确区分数据
 					if(itemString.length()>0 && commentMode>0) {
 						reader.skip(-1);
@@ -388,9 +394,8 @@ public class JSONDecode {
 					}
 				}
 
-				//如果为字符串则无条件拼装
-				//如果不是字符串,则只拼装可见字符
-				if (stringMode || (!stringMode && !Character.isWhitespace(currentChar))) {
+				//拼装字符串
+				{
 					if(currentChar == Global.CHAR_SLASH && !isConvertChar) {
 						isConvertChar = true;
 					}
@@ -415,7 +420,7 @@ public class JSONDecode {
 						else if (itemString.length() >= 2 && itemString.charAt(0) == Global.CHAR_S_QUOTE && itemString.charAt(itemString.length()-1) == Global.CHAR_S_QUOTE) {
 							key = itemString.substring(1, itemString.length() - 1).trim();
 						} else {
-							key = itemString.substring(0);
+							key = itemString.substring(0).trim();
 						}
 
 						itemString.setLength(0);
@@ -433,7 +438,7 @@ public class JSONDecode {
 					if (currentChar == '\n' || nextChar == 65535) {
 						itemString.trimToSize();
 						if (value == null && itemString.length() > 0) {
-							value = itemString.toString().trim();
+							value = itemString.substring(0).trim();
 						}
 						itemString.setLength(0);
 					}
