@@ -71,7 +71,7 @@ public class JSONDecode {
 	 * @param jsonStr json 字符串
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
-	 * @return
+	 * @return json 解析出的对象
 	 */
 	public static Object parse(String jsonStr, boolean enableToken, boolean enablbeRef) {
 		Object value;
@@ -98,8 +98,8 @@ public class JSONDecode {
 
 	/**
 	 * 基于字符串的解析方法
-	 * @param json 字符串
-	 * @return
+	 * @param jsonStr 字符串
+	 * @return json 解析出的对象
 	 */
 	public static Object parse(String jsonStr) {
 		return parse(jsonStr, false, false);
@@ -111,7 +111,7 @@ public class JSONDecode {
 	 * @param file 基于文件的解析方法
 	 * @param enableToken 开启插值功能
 	 * @param enablbeRef 开启引用功能
-	 * @return
+	 * @return json 解析出的对象
 	 */
 	private static Object parse(File file, boolean enableToken, boolean enablbeRef) {
 		if(file.exists()) {
@@ -129,7 +129,7 @@ public class JSONDecode {
 	 * @param enablbeRef 开启引用功能
 	 * @param parentPath 上级的 key 字符串
 	 * @param parentRoot 上级的 root 节点
-	 * @return
+	 * @return json 解析出的对象
 	 */
 	private static Object parse(URL url, boolean enableToken, boolean enablbeRef, String parentPath, Object parentRoot) throws IOException {
 		String jsonContent = TString.loadURL(url.toString());

@@ -226,7 +226,7 @@ public class JSON {
 	/**
 	 * 将 URL内容 转换成 Java 对象
 	 * @param <T>			范型
-	 * @param file			JSON 文件
+	 * @param url			包含 JSON 的 URL
 	 * @param type			转换的目标 java 类
 	 * @param ignoreCase    是否忽略字段大小写
 	 * @param enableToken 	开启插值功能
@@ -260,7 +260,7 @@ public class JSON {
 	/**
 	 * 将 URL内容 转换成 Java 对象
 	 * @param <T>			范型
-	 * @param file			JSON 文件
+	 * @param url			包含 JSON 的 URL
 	 * @param type			转换的目标 java 类
 	 * @param ignoreCase    是否忽略字段大小写
 	 * @return				转换后的 Java 对象
