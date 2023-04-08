@@ -3,6 +3,7 @@ package org.voovan.tools.json;
 import org.voovan.Global;
 import org.voovan.tools.*;
 import org.voovan.tools.collection.IntKeyMap;
+import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -15,7 +16,6 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.security.Key;
-import java.text.ParseException;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -524,7 +524,7 @@ public class JSONDecode {
 									String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
 									value = include(value.toString(), enableToken, enablbeRef, tmpPath, root);
 								} catch (Exception e) {
-									Logger.warnf("Load JSON reference failed, {}:{} not found", e, key, value);
+									throw new ParseException("Load JSON reference failed, "+key+":"+value+" not found", e);
 								}
 							}
 						}
@@ -590,9 +590,13 @@ public class JSONDecode {
 			return root;
 		} catch(Exception e){
 			try {
-				int position = ((int) TReflect.getFieldValue(reader, "next") -1);
+				int position = ((int) TReflect.getFieldValue(reader, "next"));
 				String jsonStr = (String) TReflect.getFieldValue(reader, "str");
-				jsonStr = jsonStr.substring(0, position)+"^"+jsonStr.substring(position, position+10);
+				int end = position+100 ;
+				end = end > jsonStr.length()-1 ? jsonStr.length() : end;
+
+				jsonStr = "code slice: {"+jsonStr.substring(0, position)+"\033[31m{<-ERROR}\033[0m"+jsonStr.substring(position, end) + "}\r\n";
+
 				Logger.error(jsonStr, e);
 			} catch (ReflectiveOperationException ex) {
 				Logger.error(ex);
@@ -611,7 +615,7 @@ public class JSONDecode {
 	 * @param data 当前已解析的数据
 	 * @return
 	 */
-	private static String tokenReplace(String value, Object data, String path) {
+	private static String tokenReplace(String value, Object data, String path) throws ParseException {
 
 		int empthMarkLength = 2;
 		//找到所有的插值替换标记
@@ -655,7 +659,7 @@ public class JSONDecode {
 			if(pathValue!=null) {
 				value = value.replace(mark, JSON.toJSON(pathValue));
 			} else {
-				Logger.warnf("Replace value {} -> |{}| failed, target data is null", value, token);
+				throw new ParseException("Replace value " + value + " -> |"+ token + "| failed, target data is null");
 			}
 		}
 
@@ -706,10 +710,11 @@ public class JSONDecode {
 	 * @throws ParseException 解析异常
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static <T>T toObject(String jsonStr, Type type, boolean ignoreCase, boolean enableToken, boolean enablbeRef) throws ReflectiveOperationException, ParseException {
+	public static <T>T toObject(String jsonStr, Type type, boolean ignoreCase, boolean enableToken, boolean enablbeRef) throws ReflectiveOperationException {
 		if(jsonStr==null){
 			return null;
 		}
+
 
 		Object parseObject = parse(jsonStr, enableToken, enablbeRef);
 
@@ -717,26 +722,30 @@ public class JSONDecode {
 			parseObject = jsonStr;
 		}
 
-		if(type == Map.class && parseObject instanceof Map){
-			return (T)parseObject;
-		}
+		try {
+			if (type == Map.class && parseObject instanceof Map) {
+				return (T) parseObject;
+			}
 
-		//{}包裹的对象处理
-		else if(parseObject instanceof Map){
-			Map<String,Object> mapJSON = (Map<String, Object>) parseObject;
-			return (T) TReflect.getObjectFromMap(type, mapJSON,ignoreCase);
-		}
-		//[]包裹的对象处理
-		else if(parseObject instanceof Collection){
-			return (T) TReflect.getObjectFromMap(type, TObject.asMap(TReflect.SINGLE_VALUE_KEY, parseObject),false);
-		}
-		//如果传入的是标准类型则尝试用TString.toObject进行转换
-		else if(parseObject instanceof String || parseObject.getClass().isPrimitive()){
-			return TString.toObject(parseObject.toString(), type);
-		}
-		//其他类型处理
-		else{
-			return null;
+			//{}包裹的对象处理
+			else if (parseObject instanceof Map) {
+				Map<String, Object> mapJSON = (Map<String, Object>) parseObject;
+				return (T) TReflect.getObjectFromMap(type, mapJSON, ignoreCase);
+			}
+			//[]包裹的对象处理
+			else if (parseObject instanceof Collection) {
+				return (T) TReflect.getObjectFromMap(type, TObject.asMap(TReflect.SINGLE_VALUE_KEY, parseObject), false);
+			}
+			//如果传入的是标准类型则尝试用TString.toObject进行转换
+			else if (parseObject instanceof String || parseObject.getClass().isPrimitive()) {
+				return TString.toObject(parseObject.toString(), type);
+			}
+			//其他类型处理
+			else {
+				return null;
+			}
+		} catch (Exception e) {
+			throw new ParseException(e);
 		}
 	}
 

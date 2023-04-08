@@ -4,6 +4,7 @@ import org.voovan.tools.FastThreadLocal;
 import org.voovan.tools.TFile;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.TString;
+import org.voovan.tools.exception.ParseException;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -11,7 +12,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.function.Supplier;
 
 /**
