@@ -14,6 +14,7 @@ import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.security.Key;
 import java.text.ParseException;
 import java.util.*;
 import java.util.function.Supplier;
@@ -284,8 +285,14 @@ public class JSONDecode {
 							flag = '{';
 						}
 
-						//通过结构形式推断根对象类型
-						root = createRootObj(flag);
+						if(parentKey!=null && parentRoot instanceof Map) {
+							root = ((Map)parentRoot).get(parentKey);
+						}
+
+						if(root==null) {
+							//通过结构形式推断根对象类型
+							root = createRootObj(flag);
+						}
 
 						//增加回写, 将数据回写至上层
 						if(parentRoot instanceof List) {
@@ -519,10 +526,20 @@ public class JSONDecode {
 					//====================  第二处 创建根对象(无根包裹)  ====================
 					if(root == null) {
 						if(key!=null) {
-							root = (Map) new LinkedHashMap<String, Object>(1024);
-						} else {
-							root = (List) new ArrayList<Object>(1024);
+							if(parentKey!=null && parentRoot instanceof Map) {
+								root = ((Map)parentRoot).get(parentKey);
+							}
 						}
+
+						if(root==null) {
+							if (key != null) {
+								root = (Map) new LinkedHashMap<String, Object>(1024);
+							} else {
+								root = (List) new ArrayList<Object>(1024);
+							}
+						}
+
+
 
 						//增加回写, 将数据回写至上层
 						if(parentRoot instanceof List) {
