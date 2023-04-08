@@ -26,7 +26,7 @@ public class JSONDecodeUnit extends TestCase {
 				"\"list\":["+
 				"\"tb2 list item\""+
 				"],"+
-				"\"token1\": \"---|$string|---\","+
+				"\"token1\": \"---|^string|---\","+
 				"\"map\":{"+
 				"\"tb2 map item\":\"tb2 map item\""+
 				"}"+
@@ -40,7 +40,7 @@ public class JSONDecodeUnit extends TestCase {
 				"\"mapitem2\":\"mapitem2\","+
 				"\"mapitem1\":\"mapitem1\""+
 				"} " +
-				"\"token2\": \"---|tb2.bint|---\","+
+				"\"token2\": \"---|.tb2.bint|---\","+
 				" ";
 
 		Logger.simple(jsonString);

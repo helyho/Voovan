@@ -344,11 +344,11 @@ public class JSONDecode {
 
 				//====================  处理对象的包裹  ====================
 				if(!stringMode) {
-					//数组 []
+					//数组 [] 处理
 					if (currentChar == Global.CHAR_LS_BRACES) {
 						reader.skip(-1);
 
-						//支持{ key [...] }的形式, 插入一个 : 作为分割
+						//支持{ key [...] }的形式, (没有使用 [:,=] 分割 key/value) 插入一个 : 作为分割
 						if(itemString.length() >0) {
 							nextChar = currentChar;
 							currentChar = ':';
@@ -369,11 +369,11 @@ public class JSONDecode {
 						}
 					}
 
-					//对象 {}
+					//对象 {} 处理
 					else if (currentChar == Global.CHAR_LC_BRACES) {
 						reader.skip(-1);
 
-						//支持{ key {...} }的形式,, 插入一个 : 作为分割
+						//支持{ key {...} }的形式(没有使用 [:,=] 分割 key/value), 插入一个 : 作为分割
 						if(itemString.length() >0) {
 							nextChar = currentChar;
 							currentChar = ':';
@@ -404,7 +404,11 @@ public class JSONDecode {
 						isConvertChar = false;
 					}
 
-					itemString.append(currentChar);
+					//stringMode 无条件拼装
+					//itemString.length==0 且字符串为空字符串时不拼装
+					if(stringMode || !(itemString.length()==0 && Character.isWhitespace(currentChar))) {
+						itemString.append(currentChar);
+					}
 				}
 
 				//处理数据
@@ -436,7 +440,6 @@ public class JSONDecode {
 
 					//JSON对象字符串分组,取 value 对象,当前字符是换行, 则取 value
 					if (currentChar == '\n' || nextChar == 65535) {
-						itemString.trimToSize();
 						if (value == null && itemString.length() > 0) {
 							value = itemString.substring(0).trim();
 						}
