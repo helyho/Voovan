@@ -273,25 +273,18 @@ public class JSONDecode {
 					}
 				}
 
-				//====================  创建根对象(有根包裹)  ====================
+				//==================== 第一处  创建根对象(有根包裹)  ====================
 				if (root == null && !stringMode && commentMode==0) {
-					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES ||
-							currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL ||
-							currentChar == Global.CHAR_COMMA) {
+					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
 						char flag = currentChar;
 
 						//如果之前有解析的字符, 则判断为 Map 类型
 						//因为 key [] 或者 key {} 的形式在到达指定符号前有解析的 key 字符
-						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
-							if(itemString.length() > 0) {
-								flag = '{';
-							}
+						if(itemString.length() > 0) {
+							flag = '{';
 						}
 
 						//通过结构形式推断根对象类型
-						flag = flag == Global.CHAR_COLON ? '{' : flag;
-						flag = flag == Global.CHAR_EQUAL ? '{' : flag;
-						flag = flag == Global.CHAR_COMMA ? '[' : flag;
 						root = createRootObj(flag);
 
 						//增加回写, 将数据回写至上层
@@ -308,7 +301,6 @@ public class JSONDecode {
 							nextChar = currentChar;
 							currentChar = ':';
 						}
-
 
 						//推断根对象类型, 则字符不表意, 则继续处理
 						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
@@ -524,7 +516,7 @@ public class JSONDecode {
 
 					}
 
-					//====================  创建根对象(无根包裹)  ====================
+					//====================  第二处 创建根对象(无根包裹)  ====================
 					if(root == null) {
 						if(key!=null) {
 							root = (Map) new LinkedHashMap<String, Object>(1024);
@@ -621,8 +613,8 @@ public class JSONDecode {
 			String mark = marks.get(i);
 			String token = tokens.get(i);
 
-			if(token.startsWith("..")) {
-				token = path + token;
+			if(token.startsWith("^")) {
+				token = path  + "." + token;
 			}
 
 			Object pathValue = rootVisitor.value(token);
