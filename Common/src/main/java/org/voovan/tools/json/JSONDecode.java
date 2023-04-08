@@ -613,11 +613,19 @@ public class JSONDecode {
 			String mark = marks.get(i);
 			String token = tokens.get(i);
 
-			if(token.startsWith("^")) {
-				token = path  + "." + token;
+			BeanVisitor visitor = rootVisitor;
+
+			if(token.startsWith(".")) {
+				token = TString.removePrefix(token);
+				visitor = loaclVisitor;
 			}
 
-			Object pathValue = rootVisitor.value(token);
+			if(token.startsWith("^")) {
+				token = path  + "." + token;
+				visitor = rootVisitor;
+			}
+
+			Object pathValue = visitor.value(token);
 
 			if(pathValue!=null) {
 				value = value.replace(mark, JSON.toJSON(pathValue));
