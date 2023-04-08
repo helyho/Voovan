@@ -280,6 +280,14 @@ public class JSONDecode {
 							currentChar == Global.CHAR_COMMA) {
 						char flag = currentChar;
 
+						//如果之前有解析的字符, 则判断为 Map 类型
+						//因为 key [] 或者 key {} 的形式在到达指定符号前有解析的 key 字符
+						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
+							if(itemString.length() > 0) {
+								flag = '{';
+							}
+						}
+
 						//通过结构形式推断根对象类型
 						flag = flag == Global.CHAR_COLON ? '{' : flag;
 						flag = flag == Global.CHAR_EQUAL ? '{' : flag;
@@ -522,6 +530,15 @@ public class JSONDecode {
 							root = (Map) new LinkedHashMap<String, Object>(1024);
 						} else {
 							root = (List) new ArrayList<Object>(1024);
+						}
+
+						//增加回写, 将数据回写至上层
+						if(parentRoot instanceof List) {
+							((List) parentRoot).add(root);
+						}
+
+						if(parentRoot instanceof Map && parentKey!=null) {
+							((Map) parentRoot).put(parentKey, root);
 						}
 					}
 
