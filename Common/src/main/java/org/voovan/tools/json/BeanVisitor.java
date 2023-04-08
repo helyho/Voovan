@@ -76,8 +76,20 @@ public class BeanVisitor {
     public Object parse(String pathQry, Object parsedObj) {
 
         switch (pathSplitor) {
-            case POINT : pathQry=TString.fastReplaceAll(pathQry, "[^\\/]+\\.\\." , ""); break;
-            case BACKSLASH: pathQry=TString.fastReplaceAll(pathQry, "[^\\.]+\\.\\.\\." , ""); break;
+            case POINT : {
+                //查找 "^"
+                while(pathQry.contains("^"))
+                pathQry=TString.fastReplaceAll(pathQry, "[^\\.]*\\.\\^" , "");
+                break;
+            }
+            case BACKSLASH: {
+                //查找 "../"
+                while(pathQry.contains("\\.\\.\\/")) {
+                    pathQry = TString.fastReplaceAll(pathQry, "[^\\/]*\\/\\.\\.\\/", "");
+                }
+                break;
+            }
+
             default: ;
         }
 
