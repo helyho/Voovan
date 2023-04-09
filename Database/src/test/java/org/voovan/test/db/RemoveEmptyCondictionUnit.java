@@ -27,11 +27,11 @@ public class RemoveEmptyCondictionUnit extends TestCase {
         actualSqlText = TSQL.removeEmptyCondiction(sqlText, params);
         assertEquals(expectedSqlText, actualSqlText);
 
-        sqlText = "SELECT * FROM users WHERE name = ::name AND age in ::ages";
+        sqlText = "SELECT * FROM users WHERE name = ::name AND age in [::111,222,333]";
         params.clear();
         params.put("name", "John Doe");
         params.put("ages", new int[]{25, 30, 35});
-        expectedSqlText = "SELECT * FROM users WHERE name = ::name AND age in ::ages";
+        expectedSqlText = "SELECT * FROM users WHERE name = ::name AND age in [222,333]";
         actualSqlText = TSQL.removeEmptyCondiction(sqlText, params);
         assertEquals(expectedSqlText, actualSqlText);
 

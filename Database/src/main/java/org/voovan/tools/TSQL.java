@@ -65,9 +65,6 @@ public class TSQL {
 	 * @throws SQLException SQL 异常
 	 */
 
-	//==========================================================================================
-	// Replace conditional with polymorphism - Refactoring done
-	// New Abstract class and Override methods are added
 	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParamNames,Map<String, ?> params) throws SQLException{
 		for(int i=0;i<sqlParamNames.size();i++){
 			String paramName = sqlParamNames.get(i);
@@ -75,8 +72,16 @@ public class TSQL {
 			paramName = paramName.substring(2,paramName.length());
 			Object data = params.get(paramName);
 
-			ParameterType parameterType = ParameterTypeFactory.create(data);
-			parameterType.setParamValue(preparedStatement, i + 1, data);
+			if(data==null || TReflect.isBasicType(data.getClass())) {
+				preparedStatement.setObject(i + 1, data);
+			} else if(data instanceof BigDecimal){
+				preparedStatement.setObject(i + 1, ((BigDecimal)data).toPlainString());
+			} else if(data instanceof Array) {
+				preparedStatement.setObject(i + 1, ((Array) data).getArray());
+			} else {
+				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
+				preparedStatement.setObject(i + 1, JSON.toJSON(data));
+			}
 		}
 	}
 	//=============================================================================================
@@ -357,7 +362,7 @@ public class TSQL {
 					//判断参数是否存在并做移除的处理
 					if (!params.containsKey(condictionParam.replace("::", ""))) {
 
-						//遍历所有的 in 的条件, 去除没有参数的条件
+						//遍历所有的 in 的条件, 去除没有参数的条件 例如: [::status,1,2] -> [1,2]
 						if(operatorChar.equals("in") || operatorChar.equals("not in")) {
 
 							condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
@@ -788,58 +793,3 @@ public class TSQL {
 	}
 }
 
-
-// Replace conditional with polymorphism - Design Refactoring applied
-// setPreparedParams refactored which resulted in creation of these classes.
-//================================================================================================
-abstract class ParameterType {
-	abstract void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException;
-}
-
-class BasicParameterType extends ParameterType {
-	@Override
-	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
-		preparedStatement.setObject(index, value);
-	}
-}
-
-class BigDecimalParameterType extends ParameterType {
-	@Override
-	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
-		preparedStatement.setObject(index, ((BigDecimal) value).toPlainString());
-	}
-}
-
-class ArrayParameterType extends ParameterType {
-	@Override
-	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
-		preparedStatement.setObject(index, ((Array) value).getArray());
-	}
-}
-
-class ComplexParameterType extends ParameterType {
-	@Override
-	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
-		preparedStatement.setObject(index, JSON.toJSON(value));
-	}
-}
-//====================================================================================================
-
-
-
-//Extracted class  from refactor of setPreparedParams() refactored , TSQL- class
-//====================================================================================================
-class ParameterTypeFactory {
-	public static ParameterType create(Object value) {
-		if (value == null || TReflect.isBasicType(value.getClass())) {
-			return new BasicParameterType();
-		} else if (value instanceof BigDecimal) {
-			return new BigDecimalParameterType();
-		} else if (value instanceof Array) {
-			return new ArrayParameterType();
-		} else {
-			return new ComplexParameterType();
-		}
-	}
-}
-//====================================================================================================

@@ -342,7 +342,7 @@ public class HttpParser {
 			// Decompose Conditional applied to make senese check line :
 			//===========================================================
 			//3
-			if (isHttpPacket(String.valueOf(segment_3))) {
+			if (isHttpPacket(segment_3.getBytes())) {
 				packetMap[PL_PROTOCOL] = HttpStatic.HTTP;
 			} else {
 				throw new HttpParserException("Not a http packet");
@@ -367,7 +367,7 @@ public class HttpParser {
 
 		if (type == 1) {
 			//1
-			if(segment_1.getBytes()[0]=='H' && segment_1.getBytes()[1]=='T' && segment_1.getBytes()[2]=='T' && segment_1.getBytes()[3]=='P') {
+			if (isHttpPacket(segment_1.getBytes())) {
 				packetMap[PL_PROTOCOL] = HttpStatic.HTTP.getValue();
 			} else {
 				throw new HttpParserException("Not a http packet");
@@ -400,8 +400,7 @@ public class HttpParser {
 
 	//Decompose Conditional part-code
 	//==================================================
-	private static boolean isHttpPacket(String segment) {
-		byte[] bytes = segment.getBytes();
+	private static boolean isHttpPacket(byte[] bytes) {
 		return bytes.length >= 4 &&
 				bytes[0] == 'H' &&
 				bytes[1] == 'T' &&
@@ -409,13 +408,6 @@ public class HttpParser {
 				bytes[3] == 'P';
 	}
 	//====================================================
-
-
-
-
-
-
-
 
 	/**
 	 * 解析 HTTP 请求 Header 中的一行
