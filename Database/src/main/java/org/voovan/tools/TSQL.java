@@ -75,12 +75,8 @@ public class TSQL {
 			paramName = paramName.substring(2,paramName.length());
 			Object data = params.get(paramName);
 
-			if(data == null){
-				preparedStatement.setObject(i + 1, null);
-			} else {
-				ParameterType parameterType = ParameterTypeFactory.create(data);
-				parameterType.setParamValue(preparedStatement, i + 1, data);
-			}
+			ParameterType parameterType = ParameterTypeFactory.create(data);
+			parameterType.setParamValue(preparedStatement, i + 1, data);
 		}
 	}
 	//=============================================================================================
@@ -373,7 +369,7 @@ public class TSQL {
 								replaceCondiction = NOT_EQUAL_CONDICTION;
 							}
 							//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
-							originCondictionParams = parseOriginConditionParams(originCondictionParams);
+							originCondictionParams = genReplaceConditionParams(originCondictionParams);
 
 							String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams;
 
@@ -391,7 +387,7 @@ public class TSQL {
 						condictionParams = TString.removeSuffix(condictionParams);
 					}
 
-					originCondictionParams = parseOriginConditionParams(originCondictionParams);
+					originCondictionParams = genReplaceConditionParams(originCondictionParams);
 
 					replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams, true);
 				}
@@ -404,7 +400,12 @@ public class TSQL {
 
 	}
 
-	public static String  parseOriginConditionParams(String originCondictionParams){
+	/**
+	 * 从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
+	 * @param originCondictionParams 原查询条件
+	 * @return 替换用的查询条件
+	 */
+	public static String genReplaceConditionParams(String originCondictionParams){
 
 		originCondictionParams = originCondictionParams.replaceAll("\\(", "\\\\(");
 		originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
