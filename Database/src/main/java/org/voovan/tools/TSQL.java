@@ -64,6 +64,10 @@ public class TSQL {
 	 * @param params			参数键值 Map
 	 * @throws SQLException SQL 异常
 	 */
+
+	//==========================================================================================
+	// Replace conditional with polymorphism - Refactoring done
+	// New Abstract class and Override methods are added
 	public static void setPreparedParams(PreparedStatement preparedStatement,List<String> sqlParamNames,Map<String, ?> params) throws SQLException{
 		for(int i=0;i<sqlParamNames.size();i++){
 			String paramName = sqlParamNames.get(i);
@@ -71,20 +75,15 @@ public class TSQL {
 			paramName = paramName.substring(2,paramName.length());
 			Object data = params.get(paramName);
 
-			if(data==null){
+			if(data == null){
 				preparedStatement.setObject(i + 1, null);
-			} else if(TReflect.isBasicType(data.getClass())) {
-				preparedStatement.setObject(i + 1, data);
-			} else if(data instanceof BigDecimal){
-				preparedStatement.setObject(i + 1, ((BigDecimal)data).toPlainString());
-			} else if(data instanceof Array) {
-				preparedStatement.setObject(i + 1, ((Array) data).getArray());
 			} else {
-				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
-				preparedStatement.setObject(i + 1, JSON.toJSON(data));
+				ParameterType parameterType = ParameterTypeFactory.create(data);
+				parameterType.setParamValue(preparedStatement, i + 1, data);
 			}
 		}
 	}
+	//=============================================================================================
 
 	/**
 	 * 创建PreparedStatement
@@ -335,77 +334,87 @@ public class TSQL {
 		List<String[]> condictionList = parseSQLCondiction(sqlText);
 		for(String[] condictionArr : condictionList){
 			//检查条件是否带参数, 检查参数是否存在
-			String orginCondiction 			= condictionArr[0];
-			String beforeCondictionMethod 	= condictionArr[1];
-			String condictionName 			= condictionArr[2];
-			String operatorChar 			= condictionArr[3];
-			String originCondictionParams   = condictionArr[4];
-			String afterCondictionMethod 	= condictionArr[5];
-
-			String replaceCondiction = orginCondiction;
-			String condictionParams = originCondictionParams;
-
-			if(originCondictionParams!=null && originCondictionParams.contains("::")) {
-				//找出所有的参数
-				String[] condictions = TString.searchByRegex(originCondictionParams, "::\\w+\\b");
-				if(condictions.length > 0) {
-					for (String condictionParam : condictions){
-
-						//判断参数是否存在并做移除的处理
-						if (!params.containsKey(condictionParam.replace("::", ""))) {
-
-							//遍历所有的 in 的条件, 去除没有参数的条件
-							if(operatorChar.equals("in") || operatorChar.equals("not in")) {
-
-								condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
-							}
-							//遍历常规条件
-							else {
-								replaceCondiction = EQUAL_CONDICTION;
-								if ("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)) {
-									replaceCondiction = NOT_EQUAL_CONDICTION;
-								}
-								//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
-								originCondictionParams = originCondictionParams.replaceAll("\\(", "\\\\(");
-								originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
-								originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
-								originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
-								originCondictionParams = originCondictionParams.replaceAll("\\+", "\\\\+");
-								originCondictionParams = originCondictionParams.replaceAll("\\*", "\\\\*");
-
-								String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams;
-
-								replaceCondiction = TString.fastReplaceAll(orginCondiction, targetCondiction , replaceCondiction, true);
-
-								break;
-							}
-						}
-					}
-
-					//in 或者 not in 之前已经有移除了参数, 这里做最后的, 处理
-					if(operatorChar.equals("in") || operatorChar.equals("not in")) {
-						condictionParams = condictionParams.trim();
-						if(condictionParams.endsWith(",")){
-							condictionParams = TString.removeSuffix(condictionParams);
-						}
-						originCondictionParams = originCondictionParams.replaceAll("\\(", "\\\\(");
-						originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
-						originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
-						originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
-						originCondictionParams = originCondictionParams.replaceAll("\\+", "\\\\+");
-						originCondictionParams = originCondictionParams.replaceAll("\\*", "\\\\*");
-
-						replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams, true);
-					}
-
-					sqlText = sqlText.replace(orginCondiction, replaceCondiction);
-				}
-			}
+			sqlText = processCondition( condictionArr,sqlText, params);
 		}
 
 		return sqlText;
 	}
 
+	public static String processCondition(String[] condictionArr, String sqlText, Map<String, Object> params){
+
+		String orginCondiction 			= condictionArr[0];
+		String beforeCondictionMethod 	= condictionArr[1];
+		String condictionName 			= condictionArr[2];
+		String operatorChar 			= condictionArr[3];
+		String originCondictionParams   = condictionArr[4];
+		String afterCondictionMethod 	= condictionArr[5];
+
+		String replaceCondiction = orginCondiction;
+		String condictionParams = originCondictionParams;
+
+		if(originCondictionParams!=null && originCondictionParams.contains("::")) {
+			//找出所有的参数
+			String[] condictions = TString.searchByRegex(originCondictionParams, "::\\w+\\b");
+			if(condictions.length > 0) {
+				for (String condictionParam : condictions){
+
+					//判断参数是否存在并做移除的处理
+					if (!params.containsKey(condictionParam.replace("::", ""))) {
+
+						//遍历所有的 in 的条件, 去除没有参数的条件
+						if(operatorChar.equals("in") || operatorChar.equals("not in")) {
+
+							condictionParams = TString.fastReplaceAll(condictionParams, condictionParam+"\\s*,?", "");
+						}
+						//遍历常规条件
+						else {
+							replaceCondiction = EQUAL_CONDICTION;
+							if ("or".equals(beforeCondictionMethod) || "or".equals(afterCondictionMethod)) {
+								replaceCondiction = NOT_EQUAL_CONDICTION;
+							}
+							//从原查询条件, 生成替换用的查询条件, 这样可以保留原查询条件种的 ( 或 )
+							originCondictionParams = parseOriginConditionParams(originCondictionParams);
+
+							String targetCondiction = condictionName + "\\s*" + operatorChar + "\\s*" + originCondictionParams;
+
+							replaceCondiction = TString.fastReplaceAll(orginCondiction, targetCondiction , replaceCondiction, true);
+
+							break;
+						}
+					}
+				}
+
+				//in 或者 not in 之前已经有移除了参数, 这里做最后的, 处理
+				if(operatorChar.equals("in") || operatorChar.equals("not in")) {
+					condictionParams = condictionParams.trim();
+					if(condictionParams.endsWith(",")){
+						condictionParams = TString.removeSuffix(condictionParams);
+					}
+
+					originCondictionParams = parseOriginConditionParams(originCondictionParams);
+
+					replaceCondiction = TString.fastReplaceAll(replaceCondiction, originCondictionParams, condictionParams, true);
+				}
+
+				sqlText = sqlText.replace(orginCondiction, replaceCondiction);
+			}
+		}
+
+		return  sqlText;
+
+	}
+
+	public static String  parseOriginConditionParams(String originCondictionParams){
+
+		originCondictionParams = originCondictionParams.replaceAll("\\(", "\\\\(");
+		originCondictionParams = originCondictionParams.replaceAll("\\)", "\\\\)");
+		originCondictionParams = originCondictionParams.replaceAll("\\[", "\\\\[");
+		originCondictionParams = originCondictionParams.replaceAll("\\]", "\\\\]");
+		originCondictionParams = originCondictionParams.replaceAll("\\+", "\\\\+");
+		originCondictionParams = originCondictionParams.replaceAll("\\*", "\\\\*");
+
+		return originCondictionParams;
+	}
 
 
 	public static ConcurrentHashMap<Integer, List<String[]>> PARSED_CONDICTIONS = new ConcurrentHashMap<Integer,  List<String[]>>();
@@ -777,3 +786,59 @@ public class TSQL {
 		return sql;
 	}
 }
+
+
+// Replace conditional with polymorphism - Design Refactoring applied
+// setPreparedParams refactored which resulted in creation of these classes.
+//================================================================================================
+abstract class ParameterType {
+	abstract void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException;
+}
+
+class BasicParameterType extends ParameterType {
+	@Override
+	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
+		preparedStatement.setObject(index, value);
+	}
+}
+
+class BigDecimalParameterType extends ParameterType {
+	@Override
+	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
+		preparedStatement.setObject(index, ((BigDecimal) value).toPlainString());
+	}
+}
+
+class ArrayParameterType extends ParameterType {
+	@Override
+	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
+		preparedStatement.setObject(index, ((Array) value).getArray());
+	}
+}
+
+class ComplexParameterType extends ParameterType {
+	@Override
+	void setParamValue(PreparedStatement preparedStatement, int index, Object value) throws SQLException {
+		preparedStatement.setObject(index, JSON.toJSON(value));
+	}
+}
+//====================================================================================================
+
+
+
+//Extracted class  from refactor of setPreparedParams() refactored , TSQL- class
+//====================================================================================================
+class ParameterTypeFactory {
+	public static ParameterType create(Object value) {
+		if (value == null || TReflect.isBasicType(value.getClass())) {
+			return new BasicParameterType();
+		} else if (value instanceof BigDecimal) {
+			return new BigDecimalParameterType();
+		} else if (value instanceof Array) {
+			return new ArrayParameterType();
+		} else {
+			return new ComplexParameterType();
+		}
+	}
+}
+//====================================================================================================
