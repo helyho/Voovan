@@ -17,4 +17,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Entrance {
+    @Alias("index")
+    int value() default 0;
+    @Alias("value")
+    int index() default 0;
 }

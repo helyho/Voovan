@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,7 +43,7 @@ public class Context {
 
     private static List<String> scanPaths = new ArrayList<>();
 
-    private static List<Class> entranceClass = new ArrayList<>();
+    private static List<Class> ENTRANCE = new ArrayList<>();
 
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
 
@@ -97,7 +99,7 @@ public class Context {
                     loadMethod(clazz);
 
                     if(clazz.isAnnotationPresent(Entrance.class)) {
-                        entranceClass.add(clazz);
+                        ENTRANCE.add(clazz);
                     }
                 }, Bean.class);
 
@@ -166,7 +168,24 @@ public class Context {
     }
 
     public static void initEntrance() {
-        for(Class clazz : entranceClass) {
+        //升序排序, 索引越小优先级越高
+        Collections.sort(ENTRANCE, new Comparator<Class>() {
+            @Override
+            public int compare(Class o1, Class o2) {
+                int o1Index = TReflect.getAnnotationValue(o1.getAnnotation(Entrance.class),"value");
+                int o2Index = TReflect.getAnnotationValue(o2.getAnnotation(Entrance.class),"value");
+
+                if(o1Index - o2Index < 0) {
+                    return -1;
+                } else if(o1Index - o2Index > 0) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        });
+
+        for(Class clazz : ENTRANCE) {
             String scope = getScope(clazz);
             Container container = getContainer(scope);
             Definitions definitions = container.getDefinitions();
