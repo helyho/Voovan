@@ -175,7 +175,7 @@ public class Container {
 
         //如果依赖的 Bean 不存在则创建, 忽略 lazy
         invokeMethodBean(beanName, true);
-        ret = (T) beanValues.get(beanName);
+        ret = (T) beanValues.getOrDefault(beanName, defaultVal);
         if (ret != null) {
             return ret;
         }

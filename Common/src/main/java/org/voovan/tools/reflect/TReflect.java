@@ -772,7 +772,11 @@ public class TReflect {
      */
     public static Class[] getFieldGenericType(Field field) {
         Type fieldType = field.getGenericType();
-        return getGenericClass((ParameterizedType)fieldType);
+        if(fieldType instanceof ParameterizedType) {
+            return getGenericClass((ParameterizedType) fieldType);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -1351,6 +1355,7 @@ public class TReflect {
 
     /**
      * 将Map转换成指定的对象
+     *      自动从 type 查找泛型
      *
      * @param type			类对象
      * @param mapArg		Map 对象

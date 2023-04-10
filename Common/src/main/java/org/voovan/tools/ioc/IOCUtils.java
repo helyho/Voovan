@@ -1,20 +1,26 @@
 package org.voovan.tools.ioc;
 
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.annotation.Value;
 import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import static org.voovan.tools.TObject.cast;
+import static org.voovan.tools.reflect.TReflect.SINGLE_VALUE_KEY;
 
 /**
  * Class name
@@ -97,6 +103,7 @@ public class IOCUtils {
     public static Object[] prepareParam(Container container, Executable executable) {
         Annotation[][] paramAnnotations = executable.getParameterAnnotations();
         Class[] parameterTypes          = executable.getParameterTypes();
+        Type[] genericParameterTypes    = executable.getGenericParameterTypes();
 
         Object[] params = new Object[parameterTypes.length];
 
@@ -104,25 +111,42 @@ public class IOCUtils {
             Annotation[] annotaions = paramAnnotations[i];
             //尝试使用注解的名称选择参数
             for (Annotation annotation : annotaions) {
-                if (annotation.annotationType().isAssignableFrom(Value.class)) {
-                    Value valueAnnotation = cast(annotation);
-                    String anchor = TReflect.getAnnotationValue(annotation, "anchor");
+                Class parameterType = parameterTypes[i];
+                try {
+                    if (annotation.annotationType().isAssignableFrom(Value.class)) {
+                        Value valueAnnotation = cast(annotation);
+                        String anchor = TReflect.getAnnotationValue(annotation, "anchor");
 
-                    if(!TString.isNullOrEmpty(anchor)) {
-                        params[i] = container.getByAnchor(anchor, parameterTypes[i], null);
-                    } else {
-                        params[i] = container.getByType(parameterTypes[i], null);
-                    }
 
-                    if(valueAnnotation.required() && params[i] == null) {
-                        Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
+                        params[i] = getAnnotationValueData(anchor, parameterType, TReflect.getGenericClass(genericParameterTypes[i]), container);
+                        if(valueAnnotation.required() && params[i] == null) {
+                            Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
+                        }
                     }
+                } catch (Throwable e) {
+                    throw new IOCException("Try to fill " + executable.getName() + " parameter " + i + " failed", e);
                 }
             }
 
         }
 
         return params;
+    }
+
+    public static Object getAnnotationValueData(String anchor, Type type, Class[] genericType, Container container) throws ReflectiveOperationException, ParseException {
+        Object ret = null;
+        if(!TString.isNullOrEmpty(anchor)) {
+            ret = container.getByAnchor(anchor, (Class)type, null);
+        } else {
+            ret = container.getByType((Class)type, null);
+        }
+
+        if(ret instanceof Collection) {
+            ret = TReflect.getObjectFromMap(type, TObject.asMap(SINGLE_VALUE_KEY, ret), genericType, false);
+        } else if(ret instanceof Map) {
+            ret = TReflect.getObjectFromMap(type, (Map)ret, genericType, false);
+        }
+        return ret;
     }
 
 }

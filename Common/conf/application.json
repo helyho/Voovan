@@ -2,7 +2,7 @@
   ScanPaths              : [org.voovan.test.tools.ioc],
   ServerName             : VoovanWebServer,                               // 当前服务节点名称
   Host                   : 127.0.0.1,                                     // 服务 IP 地址,默认0.0.0.0
-  Port                   : 28080,                                           // 服务端口,默认28080
+  Port                   : 28081,                                           // 服务端口,默认28080
   ReadTimeout            : 10,                                              // 连接超时时间(s),默认30秒
   SendTimeout            : 30,                                              // 连接超时时间(s),默认30秒
   IndexFiles             : index.htm,index.html,default.htm,default.htm,  //定义首页索引文件的名称
@@ -12,8 +12,21 @@
       Name      : filter1,
       ClassName : org.voovan.test.http.HttpFilterTest,
       Encoding  : UTF-8,
-      Action    : pass      },
-      ]
+      Action    : pass
+    },
+  ]
+
+  TestList [
+    {
+      str:helyho
+      number: 12
     }
-  ],
+  ]
+
+  TestMap {
+    itme: {
+      str:helyho
+      number: 12
+    }
+  }
 }

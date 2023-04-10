@@ -121,11 +121,7 @@ public class Definitions {
                 String anchor = TReflect.getAnnotationValue(value, "anchor");
 
                 Object data = null;
-                if(!TString.isNullOrEmpty(anchor)) {
-                    data = container.getByAnchor(anchor, null);
-                } else {
-                    data = container.getByType(field.getType(), null);
-                }
+                data = getAnnotationValueData(anchor, field.getType(), TReflect.getFieldGenericType(field) , container);
 
                 if(value.required() && data == null) {
                     Logger.warnf("Bean '{}' not found -> {Field: {}@{}} ", anchor, field.getDeclaringClass(), field.getName());
