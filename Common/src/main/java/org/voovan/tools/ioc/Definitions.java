@@ -181,6 +181,7 @@ public class Definitions {
     public BeanDefinition addBeanDefinition(String name, Class clazz, boolean singletone, boolean lazy, boolean primary) {
         BeanDefinition beanDefinition = new BeanDefinition(name, clazz, singletone, lazy, primary);
         beanDefinitions.put(name, beanDefinition);
+        beanDefinitions.put(classKey(clazz), beanDefinition);
         beanDefinitionsByClass.put(clazz, beanDefinition);
         return beanDefinition;
     }
@@ -216,6 +217,7 @@ public class Definitions {
     public MethodDefinition addMethodDefinition(String name, String owner, Method method, boolean singletone, boolean lazy, boolean primary) {
         MethodDefinition methodDefinition = new MethodDefinition(name, owner, method, singletone, lazy, primary);
         methodDefinitions.put(name, methodDefinition);
+        methodDefinitions.put(classKey(method.getReturnType()), methodDefinition);
         methodDefinitionsByClass.computeIfAbsent(method.getDeclaringClass(), key->new Vector<MethodDefinition>()).add(methodDefinition);
         return methodDefinition;
     }

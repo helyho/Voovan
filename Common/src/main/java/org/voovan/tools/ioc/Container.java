@@ -3,6 +3,8 @@ package org.voovan.tools.ioc;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
+import org.voovan.tools.ioc.annotation.Destory;
+import org.voovan.tools.ioc.annotation.Initialize;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
 import org.voovan.tools.json.BeanVisitor;

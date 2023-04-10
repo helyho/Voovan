@@ -7,6 +7,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.annotation.Destory;
+import org.voovan.tools.ioc.annotation.Entrance;
 import org.voovan.tools.ioc.annotation.Initialize;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
@@ -39,6 +40,8 @@ public class Context {
     private final static Container DEFAULT_CONTAINER;
 
     private static List<String> scanPaths = new ArrayList<>();
+
+    private static List<Class> entranceClass = new ArrayList<>();
 
     private static boolean inited = false; //0: 未初始化, 1: 初始化完成
 
@@ -92,9 +95,16 @@ public class Context {
                 AnnotataionScaner.scan(scanPath, clazz -> {
                     loadClass(clazz);
                     loadMethod(clazz);
+
+                    if(clazz.isAnnotationPresent(Entrance.class)) {
+                        entranceClass.add(clazz);
+                    }
                 }, Bean.class);
 
-                //初始化 bean, method
+                //初始化 @Entrance
+                initEntrance();
+
+                //初始化 对象和方法上的 @bean
                 initBean();
             } catch (Exception e) {
                 Logger.errorf("Scan compoment failed", e);
@@ -155,18 +165,28 @@ public class Context {
         }
     }
 
+    public static void initEntrance() {
+        for(Class clazz : entranceClass) {
+            String scope = getScope(clazz);
+            Container container = getContainer(scope);
+            Definitions definitions = container.getDefinitions();
+            BeanDefinition beanDefinition = container.getDefinitions().getBeanDefinition(clazz);
+            container.initBean(beanDefinition, false);
+            container.initMethodBean(beanDefinition.getClazz(), false);
+        }
+    }
+
 
     private static void initBean() {
         for (Container container : CONTAINER_MAP.values()) {
             Definitions definitions = container.getDefinitions();
             for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
+                if(container.exists(beanDefinition.getName())) {
+                    continue;
+                }
+
                 if(!beanDefinition.isLazy()) {
                     container.initBean(beanDefinition, false);
-                }
-            }
-
-            for (BeanDefinition beanDefinition : definitions.getBeanDefinitions().values()) {
-                if(!beanDefinition.isLazy()) {
                     container.initMethodBean(beanDefinition.getClazz(), false);
                 }
             }
