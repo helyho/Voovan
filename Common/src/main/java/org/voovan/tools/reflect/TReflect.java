@@ -1235,6 +1235,9 @@ public class TReflect {
             throws ReflectiveOperationException {
 
         Class targetClazz = clazz;
+        if (targetClazz.isPrimitive()) {
+            targetClazz = getPackageClass(targetClazz);
+        }
 
         //不可构造的类型使用最常用的类型
         if(isImp(clazz, List.class) && (Modifier.isAbstract(clazz.getModifiers()) || Modifier.isInterface(clazz.getModifiers()))){
