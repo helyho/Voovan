@@ -94,6 +94,10 @@ public class Container {
         return definitions;
     }
 
+    public Map<String, Object> getAll(){
+        return beanValues;
+    }
+
     /**
      * 使用表达式获取数据, 保持解析后的类型, 无类型自动转移
      * 性能高, 但复杂类型转换可能不正常
