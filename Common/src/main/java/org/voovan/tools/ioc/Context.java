@@ -83,6 +83,10 @@ public class Context {
     }
 
     public static void init() {
+        if(inited) {
+            return;
+        }
+
         List<String> configPaths = DEFAULT_CONTAINER.get("ScanPaths", null);
         if(configPaths == null) {
             Logger.warnf("ScanPaths is not defined or 'conf/application.json' not exists, Config isn't load!");
@@ -108,6 +112,8 @@ public class Context {
 
                 //初始化 对象和方法上的 @bean
                 initBean();
+
+                Logger.info("IOC context initialize finished");
             } catch (Exception e) {
                 Logger.errorf("Scan compoment failed", e);
             }

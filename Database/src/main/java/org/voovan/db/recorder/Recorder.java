@@ -113,6 +113,7 @@ public class Recorder {
      */
     public <T, R> List<R> customQuery(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {
         try {
+            dataSql = dataSql == null? "*" : dataSql;
             whereSql = whereSql == null ? "" : whereSql;
 
             Table table = obj.getClass().getAnnotation(Table.class);
@@ -199,6 +200,7 @@ public class Recorder {
      */
     public <T, R> R customQueryOne(String tableName, String dataSql, String whereSql, T obj, Class<R> clazz) {
         try {
+            dataSql = dataSql == null? "*" : dataSql;
             whereSql = whereSql == null ? "" : whereSql;
 
             Table table = obj.getClass().getAnnotation(Table.class);
