@@ -78,6 +78,8 @@ public class TSQL {
 				preparedStatement.setObject(i + 1, ((BigDecimal)data).toPlainString());
 			} else if(data instanceof Array) {
 				preparedStatement.setObject(i + 1, ((Array) data).getArray());
+			} else if(data instanceof Date) {
+				preparedStatement.setObject(i + 1, data);
 			} else {
 				//复杂对象类型,无法直接保存进数据库,进行 JSON 转换后保存
 				preparedStatement.setObject(i + 1, JSON.toJSON(data));
@@ -631,44 +633,44 @@ public class TSQL {
 	 * @param obj 对象
 	 * @return 数据库中的数据类型
 	 */
-	public static int getSqlTypes(Object obj){
+	public static String getSqlTypes(Object obj){
 		Class<?> objectClass = obj.getClass();
 		if(char.class == objectClass){
-			return  Types.CHAR;
+			return  "char";
 		}else if(String.class == objectClass){
-			return Types.VARCHAR ;
+			return "varchar ";
 		}else if(BigDecimal.class == objectClass){
-			return Types.NUMERIC;
+			return "decimal";
 		}else if(Boolean.class == objectClass){
-			return Types.BIT;
+			return "tinyint";
 		}else if(Byte.class == objectClass){
-			return Types.TINYINT;
+			return "bit";
 		}else if(Short.class == objectClass){
-			return Types.SMALLINT;
+			return "smallint";
 		}else if(Integer.class == objectClass){
-			return Types.INTEGER;
+			return "integer";
 		}else if(Long.class == objectClass){
-			return Types.BIGINT;
+			return "Bigint";
 		}else if(Float.class == objectClass){
-			return Types.FLOAT;
+			return "float";
 		}else if(Double.class == objectClass){
-			return Types.DOUBLE;
+			return "double";
 		}else if(Byte[].class == objectClass){
-			return Types.BINARY;
+			return "binary";
 		}else if(Date.class == objectClass){
-			return Types.DATE;
+			return "date";
 		}else if(Time.class == objectClass){
-			return Types.TIME;
+			return "time";
 		}else if(Timestamp.class == objectClass){
-			return Types.TIMESTAMP;
+			return "timestamp";
 		}else if(Clob.class == objectClass){
-			return Types.CLOB;
+			return "clob";
 		}else if(Blob.class == objectClass){
-			return Types.BLOB;
+			return "blob";
 		}else if(Object[].class == objectClass){
-			return Types.ARRAY;
+			return "array";
 		}
-		return 0;
+		return null;
 	}
 
 	/**

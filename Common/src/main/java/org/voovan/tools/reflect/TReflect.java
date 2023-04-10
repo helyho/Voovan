@@ -1453,15 +1453,19 @@ public class TReflect {
         }
         //java 日期对象
         else if(isExtends(clazz, Date.class)){
-            //取 Map.Values 里的递第一个值
-            String value = singleValue == null ? null : singleValue.toString();
-
-            if(value==null) {
-                obj = null;
+            if(singleValue instanceof Long) {
+                obj = (T) TReflect.newInstance(clazz, singleValue);
             } else {
-                SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
-                Date dateObj = singleValue != null ? dateFormat.parse(value.toString()) : null;
-                obj = (T) TReflect.newInstance(clazz, dateObj.getTime());
+                //取 Map.Values 里的递第一个值
+                String value = singleValue == null ? null : singleValue.toString();
+
+                if (value == null) {
+                    obj = null;
+                } else {
+                    SimpleDateFormat dateFormat = new SimpleDateFormat(TDateTime.STANDER_DATETIME_TEMPLATE);
+                    Date dateObj = singleValue != null ? dateFormat.parse(value.toString()) : null;
+                    obj = (T) TReflect.newInstance(clazz, dateObj.getTime());
+                }
             }
         }
         //Map 类型
