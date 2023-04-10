@@ -453,7 +453,7 @@ public class Dao<T extends Dao> {
                 ret = results.get(0);
             }
 
-            return ret;
+            return (T)ret;
         } catch (Exception e) {
             Logger.error("Dao.queryOne failed", e);
             return null;
