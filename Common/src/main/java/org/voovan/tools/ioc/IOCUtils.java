@@ -52,15 +52,18 @@ public class IOCUtils {
         return TEnv.shortClassName(clazz.getName(), "");
     }
 
+    public static void checkBean(Container container, String beanName, Class type) {
+        Object bean = container.getAll().get(beanName);
+        if(bean!=null && !TReflect.isSuper(bean.getClass(), type)){
+            throw new IOCException("Bean name duplicate, beanName: ["+beanName+"], current: [" + bean.getClass().getCanonicalName() + "], new: [" + type.getCanonicalName() + "]");
+        }
+    }
+
     public static String getBeanName(Class clazz) {
         Bean bean = (Bean) clazz.getAnnotation(Bean.class);
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
-            if(bean.useClassName()) {
-                beanName = clazz.getSimpleName();
-            } else {
-                beanName = classKey(clazz);
-            }
+            beanName = classKey(clazz);
         }
 
         return beanName;
@@ -71,11 +74,7 @@ public class IOCUtils {
         String beanName = TReflect.getAnnotationValue(bean, "name");
         if (TString.isNullOrEmpty(beanName)) {
             Class clazz = method.getReturnType();
-            if(bean.useClassName()) {
-                beanName = clazz.getSimpleName();
-            } else {
-                beanName = classKey(clazz);
-            }
+            beanName = classKey(clazz);
         }
 
         return beanName;

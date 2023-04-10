@@ -336,6 +336,9 @@ public class Container {
         }
 
         String beanName = beanDefinition.getName();
+
+        checkBean(this, beanName, beanDefinition.getClazz());
+
         //单例 及 Primary 支持
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             if (ingoreLazy || !beanDefinition.isLazy()) {
@@ -378,7 +381,9 @@ public class Container {
         }
 
         String beanName = methodDefinition.getName();
-        BeanDefinition beanDefinition = definitions.getBeanDefinition(methodDefinition.getClazz());
+
+        checkBean(this, beanName, methodDefinition.getReturnType());
+
         //单例 及 Primary 支持
         if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
