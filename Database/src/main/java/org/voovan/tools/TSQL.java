@@ -816,23 +816,24 @@ public class TSQL {
 		String primaryKeyName = null;
 
 		String createTableSQL = "CREATE TABLE `" + Recorder.getSqlTableName(obj) + "` ( \r\n";
+		String columnDefine = "";
 		for(Field field : fields) {
 			if(field.isAnnotationPresent(NotInsert.class) || field.isAnnotationPresent(NotUpdate.class) ) {
 				continue;
 			}
 
 			String fieldName = underLine ? TString.camelToUnderline(field.getName()) : field.getName();
-			createTableSQL += "\t`" + fieldName + "` " + getSqlTypes(field.getType());
+			String oneColumn = "\t`" + fieldName + "` " + getSqlTypes(field.getType());
 
 			if(field.isAnnotationPresent(PrimaryKey.class)) {
 				primaryKeyName = field.getName();
-				createTableSQL += " not null,";
+				columnDefine = oneColumn + " not null, \r\n" + columnDefine;
 			} else {
-				createTableSQL +=" default null,";
+				columnDefine = columnDefine + oneColumn + " default null, \r\n";
 			}
-
-			createTableSQL += "\r\n";
 		}
+
+		createTableSQL += columnDefine;
 
 		if(primaryKeyName!=null) {
 			createTableSQL += "\tprimary key (`" + primaryKeyName + "`)";
