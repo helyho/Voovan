@@ -2,13 +2,19 @@ package org.voovan.tools;
 
 import org.voovan.db.CallType;
 import org.voovan.db.DataBaseType;
+import org.voovan.db.recorder.Recorder;
+import org.voovan.db.recorder.annotation.NotInsert;
+import org.voovan.db.recorder.annotation.NotUpdate;
+import org.voovan.db.recorder.annotation.PrimaryKey;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.security.THash;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.text.ParseException;
@@ -19,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * SQL处理帮助类
@@ -633,44 +640,47 @@ public class TSQL {
 	 * @param obj 对象
 	 * @return 数据库中的数据类型
 	 */
-	public static String getSqlTypes(Object obj){
-		Class<?> objectClass = obj.getClass();
-		if(char.class == objectClass){
-			return  "char";
-		}else if(String.class == objectClass){
-			return "varchar ";
-		}else if(BigDecimal.class == objectClass){
-			return "decimal";
-		}else if(Boolean.class == objectClass){
-			return "tinyint";
-		}else if(Byte.class == objectClass){
+	public static String getSqlTypes(Class clazz){
+		clazz = TReflect.getPackageClass(clazz);
+
+		if(char.class == clazz){
+			return  "char (5)";
+		}else if(String.class == clazz){
+			return "varchar (40)";
+		}else if(BigDecimal.class == clazz){
+			return "decimal (30,8)";
+		}else if(Boolean.class == clazz){
+			return "tinyint (1)";
+		}else if(Byte.class == clazz){
 			return "bit";
-		}else if(Short.class == objectClass){
-			return "smallint";
-		}else if(Integer.class == objectClass){
-			return "integer";
-		}else if(Long.class == objectClass){
+		}else if(Short.class == clazz){
+			return "smallint(6)";
+		}else if(Integer.class == clazz){
+			return "integer(11)";
+		}else if(Long.class == clazz){
 			return "Bigint";
-		}else if(Float.class == objectClass){
+		}else if(Float.class == clazz){
 			return "float";
-		}else if(Double.class == objectClass){
+		}else if(Double.class == clazz){
 			return "double";
-		}else if(Byte[].class == objectClass){
+		}else if(Byte[].class == clazz){
 			return "binary";
-		}else if(Date.class == objectClass){
+		}else if(Date.class == clazz){
 			return "date";
-		}else if(Time.class == objectClass){
+		}else if(Time.class == clazz){
 			return "time";
-		}else if(Timestamp.class == objectClass){
-			return "timestamp";
-		}else if(Clob.class == objectClass){
+		}else if(Timestamp.class == clazz){
+			return "timestamp(6)";
+		}else if(Clob.class == clazz){
 			return "clob";
-		}else if(Blob.class == objectClass){
+		}else if(Blob.class == clazz){
 			return "blob";
-		}else if(Object[].class == objectClass){
+		}else if(Object[].class == clazz){
 			return "array";
+		}else {
+			//Object, List, Map, ComplexObject
+			return "varchar (2048)";
 		}
-		return null;
 	}
 
 	/**
@@ -792,6 +802,47 @@ public class TSQL {
 		sql = sql.replaceFirst("select", "select rownum rn,");
 		sql = "select pageSql.* from (" + sql + " ) pageSql where rn between " + pageStart + " and " + pageEnd;
 		return sql;
+	}
+
+	public static String createTable(Class clazz, boolean underLine) {
+		Object obj = null;
+		try {
+			obj = TReflect.newInstance(clazz, null);
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException(e);
+		}
+		List<Field> fields = Arrays.stream(TReflect.getFields(clazz)).filter(f -> !Modifier.isStatic(f.getModifiers())).collect(Collectors.toList());
+
+		String primaryKeyName = null;
+
+		String createTableSQL = "CREATE TABLE `" + Recorder.getSqlTableName(obj) + "` ( \r\n";
+		for(Field field : fields) {
+			if(field.isAnnotationPresent(NotInsert.class) || field.isAnnotationPresent(NotUpdate.class) ) {
+				continue;
+			}
+
+			String fieldName = underLine ? TString.camelToUnderline(field.getName()) : field.getName();
+			createTableSQL += "\t`" + fieldName + "` " + getSqlTypes(field.getType());
+
+			if(field.isAnnotationPresent(PrimaryKey.class)) {
+				primaryKeyName = field.getName();
+				createTableSQL += " not null,";
+			} else {
+				createTableSQL +=" default null,";
+			}
+
+			createTableSQL += "\r\n";
+		}
+
+		if(primaryKeyName!=null) {
+			createTableSQL += "\tprimary key (`" + primaryKeyName + "`)";
+		} else {
+			createTableSQL = TString.removeSuffix(createTableSQL.trim());
+		}
+
+		return createTableSQL + "\r\n);";
+
+
 	}
 }
 
