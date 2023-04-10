@@ -27,7 +27,7 @@ public @interface Bean {
     String scope() default IOCUtils.DEFAULT_SCOPE;
 
     //使用 class 的名称作为 bean 的名称
-    boolean useClassName()  default false;
+    boolean useClassName()  default true;
 
     boolean singleton()  default true;
 
