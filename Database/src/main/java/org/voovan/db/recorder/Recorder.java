@@ -11,6 +11,7 @@ import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
+import javax.sql.DataSource;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -39,6 +40,9 @@ public class Recorder {
         this.jdbcOperate = jdbcOperate;
     }
 
+    public Recorder(DataSource dataSource){
+        this.jdbcOperate = new JdbcOperate(dataSource);
+    }
 
     public JdbcOperate getJdbcOperate() {
         return jdbcOperate;

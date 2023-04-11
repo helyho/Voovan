@@ -10,6 +10,7 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,13 @@ public class Dao<T extends Dao> {
 
         this.recorder = new Recorder(jdbcOperate);
         this.jdbcOperate = jdbcOperate;
+
+        return (T) this;
+    }
+
+    public T setDatasource(DataSource dataSource) {
+        this.recorder = new Recorder(dataSource);
+        this.jdbcOperate = recorder.getJdbcOperate();
 
         return (T) this;
     }
