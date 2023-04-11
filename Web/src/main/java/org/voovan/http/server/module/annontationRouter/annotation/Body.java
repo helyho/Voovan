@@ -17,6 +17,9 @@ public @interface Body {
     boolean isRequire() default true;
     String defaultVal() default "";
 
+    Class keyType() default Object.class;
+    Class valueType() default Object.class;
+
     //-------------- API 文档相关属性 --------------
     /**
      * 参数说明
@@ -30,6 +33,4 @@ public @interface Body {
      */
     String example() default "";
 
-    Class keyType() default Object.class;
-    Class valueType() default Object.class;
 }
