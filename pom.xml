@@ -32,7 +32,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.11.0</version>
                 <configuration>
                     <source>11</source>
                     <target>11</target>
@@ -42,10 +42,46 @@
                     </compilerArgs>
                 </configuration>
             </plugin>
+            <!-- Source -->
+            <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Java jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifestFile>
+                            src/main/resources/META-INF/MANIFEST.MF
+                        </manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <!-- Javadoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>3.5.0</version>
+                <configuration>
+                    <additionalJOptions>
+                        <additionalJOption>--add-exports</additionalJOption>
+                        <additionalJOption>java.base/jdk.internal.misc=ALL-UNNAMED</additionalJOption>
+                    </additionalJOptions>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -58,7 +94,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
+                <version>3.0.0</version>
                 <configuration>
                     <skipTests>true</skipTests>
                 </configuration>
@@ -66,102 +102,6 @@
         </plugins>
     </build>
 
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.6.1</version>
-                        <configuration>
-                            <source>11</source>
-                            <target>11</target>
-                            <compilerArgs>
-                                <arg>--add-exports</arg>
-                                <arg>java.base/jdk.internal.misc=ALL-UNNAMED</arg>
-                            </compilerArgs>
-                        </configuration>
-                    </plugin>
-                    <!-- Source -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                        <version>3.0.1</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar-no-fork</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- Java jar -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <version>3.0.2</version>
-                        <configuration>
-                            <archive>
-                                <manifestFile>
-                                    src/main/resources/META-INF/MANIFEST.MF
-                                </manifestFile>
-                            </archive>
-                        </configuration>
-                    </plugin>
-                    <!-- Javadoc -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                        <version>3.4.1</version>
-                        <configuration>
-                            <additionalJOptions>
-                                <additionalJOption>--add-exports</additionalJOption>
-                                <additionalJOption>java.base/jdk.internal.misc=ALL-UNNAMED</additionalJOption>
-                            </additionalJOptions>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>jar</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <!-- GPG -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
-                        <executions>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>oss</id>
-                    <name>Nexus Release Repository</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
-                <repository>
-                    <id>oss</id>
-                    <name>Nexus Snapshot Repository</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-                </repository>
-            </distributionManagement>
-        </profile>
-    </profiles>
 
     <licenses>
         <license>

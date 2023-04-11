@@ -637,7 +637,7 @@ public class TSQL {
 
 	/**
 	 * 根据 JAVA 类型判断该使用什么 SQL 数据类型
-	 * @param obj 对象
+	 * @param clazz 类对象
 	 * @return 数据库中的数据类型
 	 */
 	public static String getSqlTypes(Class clazz){
