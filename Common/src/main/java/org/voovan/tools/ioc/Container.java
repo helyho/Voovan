@@ -113,16 +113,11 @@ public class Container {
     private <T> T getByExpression(String expression, Class<T> clazz, T defaultVal) {
         String beanName = getBeanNameFromExpression(expression);
 
-        //如果依赖的 Bean 不存在则创建, 忽略 lazy
-        initBean(beanName, true);
-        T ret = beanVisitor.value(expression, clazz, defaultVal);
-        if (ret != null) {
-            return ret;
+        Object createObj = initBean(beanName, true);
+        if(createObj== null) {
+            invokeMethodBean(beanName, true);
         }
-
-        //如果依赖的 Bean 不存在则创建, 忽略 lazy
-        invokeMethodBean(beanName, true);
-        ret = beanVisitor.value(expression,clazz, defaultVal);
+        T ret = beanVisitor.value(expression, clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -142,16 +137,12 @@ public class Container {
     private <T> T getByExpression(String expression, T defaultVal) {
         String beanName = getBeanNameFromExpression(expression);
 
-        //如果依赖的 Bean 不存在则创建, 忽略 lazy
-        initBean(beanName, true);
-        T ret = beanVisitor.value(expression, defaultVal);
-        if (ret != null) {
-            return ret;
+        Object createObj = initBean(beanName, true);
+        if(createObj== null) {
+            invokeMethodBean(beanName, true);
         }
 
-        //如果依赖的 Bean 不存在则创建, 忽略 lazy
-        invokeMethodBean(beanName, true);
-        ret = beanVisitor.value(expression, defaultVal);
+        T ret = beanVisitor.value(expression, defaultVal);
         if (ret != null) {
             return ret;
         }
@@ -168,16 +159,12 @@ public class Container {
      * @return 返回值
      */
     private <T> T getByName(String beanName, T defaultVal) {
-        //如果依赖的 Bean 不存在则创建, 忽略 lazy
-        initBean(beanName, true);
-        T ret = (T) beanValues.getOrDefault(beanName, defaultVal);
-        if (ret != null) {
-            return ret;
+        Object createObj = initBean(beanName, true);
+        if(createObj== null) {
+            invokeMethodBean(beanName, true);
         }
 
-        //如果依赖的 Bean 不存在则创建, 忽略 lazy
-        invokeMethodBean(beanName, true);
-        ret = (T) beanValues.getOrDefault(beanName, defaultVal);
+        T ret = (T) beanValues.getOrDefault(beanName, defaultVal);
         if (ret != null) {
             return ret;
         }
