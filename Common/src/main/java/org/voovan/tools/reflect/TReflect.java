@@ -1402,6 +1402,11 @@ public class TReflect {
 
         Object singleValue = mapArg;
 
+        //相同类型的对象直接返回
+        if(TReflect.isSuper(singleValue.getClass(), TReflect.getPackageClass(clazz))) {
+            return (T)singleValue;
+        }
+
         if(mapArg.containsKey(SINGLE_VALUE_KEY)){
             singleValue = mapArg.get(SINGLE_VALUE_KEY);
         } else if(mapArg.size() == 1) {
