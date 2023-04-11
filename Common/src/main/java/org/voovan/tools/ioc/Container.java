@@ -279,9 +279,21 @@ public class Container {
         Context.loadClass(value.getClass());
         Context.loadMethod(value.getClass());
 
+        Object preValue = addBeanValue(beanName, value);
         definitions.initField(value, false);  //外部 Bean 的属性不初始化值为null的属性
-        addBeanValue(beanName, value);
         initMethodBean(value.getClass(), true); //外部 Bean 的方法不支持 lazy
+        //执行初始化/销毁动作
+        try {
+            BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
+            if(beanDefinition == null) {
+                beanDefinition = definitions.getMethodDefinitions().get(beanName);
+            }
+
+            invokeInitialize(value, beanDefinition);
+            invokeDestory(value, beanDefinition);
+        } catch (Throwable e) {
+            throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+        }
     }
 
     /**
@@ -289,40 +301,14 @@ public class Container {
      *
      * @param name  组件名称
      * @param value 组件值
+     * @return 前一个被替换掉的 Bean 对象
      */
-    public void addBeanValue(String name, Object value) {
+    public Object addBeanValue(String name, Object value) {
         nameChecker(name);
-        BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(name);
-        if(beanDefinition == null) {
-            beanDefinition = definitions.getMethodDefinitions().get(name);
-        }
 
-        try {
-            //执行初始化
-            if (beanDefinition != null) {
-                Method initMethod = beanDefinition.getInit();
-                if (initMethod != null) {
-                    Object[] params = prepareParam(this,initMethod);
-                    TReflect.invokeMethod(value, initMethod, params);
-                }
-            }
-
-            Object preValue = beanValues.put(name, value);
-
-            //执行销毁方法
-            if (preValue != null && beanDefinition != null) {
-                Method destoryMethod = beanDefinition.getDestory();
-                if (destoryMethod != null) {
-                    Object[] params = prepareParam(this,destoryMethod);
-                    TReflect.invokeMethod(preValue, destoryMethod, params);
-                }
-            }
-        } catch (Throwable e) {
-            throw new IOCException("Invoke init or destory method failed", e);
-        }
-
-        beanValues.put(name, value);
+        Object preValue = beanValues.put(name, value);
         beanValues.put(classKey(value.getClass()), value);
+        return preValue;
     }
 
     /**
@@ -347,9 +333,16 @@ public class Container {
                 //延迟加载处理
                 T value = definitions.createBean(beanName);
                 if (value != null) {
+                    Object preValue = addBeanValue(beanName, value);
                     definitions.initField(value, true);
-                    addBeanValue(beanName, value);
                     initMethodBean(beanDefinition.getClazz(), false); //bean 初始化时不忽略方法的 lazy
+                    //执行初始化/销毁动作
+                    try {
+                        invokeInitialize(value, beanDefinition);
+                        invokeDestory(value, beanDefinition);
+                    } catch (Throwable e) {
+                        throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+                    }
                     return value;
                 }
             }
@@ -392,7 +385,14 @@ public class Container {
             if (ingoreLazy || !methodDefinition.isLazy()) {
                 T value = definitions.createMethodBean(methodDefinition);
                 if (value != null) {
-                    addBeanValue(beanName, value);
+                    Object preValue = addBeanValue(beanName, value);
+                    //执行初始化/销毁动作
+                    try {
+                        invokeInitialize(value, methodDefinition);
+                        invokeDestory(value, methodDefinition);
+                    } catch (Throwable e) {
+                        throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+                    }
                     return value;
                 }
             }
@@ -427,6 +427,26 @@ public class Container {
 
         for(MethodDefinition methodDefinition : methodDefinitionList) {
             invokeMethodBean(methodDefinition, ingoreLazy);
+        }
+    }
+
+    public void invokeInitialize(Object value, BeanDefinition beanDefinition) throws ReflectiveOperationException {
+        if (beanDefinition != null) {
+            Method initMethod = beanDefinition.getInit();
+            if (initMethod != null) {
+                Object[] params = prepareParam(this,initMethod);
+                TReflect.invokeMethod(value, initMethod, params);
+            }
+        }
+    }
+
+    public void invokeDestory(Object preValue, BeanDefinition beanDefinition) throws ReflectiveOperationException {
+        if (preValue != null && beanDefinition != null) {
+            Method destoryMethod = beanDefinition.getDestory();
+            if (destoryMethod != null) {
+                Object[] params = prepareParam(this, destoryMethod);
+                TReflect.invokeMethod(preValue, destoryMethod, params);
+            }
         }
     }
 }
