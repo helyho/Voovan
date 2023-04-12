@@ -44,6 +44,11 @@ public class Recorder {
         this.jdbcOperate = new JdbcOperate(dataSource);
     }
 
+    public Recorder(DataSource dataSource, boolean isTrancation){
+        this.jdbcOperate = new JdbcOperate(dataSource, isTrancation);
+    }
+
+
     public JdbcOperate getJdbcOperate() {
         return jdbcOperate;
     }

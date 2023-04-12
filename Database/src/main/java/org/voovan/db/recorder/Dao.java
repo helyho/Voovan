@@ -75,6 +75,14 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+    public T setDatasource(DataSource dataSource, boolean isTrancation) {
+        this.recorder = new Recorder(dataSource, isTrancation);
+        this.jdbcOperate = recorder.getJdbcOperate();
+
+        return (T) this;
+    }
+
+
     /**
      * 获取 Recorder 对象
      * @return Recorder 对象
