@@ -603,13 +603,14 @@ public class Dao<T extends Dao> {
 
     /**
      * 事物模式
+     *   如果事物失败,所有daos 中的对象属性将会被回滚
      * @param transLogic 事物逻辑
      * @param daos 所以加入事物的 Dao 对象
      * @return 事物逻辑的返回值
      * @param <T> 返回值的泛型
-     * @throws SQLException SQL异常
+     * @throws Exception 异常
      */
-    public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws SQLException {
+    public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws Exception {
         for(Dao dao: daos) {
             dao.setJdbcOperate(jdbcOperate);
             dao.snapshot();
@@ -620,6 +621,9 @@ public class Dao<T extends Dao> {
         try {
             ret = (T) transLogic.get();
         } catch(Throwable e) {
+            for(Dao dao: daos) {
+                dao.rollbackInMemory();
+            }
             jdbcOperate.rollback();
             throw e;
         }
