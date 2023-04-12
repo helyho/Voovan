@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 /**
@@ -82,6 +83,10 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+    /**
+     * 当前 Dao 对象与参数Dao共享同一个数据库链接
+     * @param dao Dao对象
+     */
    public void share(Dao dao) {
         setJdbcOperate(dao.getJdbcOperate());
     }
@@ -594,5 +599,31 @@ public class Dao<T extends Dao> {
     public boolean delete() {
         check();
         return delete(null);
+    }
+
+    /**
+     * 事物模式
+     * @param transLogic 事物逻辑
+     * @param daos 所以加入事物的 Dao 对象
+     * @return 事物逻辑的返回值
+     * @param <T> 返回值的泛型
+     * @throws SQLException SQL异常
+     */
+    public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws SQLException {
+        for(Dao dao: daos) {
+            dao.setJdbcOperate(jdbcOperate);
+        }
+
+        T ret;
+
+        try {
+            ret = (T) transLogic.get();
+        } catch(Throwable e) {
+            jdbcOperate.rollback();
+            throw e;
+        }
+        jdbcOperate.commit();
+
+        return ret;
     }
 }
