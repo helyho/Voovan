@@ -631,4 +631,16 @@ public class Dao<T extends Dao> {
 
         return ret;
     }
+
+    public static <T> T transaction(DataSource dataSource, Supplier<T> transLogic, Dao...daos) throws Exception {
+        Dao root = new Dao();
+        root.setDatasource(dataSource, true);
+        return (T)root.transaction(transLogic, daos);
+    }
+
+    public static <T> T transaction(JdbcOperate jdbcOperate, Supplier<T> transLogic, Dao...daos) throws Exception {
+        Dao root = new Dao();
+        root.setJdbcOperate(jdbcOperate);
+        return (T)root.transaction(transLogic, daos);
+    }
 }
