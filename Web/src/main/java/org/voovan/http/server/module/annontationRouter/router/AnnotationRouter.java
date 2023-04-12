@@ -375,7 +375,7 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(param.toString(), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @Param [" + paramName + "] required: " + request.getParameters(), e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @Param [" + paramName + "] error: " + request.getParameters(), e).setPath(path);
                     }
                 }
 
@@ -422,7 +422,7 @@ public class AnnotationRouter implements HttpRouter {
                         }
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @BodyParam [" + paramName + "] required: " + bodyMap, e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @BodyParam [" + paramName + "] error: " + bodyMap, e).setPath(path);
                     }
                 }
 
@@ -433,7 +433,7 @@ public class AnnotationRouter implements HttpRouter {
                             String defaultVal = ((Body) annotation).defaultVal();
                             if("".equals(defaultVal)) {
                                 if(((Body) annotation).isRequire()) {
-                                    params[i] = TObject.asMap();
+                                    paramCheck.add("@Body");
                                 }
                                 continue;
                             } else {
@@ -463,7 +463,7 @@ public class AnnotationRouter implements HttpRouter {
                         continue;
                     } catch (Exception e) {
                         if(((Body) annotation).isRequire()) {
-                            throw new AnnotationRouterException("Router " + path + " @Body required: " + bodyString, e).setPath(path);
+                            throw new AnnotationRouterException("Router " + path + " @Body error: " + bodyString, e).setPath(path);
                         }
                     }
                 }
@@ -488,7 +488,7 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(headParam.toString(), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @Header [" + headName + "] required: " + request.header(), e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @Header [" + headName + "] error: " + request.header(), e).setPath(path);
                     }
                 }
 
@@ -517,7 +517,7 @@ public class AnnotationRouter implements HttpRouter {
                         params[i] = TString.toObject(cookieParam.toString(), parameterTypes[i], true);
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @Cookie [" + cookieParam + "] required: " + request.cookies(), e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @Cookie [" + cookieParam + "] error: " + request.cookies(), e).setPath(path);
                     }
                 }
 
@@ -545,7 +545,7 @@ public class AnnotationRouter implements HttpRouter {
                         }
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @Attribute [" + attrName + "] required: " + request.getAttributes(), e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @Attribute [" + attrName + "] error: " + request.getAttributes(), e).setPath(path);
                     }
                 }
 
@@ -575,7 +575,7 @@ public class AnnotationRouter implements HttpRouter {
                         }
                         continue;
                     } catch (Exception e) {
-                        throw new AnnotationRouterException("Router " + path + " @Session [" + sessionName + "] required: " + httpSession.attributes(), e).setPath(path);
+                        throw new AnnotationRouterException("Router " + path + " @Session [" + sessionName + "] error: " + httpSession.attributes(), e).setPath(path);
                     }
                 }
 
