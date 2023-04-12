@@ -82,6 +82,9 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+   public void share(Dao dao) {
+        setJdbcOperate(dao.getJdbcOperate());
+    }
 
     /**
      * 获取 Recorder 对象
