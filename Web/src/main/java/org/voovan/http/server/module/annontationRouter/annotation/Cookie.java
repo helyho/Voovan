@@ -31,4 +31,11 @@ public @interface Cookie {
      * @return 样例数据
      */
     String example() default "";
+
+    /**
+     * 是否隐藏参数。
+     *
+     * @return true: 隐藏不可展示, false: 可展示
+     */
+    boolean hide() default false;
 }

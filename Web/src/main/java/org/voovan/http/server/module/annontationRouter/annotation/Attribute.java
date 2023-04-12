@@ -17,4 +17,18 @@ public @interface Attribute {
     String value() default "";
     boolean isRequire() default false;
     String defaultVal() default "";
+
+    //-------------- API 文档相关属性 --------------
+    /**
+     * 参数说明
+     * @return  参数说明
+     */
+    String description() default "";
+
+    /**
+     * 样例数据
+     * @return 样例数据
+     */
+    String example() default "";
+
 }

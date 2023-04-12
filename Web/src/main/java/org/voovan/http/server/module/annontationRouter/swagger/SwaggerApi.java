@@ -171,6 +171,11 @@ public class SwaggerApi {
                     for (Annotation paramAnnotation : paramAnnotations) {
                         //@Param
                         if (paramAnnotation instanceof Param) {
+                            //隐藏参数不展示在 swagger
+                            if(((Param) paramAnnotation).hide()) {
+                                continue;
+                            }
+
                             Parameter parameter = new Parameter();
                             parameter.setIn("path");
                             String[] types = getParamType(paramTypes[i]);
@@ -185,6 +190,11 @@ public class SwaggerApi {
                         }
                         //@Header
                         else if (paramAnnotation instanceof Header) {
+                            //隐藏参数不展示在 swagger
+                            if(((Header) paramAnnotation).hide()) {
+                                continue;
+                            }
+
                             Parameter parameter = new Parameter();
                             parameter.setIn("header");
                             String[] types = getParamType(paramTypes[i]);
@@ -199,6 +209,11 @@ public class SwaggerApi {
                         }
                         //@Cookie
                         else if (paramAnnotation instanceof Cookie) {
+                            //隐藏参数不展示在 swagger
+                            if(((Cookie) paramAnnotation).hide()) {
+                                continue;
+                            }
+
                             Parameter parameter = new Parameter();
                             parameter.setIn("cookie");
                             String[] types = getParamType(paramTypes[i]);
@@ -213,6 +228,11 @@ public class SwaggerApi {
                         }
                         //@BodyParam
                         else if (paramAnnotation instanceof BodyParam) {
+                            //隐藏参数不展示在 swagger
+                            if(((BodyParam) paramAnnotation).hide()) {
+                                continue;
+                            }
+
                             if(path.getParameters().size() == 0) {
                                 Parameter parameter = new Parameter();
                                 parameter.setIn("body");
@@ -241,6 +261,11 @@ public class SwaggerApi {
                         }
                         //@Body
                         else if(paramAnnotation instanceof Body) {
+                            //隐藏参数不展示在 swagger
+                            if(((Body) paramAnnotation).hide()) {
+                                continue;
+                            }
+
                             Parameter parameter = new Parameter();
                             parameter.setIn("body");
                             parameter.setName("body");
