@@ -612,6 +612,7 @@ public class Dao<T extends Dao> {
     public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws SQLException {
         for(Dao dao: daos) {
             dao.setJdbcOperate(jdbcOperate);
+            dao.snapshot();
         }
 
         T ret;
