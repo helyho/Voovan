@@ -9,6 +9,7 @@ import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiWrapResponse;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.ioc.annotation.Value;
@@ -212,6 +213,7 @@ public class AnnotationRouterTest {
     //将请求中报文在调用时的参数按照顺序在调用方法时注入成方法的参数
     @Router(tags = {"genericBodyParam"})
     @ApiGeneric(clazz =A.class)
+    @ApiWrapResponse(value = G.class, field = "t_name")
     public List<A> g_bodyParamList(@BodyParam(value = "list", valueType = A.class) List<A> list, @BodyParam("other") String other){
         String oldPath = lastPath;
         lastPath = "/annon/sp, time:" + System.currentTimeMillis();

@@ -9,6 +9,7 @@ import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiWrapResponse;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.*;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Parameter;
 import org.voovan.http.server.module.annontationRouter.swagger.entity.Properties;
@@ -341,6 +342,16 @@ public class SwaggerApi {
             if (schemaDescription != null && !schemaDescription.isEmpty()) {
                 response.setDescription(response.getSchema().getDescription());
             }
+        }
+
+
+        ApiWrapResponse apiWrapResponse = method.getAnnotation(ApiWrapResponse.class);
+        if(apiWrapResponse !=null) {
+            Class wrapClass = apiWrapResponse.value();
+            Schema wrapSchema = new Schema();
+            createSchema(swagger, wrapSchema, wrapClass, null, null, null, null, null, false);
+            wrapSchema.getProperties().put(apiWrapResponse.field(), schema);
+            response.setSchema(wrapSchema);
         }
 
         response.getSchema().setType(null);
