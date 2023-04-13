@@ -69,6 +69,11 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+    /**
+     * 设置数据源
+     * @param dataSource 数据源对象
+     * @return 返回 Dao 对象
+     */
     public T setDatasource(DataSource dataSource) {
         this.recorder = new Recorder(dataSource);
         this.jdbcOperate = recorder.getJdbcOperate();
@@ -76,6 +81,12 @@ public class Dao<T extends Dao> {
         return (T) this;
     }
 
+    /**
+     * 设置数据源
+     * @param dataSource 数据源对象
+     * @param isTrancation 是否事物模式
+     * @return 返回 Dao 对象
+     */
     public T setDatasource(DataSource dataSource, boolean isTrancation) {
         this.recorder = new Recorder(dataSource, isTrancation);
         this.jdbcOperate = recorder.getJdbcOperate();
@@ -632,18 +643,48 @@ public class Dao<T extends Dao> {
         return ret;
     }
 
+    /**
+     * 事物模式
+     *   如果事物失败,所有daos 中的对象属性将会被回滚
+     * @param dataSource 数据源
+     * @param transLogic 事物逻辑
+     * @param daos 所以加入事物的 Dao 对象
+     * @return 事物逻辑的返回值
+     * @param <T> 返回值的泛型
+     * @throws Exception 异常
+     */
     public static <T> T transaction(DataSource dataSource, Supplier<T> transLogic, Dao...daos) throws Exception {
         Dao root = new Dao();
         root.setDatasource(dataSource, true);
         return (T)root.transaction(transLogic, daos);
     }
 
+    /**
+     * 事物模式
+     *   如果事物失败,所有daos 中的对象属性将会被回滚
+     * @param jdbcOperate JdbcOperate 对象
+     * @param transLogic 事物逻辑
+     * @param daos 所以加入事物的 Dao 对象
+     * @return 事物逻辑的返回值
+     * @param <T> 返回值的泛型
+     * @throws Exception 异常
+     */
     public static <T> T transaction(JdbcOperate jdbcOperate, Supplier<T> transLogic, Dao...daos) throws Exception {
         Dao root = new Dao();
         root.setJdbcOperate(jdbcOperate);
         return (T)root.transaction(transLogic, daos);
     }
 
+    /**
+     * 事物模式
+     *   如果事物失败,所有daos 中的对象属性将会被回滚
+     * @param dataSource 数据源
+     * @param transLogic 事物逻辑
+     * @param daos 所以加入事物的 Dao 对象
+     * @return 事物逻辑的返回值
+     * @param <T> 返回值的泛型
+     * @throws Exception 异常
+     */
     public static <T> T transaction(DataSource dataSource, Runnable transLogic, Dao...daos) throws Exception {
         Dao root = new Dao();
         root.setDatasource(dataSource, true);
@@ -653,6 +694,16 @@ public class Dao<T extends Dao> {
         }, daos);
     }
 
+    /**
+     * 事物模式
+     *   如果事物失败,所有daos 中的对象属性将会被回滚
+     * @param jdbcOperate JdbcOperate 对象
+     * @param transLogic 事物逻辑
+     * @param daos 所以加入事物的 Dao 对象
+     * @return 事物逻辑的返回值
+     * @param <T> 返回值的泛型
+     * @throws Exception 异常
+     */
     public static <T> T transaction(JdbcOperate jdbcOperate, Runnable transLogic, Dao...daos) throws Exception {
         Dao root = new Dao();
         root.setJdbcOperate(jdbcOperate);
