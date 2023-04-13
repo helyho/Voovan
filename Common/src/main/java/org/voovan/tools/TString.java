@@ -735,7 +735,11 @@ public class TString {
 			value = value == null ? "0" : value;
 			return (T) Double.valueOf(value.trim());
 		} else if (clazz == boolean.class || clazz == Boolean.class) {
-			value = value == null || value.equals("0") ? "false" : "true";
+			if(value == null || value.equals("0")) {
+				value = "false";
+			} else if(value.equals("1")){
+				value = "true";
+			}
 			return (T) Boolean.valueOf(value.trim());
 		} else if (clazz == long.class || clazz == Long.class) {
 			value = value == null ? "0" : value;
