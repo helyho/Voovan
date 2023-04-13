@@ -457,8 +457,8 @@ public class Dao<T extends Dao> {
      * @param <R> 范型
      * @return 查询的结果
      */
-    public <R> List<R> customQuery(String dataSql, Class<R> clazz) {
-        return customQuery(dataSql, null, clazz);
+    public <R> List<R> customQuery(String whereSQL, Class<R> clazz) {
+        return customQuery(null, whereSQL, clazz);
     }
 
     /**
