@@ -14,6 +14,7 @@ import org.voovan.tools.TObject;
 import org.voovan.tools.ioc.annotation.Value;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -278,6 +279,8 @@ public class AnnotationRouterTest {
 
         @ApiProperty(hidden = true)
         String hiddes;
+
+        Timestamp timestamp;
 
         public G(T t_name) {
             this.t_name = t_name;

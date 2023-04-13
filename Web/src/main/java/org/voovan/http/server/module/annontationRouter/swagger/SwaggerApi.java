@@ -23,6 +23,7 @@ import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -650,25 +651,24 @@ public class SwaggerApi {
      * @return 参数类型 [主类型, 辅助类型]
      */
     public static String[] getParamType(Class clazz) {
-        if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("String")) {
+        Class packageClass= TReflect.getPackageClass(clazz);
+        if(TReflect.isSuper(packageClass, String.class)) {
             return new String[]{"string", null};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("int")) {
+        } else if(TReflect.isSuper(packageClass, Integer.class)) {
             return new String[]{"integer", "int32"};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("long")) {
+        } else if(TReflect.isSuper(packageClass, Long.class)) {
             return new String[]{"integer", "int64"};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("float")) {
+        } else if(TReflect.isSuper(packageClass, Float.class)) {
             return new String[]{"number", "float"};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("double")) {
+        } else if(TReflect.isSuper(packageClass, Double.class)) {
             return new String[]{"number", "double"};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("String")) {
-            return new String[]{"string", null};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("byte")) {
+        } else if(TReflect.isSuper(packageClass, Byte.class)) {
             return new String[]{"string", "byte"};
-        } else if(TReflect.getUnPackageType(clazz.getName()).equals("boolean")) {
+        } else if(TReflect.isSuper(packageClass, Boolean.class)) {
             return new String[]{"boolean", null};
-        } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("Date")) {
+        } else if(TReflect.isSuper(packageClass, Date.class)) {
             return new String[]{"string", "date"};
-        } else if(TReflect.getUnPackageType(clazz.getSimpleName()).equals("BigDecimal")) {
+        } else if(TReflect.isSuper(packageClass, BigDecimal.class)) {
             return new String[]{"number", null};
         } else if(clazz.isArray()) {
             return new String[]{"array", clazz.getComponentType().getName().toLowerCase()};
