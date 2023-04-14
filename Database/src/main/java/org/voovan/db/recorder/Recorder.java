@@ -705,12 +705,7 @@ public class Recorder {
      */
     public static String genWhereSql(Object obj, Query query) {
         String whereSql = "where 1=1";
-        if (
-                query == null || (
-                                !query.hasCondiction() &&
-                                query.getPageNumber() <= 0 && query.getPageSize() <=0 &&
-                                query.getOrderFields().isEmpty())
-        ) {
+        if (query == null || !query.hasCondiction() ) {
             Field[] fields = TReflect.getFields(obj.getClass());
             //字段拼接 sql
             for (Field field : fields) {
