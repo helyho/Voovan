@@ -30,7 +30,7 @@ public class Query {
     }
 
     public boolean hasCondiction() {
-        return !andFields.isEmpty() || !orFields.isEmpty() || !customCondictions.isEmpty();
+        return !andFields.isEmpty() || !orFields.isEmpty();
     }
 
     public Query data(String ... fieldNameArr) {
