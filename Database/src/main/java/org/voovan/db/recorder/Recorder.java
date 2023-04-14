@@ -723,7 +723,6 @@ public class Recorder {
                 }
             }
         } else {
-
             for (Map.Entry<String, Query.Operate> entry : query.getAndFields().entrySet()) {
                 Field field = TReflect.findFieldIgnoreCase(obj.getClass(), entry.getKey());
                 if (field != null) {
@@ -754,10 +753,10 @@ public class Recorder {
                 int index = whereSql.trim().lastIndexOf(" ");
                 whereSql = whereSql.substring(0, index);
             }
+        }
 
-            for (String customCondiction : query.getCustomCondictions()) {
-                whereSql = TString.assembly(whereSql, " ", customCondiction);
-            }
+        for (String customCondiction : query.getCustomCondictions()) {
+            whereSql = TString.assembly(whereSql, " ", customCondiction);
         }
 
         return whereSql;
