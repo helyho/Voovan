@@ -10,6 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * 事件执行管理器
@@ -93,6 +94,25 @@ public class EventRunnerGroup implements Closeable {
 		}
 
 		return this;
+	}
+
+
+	/**
+	 * 添加事件
+	 * @param priority 事件优先级必须在1-10之间
+	 * @param runnable 事件执行器
+	 * @Param selector 自定义执行器的选择
+	 */
+	public void addEvent(int priority, Runnable runnable, Supplier<Integer> selector) {
+		if(selector == null) {
+			throw new NullPointerException("EventRunnerGroup.addEvent parameter 'choser' must be not null");
+		}
+		int index = selector.get();
+		if(index > eventRunners.length) {
+			index = index%eventRunners.length;
+		}
+
+		eventRunners[index].addEvent(priority, runnable);
 	}
 
 	/**
