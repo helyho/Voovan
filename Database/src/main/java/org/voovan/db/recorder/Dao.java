@@ -612,6 +612,11 @@ public class Dao<T extends Dao> {
         return delete(null);
     }
 
+    public T lock() {
+        Query query = Query.newInstance().custom(" for update");
+        return (T)recorder.queryOne(this, query);
+    }
+
     /**
      * 事物模式
      *   如果事物失败,所有daos 中的对象属性将会被回滚
