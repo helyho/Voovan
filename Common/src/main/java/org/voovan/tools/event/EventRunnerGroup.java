@@ -105,9 +105,12 @@ public class EventRunnerGroup implements Closeable {
 	 */
 	public void addEvent(int priority, Runnable runnable, Supplier<Integer> selector) {
 		if(selector == null) {
-			throw new NullPointerException("EventRunnerGroup.addEvent parameter 'choser' must be not null");
+			throw new NullPointerException("EventRunnerGroup.addEvent parameter 'selector==null'");
 		}
-		int index = selector.get();
+		Integer index = selector.get();
+		if(index == null) {
+			throw new NullPointerException("EventRunnerGroup.addEvent try invoke 'selector.get()==null'");
+		}
 		if(index > eventRunners.length) {
 			index = index%eventRunners.length;
 		}
