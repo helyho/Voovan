@@ -202,8 +202,6 @@ public class Dao<T extends Dao> {
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
         check();
         try {
-            andFields = andFields == null && snapshot!=null ? getModifyField() : andFields;
-
             boolean newTransaction = jdbcOperate.beginTransaction();
             Query query = Query.newInstance().data(dataFields).and(andFields);
             if (recorder.update((T) this, query) == effectRow || effectRow < 0) {
