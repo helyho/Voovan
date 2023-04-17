@@ -431,6 +431,16 @@ public class TSQL {
 		return originCondictionParams;
 	}
 
+		/**
+	 * 将SQL 语句中,没有提供查询参数的条件移除
+	 * @param sqlText SQL 字符串
+	 * @param params 参数集合
+	 * @return 转换后的字符串
+	 */
+	public static String removeEmptyCondiction(String sqlText, Object ... params){
+    	return TSQL.removeEmptyCondiction(sqlText, TObject.removeMapNullValue(TObject.arrayToMap(params), true));
+	}
+
 
 	public static ConcurrentHashMap<Integer, List<String[]>> PARSED_CONDICTIONS = new ConcurrentHashMap<Integer,  List<String[]>>();
 	public static AtomicInteger size = new AtomicInteger();

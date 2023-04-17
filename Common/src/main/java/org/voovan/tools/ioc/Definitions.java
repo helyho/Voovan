@@ -131,7 +131,7 @@ public class Definitions {
             }
 
         } catch (Throwable e) {
-            throw new IOCException("Try to fill " + clazz.getName() + "@" + exField.getName() + " failed", e);
+            throw new IOCException("Try to fill field " + clazz.getName() + "@" + exField.getName() + " failed", e);
         }
     }
 
