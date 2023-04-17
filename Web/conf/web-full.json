@@ -116,6 +116,9 @@
       ScanRouterInterval     : 3,                                //注解形式的路由扫描的包路径的时间间隔. 默认:0秒. 0:关闭
       ClassName: org.voovan.http.server.module.annontationRouter.AnnotationModule,               //模块处理器
       LifeCycleClass: org.voovan.test.http.HttpModuleLifeCycleClass,
+      asyncRunnerSize: 16,
+      isAsyncRunnerSteal: false,
+      asyncRunnerSelector: org.voovan.http.server.module.annontationRouter.router.AsyncSocketRunnerBind,
       Swagger : {
         Enable: true,
         RoutePath: /swagger,

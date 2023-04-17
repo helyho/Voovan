@@ -99,9 +99,9 @@ public class EventRunnerGroup implements Closeable {
 		return this;
 	}
 
-	private EventRunner eventRunnerSelector( Supplier<Integer> selector) {
+	private EventRunner eventRunnerSelector(Supplier<Integer> selector) {
 		if(selector == null) {
-			throw new NullPointerException("EventRunnerGroup.addEvent parameter 'selector==null'");
+			return choseEventRunner();
 		}
 		Integer index = selector.get();
 		if(index == null) {
@@ -122,7 +122,14 @@ public class EventRunnerGroup implements Closeable {
 	 * @Param selector 自定义执行器的选择
 	 */
 	public void addEvent(int priority, Runnable runnable, Supplier<Integer> selector) {
-		eventRunnerSelector(selector).addEvent(priority, runnable);
+		EventRunner eventRunner;
+		if(selector == null) {
+			eventRunner = choseEventRunner();
+		}else {
+			eventRunner = eventRunnerSelector(selector);
+		}
+
+		eventRunner.addEvent(priority, runnable);
 	}
 
 	/**
@@ -260,8 +267,6 @@ public class EventRunnerGroup implements Closeable {
 		ThreadPoolExecutor threadPoolExecutor = ThreadPool.createThreadPool(groupName, size, size, 60*1000, true, threadPriority);
 		return new EventRunnerGroup(threadPoolExecutor, size, isSteal, attachmentSupplier);
 	}
-
-
 
 	public static EventRunnerGroup newInstance(String name, int size, boolean isSteal) {
 		ThreadPoolExecutor threadPoolExecutor  = ThreadPool.createThreadPool(name, size, size , 60*1000);

@@ -8,9 +8,11 @@ import org.voovan.http.server.module.annontationRouter.annotation.Router;
 import org.voovan.http.server.module.annontationRouter.annotation.WebSocket;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
+import org.voovan.http.server.module.annontationRouter.router.AsyncRunnerSelector;
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.TString;
 import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.AnnotataionScaner;
@@ -42,6 +44,8 @@ public class AnnotationModule extends HttpModule {
 
     private int asyncRouterCounter = 0;
 
+    private AsyncRunnerSelector asyncRunnerSelector;
+
     /**
      * 获取扫描注解路由的包路径
      * @return 注解路由的包路劲
@@ -59,12 +63,27 @@ public class AnnotationModule extends HttpModule {
     }
 
 
-    public int getAsyncThreadPoolSize(){
-        return (int) TObject.nullDefault(getParamters("asyncThreadPoolSize"), TPerformance.getProcessorCount() + 1);
+    public int getAsyncRunnerSize(){
+        return (int) TObject.nullDefault(getParamters("asyncRunnerSize"), TPerformance.getProcessorCount() + 1);
     }
 
-    public boolean getAsyncThreadPoolSteal(){
-        return (Boolean) TObject.nullDefault(getParamters("asyncThreadPoolSize"), true);
+    public boolean getAsyncRunnerSteal(){
+        return (Boolean) TObject.nullDefault(getParamters("isAsyncRunnerSteal"), true);
+    }
+
+    public void genAsyncRunnerSelector(){
+        String className = (String)TObject.nullDefault(getParamters("asyncRunnerSelector"), "");
+        if (!TString.isNullOrEmpty(className)) {
+            try {
+                asyncRunnerSelector = TReflect.newInstance(className, null);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public AsyncRunnerSelector getAsyncThreadSelector() {
+        return asyncRunnerSelector;
     }
 
     public void increaceAsyncRouterCounter(){
@@ -136,7 +155,8 @@ public class AnnotationModule extends HttpModule {
         }
 
         if(asyncRouterCounter >0) {
-            asyncEventRunnerGroup = EventRunnerGroup.newInstance("WEB-ROUTER-ASYNC", getAsyncThreadPoolSize(), getAsyncThreadPoolSteal());
+            genAsyncRunnerSelector();
+            asyncEventRunnerGroup = EventRunnerGroup.newInstance("WEB-ROUTER-ASYNC", getAsyncRunnerSize(), getAsyncRunnerSteal());
             asyncEventRunnerGroup.process();
         }
 

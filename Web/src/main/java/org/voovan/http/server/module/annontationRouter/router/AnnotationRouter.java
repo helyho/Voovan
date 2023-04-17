@@ -22,6 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 /**
  * 通过注解实现的路由
@@ -638,9 +639,11 @@ public class AnnotationRouter implements HttpRouter {
     @Override
     public void process(HttpRequest request, HttpResponse response) throws Exception {
         EventRunnerGroup asyncEventRunnerGroup = annotationModule.getAsyncEventRunnerGroup();
+        AsyncRunnerSelector asyncRunnerSelector = annotationModule.getAsyncThreadSelector();
+        Supplier<Integer> selectSupplier = asyncRunnerSelector == null ? null : ()->asyncRunnerSelector.select(request);
         if(methodRoute.async()) {
             response.setAsync(true);
-            asyncEventRunnerGroup.addEvent(()->{
+            asyncEventRunnerGroup.addEvent(5, ()->{
                 try {
                     handler(request, response);
                     response.send();
@@ -648,7 +651,7 @@ public class AnnotationRouter implements HttpRouter {
                 } catch (Exception e) {
                     Logger.errorf("Async process route ({}) failed,", e, request.protocol().getPath());
                 }
-            });
+            }, selectSupplier);
         } else {
             handler(request, response);
         }
