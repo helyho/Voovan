@@ -6,6 +6,7 @@ import org.voovan.tools.log.Logger;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -84,9 +85,9 @@ public class EventRunner implements Closeable {
 	 * 添加事件
 	 * @param priority 事件优先级必须在1-10之间, 越大优先级越高
 	 * @param callable 事件执行器
-	 * @return EventTask 对象
+	 * @return Future 对象
 	 */
-	public <V> EventTask<V> addEvent(int priority, Callable<V> callable) {
+	public <V> Future<V> addEvent(int priority, Callable<V> callable) {
 		if (priority > 10 || priority < 1) {
 			throw new EventRunnerException("priority must between 1-10");
 		}
@@ -109,9 +110,9 @@ public class EventRunner implements Closeable {
 	/**
 	 * 添加事件
 	 * @param callable 事件执行器
-	 * @return EventTask 对象
+	 * @return Future 对象
 	 */
-	public <V> EventTask<V> addEvent(Callable<V> callable){
+	public <V> Future<V> addEvent(Callable<V> callable){
 		return addEvent(5, callable);
 	}
 

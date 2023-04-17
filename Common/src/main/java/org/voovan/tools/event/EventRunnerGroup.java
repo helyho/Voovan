@@ -8,6 +8,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -146,8 +147,9 @@ public class EventRunnerGroup implements Closeable {
 	 * @param priority 事件优先级必须在1-10之间
 	 * @param callable 事件执行器
 	 * @Param selector 自定义执行器的选择
+	 * @return Future 对象
 	 */
-	public <V> FutureTask<V> addEvent(int priority, Callable<V> callable, Supplier<Integer> selector) {
+	public <V> Future<V> addEvent(int priority, Callable<V> callable, Supplier<Integer> selector) {
 		return eventRunnerSelector(selector).addEvent(priority, callable);
 	}
 
@@ -155,16 +157,18 @@ public class EventRunnerGroup implements Closeable {
 	 * 添加事件
 	 * @param priority 事件优先级必须在1-10之间
 	 * @param callable 事件执行器
+	 * @return Future 对象
 	 */
-	public <V> FutureTask<V> addEvent(int priority, Callable callable) {
+	public <V> Future<V> addEvent(int priority, Callable callable) {
 		return choseEventRunner().addEvent(priority, callable);
 	}
 
 	/**
 	 * 添加事件
 	 * @param runnable 事件执行器
+	 * @return Future 对象
 	 */
-	public <V> FutureTask<V> addEvent(Callable callable){
+	public <V> Future<V> addEvent(Callable callable){
 		return addEvent(5, callable);
 	}
 
