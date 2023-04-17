@@ -631,6 +631,7 @@ public class Dao<T extends Dao> {
         for(Dao dao: daos) {
             dao.setJdbcOperate(jdbcOperate);
             dao.snapshot();
+            dao.lock();
         }
 
         T ret;
