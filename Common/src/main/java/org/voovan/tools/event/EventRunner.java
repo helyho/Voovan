@@ -5,6 +5,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -75,7 +76,26 @@ public class EventRunner implements Closeable {
 		if(priority > 10 || priority < 1) {
 			throw new EventRunnerException("priority must between 1-10");
 		}
-		eventQueue.add(EventTask.newInstance(priority, runnable));
+		EventTask eventTask = EventTask.newInstance(priority, runnable);
+		eventQueue.add(eventTask);
+	}
+
+	/**
+	 * 添加事件
+	 * @param priority 事件优先级必须在1-10之间, 越大优先级越高
+	 * @param callable 事件执行器
+	 * @return EventTask 对象
+	 */
+	public EventTask addEvent(int priority, Callable callable) {
+		if (priority > 10 || priority < 1) {
+			throw new EventRunnerException("priority must between 1-10");
+		}
+
+		EventTask eventTask = EventTask.newInstance(priority, callable);
+		eventQueue.add(eventTask);
+
+		return eventTask;
+
 	}
 
 	/**
@@ -84,6 +104,14 @@ public class EventRunner implements Closeable {
 	 */
 	public void addEvent(Runnable runnable){
 		addEvent(5, runnable);
+	}
+
+	/**
+	 * 添加事件
+	 * @param callable 事件执行器
+	 */
+	public EventTask addEvent(Callable callable){
+		return addEvent(5, callable);
 	}
 
 	/**
@@ -124,10 +152,7 @@ public class EventRunner implements Closeable {
 					}
 
 					if(eventTask!=null) {
-						Runnable runnable = eventTask.getRunnable();
-						if (runnable != null) {
-							runnable.run();
-						}
+						eventTask.run();
 					} else {
 						if(eventRunnerGroup.getThreadPool().isShutdown()){
 							break;
