@@ -29,9 +29,17 @@ public class Config {
 
     public void init(URL url) {
         config = JSON.toObject(url, Map.class, true, true, true);
-        Logger.debug(config);
-        if(!(config instanceof Map)) {
-            throw new IOCException("ConfigFile must be a Map style file");
+
+        if(config == null) {
+            config = new LinkedHashMap<>();
+            Logger.warnf("Load IOC config file: \"{}\" failed", url.toString());
+        } else if (config!=null) {
+            Logger.debug(config);
+            if(!(config instanceof Map)) {
+                throw new IOCException("ConfigFile must be a Map style file");
+            } else {
+                Logger.simplef("[FRAMEWRORK] IOC Context load from: {}", url.toString());
+            }
         }
     }
 

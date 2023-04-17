@@ -248,7 +248,6 @@ public class JSON {
 					return toObject(fileContent, type, ignoreCase, enableToken, enablbeRef);
 				}
 			} catch (IOException e) {
-				Logger.error(e);
 			} finally {
 				//恢复文件上下文
 				JSONDecode.CONTEXT_PATH.set(TFile.getContextPath());
