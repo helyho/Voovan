@@ -11,7 +11,7 @@ import java.util.concurrent.FutureTask;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class EventTask extends FutureTask implements Comparable {
+public class EventTask<V> extends FutureTask<V> implements Comparable {
     private int priority;
 
     public EventTask(int priority, Runnable runnable) {
@@ -19,7 +19,7 @@ public class EventTask extends FutureTask implements Comparable {
         this.priority = priority;
     }
 
-    public EventTask(int priority, Callable callable) {
+    public EventTask(int priority, Callable<V> callable) {
         super(callable);
         this.priority = priority;
     }

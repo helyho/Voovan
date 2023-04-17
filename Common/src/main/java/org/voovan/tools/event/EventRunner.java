@@ -86,7 +86,7 @@ public class EventRunner implements Closeable {
 	 * @param callable 事件执行器
 	 * @return EventTask 对象
 	 */
-	public EventTask addEvent(int priority, Callable callable) {
+	public <V> EventTask<V> addEvent(int priority, Callable<V> callable) {
 		if (priority > 10 || priority < 1) {
 			throw new EventRunnerException("priority must between 1-10");
 		}
@@ -109,8 +109,9 @@ public class EventRunner implements Closeable {
 	/**
 	 * 添加事件
 	 * @param callable 事件执行器
+	 * @return EventTask 对象
 	 */
-	public EventTask addEvent(Callable callable){
+	public <V> EventTask<V> addEvent(Callable<V> callable){
 		return addEvent(5, callable);
 	}
 
