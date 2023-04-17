@@ -941,7 +941,7 @@ public class Recorder {
      * @throws ReflectiveOperationException 反射异常
      */
     public static <R> R buildUpdateBaseObject(R data, String ... updateFilds) throws ReflectiveOperationException {
-        List<String> updateFieldList = TObject.asList(updateFilds);
+        List<String> updateFieldList = updateFilds == null ? TObject.asList() : TObject.asList(updateFilds);
         Field[] fields = TReflect.getFields(data.getClass());
 
         for(Field field : fields){
