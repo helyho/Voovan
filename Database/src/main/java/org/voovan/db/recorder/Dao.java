@@ -11,6 +11,9 @@ import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
 import javax.sql.DataSource;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -715,4 +718,22 @@ public class Dao<T extends Dao> {
             return null;
         }, daos);
     }
+
+    public T forQuery() {
+        Field[] fields = TReflect.getFields(this.getClass());
+
+        for(Field field : fields){
+            if(Modifier.isStatic(field.getModifiers())){
+                continue;
+            }
+
+            try {
+				TReflect.setFieldValue(this, field.getName(), null);
+			} catch (ReflectiveOperationException e) {
+                Logger.errorf("{}.forQuery failed", e, this.getClass().getSimpleName());
+			}
+        }
+
+        return (T) this;
+    } 
 }
