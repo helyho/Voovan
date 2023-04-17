@@ -620,14 +620,15 @@ public class Dao<T extends Dao> {
             }
 
             ret = (T) transLogic.get();
+
+            jdbcOperate.commit();
         } catch(Throwable e) {
+            jdbcOperate.rollback();
             for(Dao dao: daos) {
                 dao.rollbackInMemory();
             }
-            jdbcOperate.rollback();
             throw e;
         }
-        jdbcOperate.commit();
 
         return ret;
     }
