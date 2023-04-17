@@ -205,23 +205,13 @@ public class Dao<T extends Dao> {
     public boolean update(String[] dataFields, String[] andFields, int effectRow) {
         check();
         try {
-            boolean newTransaction = jdbcOperate.beginTransaction();
             Query query = Query.newInstance().data(dataFields).and(andFields);
             if (recorder.update((T) this, query) == effectRow || effectRow < 0) {
-                if(newTransaction) {
-                    jdbcOperate.commit();
-                }
                 return true;
             } else {
-                jdbcOperate.rollback();
                 return false;
             }
         } catch (Exception e) {
-            try {
-                jdbcOperate.rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.update rollback failed", e);
-            }
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -561,22 +551,12 @@ public class Dao<T extends Dao> {
         Query query = Query.newInstance().and(andFields);
 
         try {
-            boolean newTransaction = jdbcOperate.beginTransaction();
             if (recorder.delete((T)this, query) == effectRow || effectRow < 0) {
-                if(newTransaction) {
-                    jdbcOperate.commit();
-                }
                 return true;
             } else {
-                jdbcOperate.rollback();
                 return false;
             }
         } catch (Exception e) {
-            try {
-                jdbcOperate.rollback();
-            } catch (SQLException throwables) {
-                Logger.error("Dao.update rollback failed", e);
-            }
             Logger.error("Dao.update failed", e);
             return false;
         }
@@ -628,15 +608,17 @@ public class Dao<T extends Dao> {
      * @throws Exception 异常
      */
     public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws Exception {
-        for(Dao dao: daos) {
-            dao.setJdbcOperate(jdbcOperate);
-            dao.snapshot();
-            dao.lock();
-        }
-
-        T ret;
-
+        T ret = null;
         try {
+            for(Dao dao: daos) {
+                dao.setJdbcOperate(jdbcOperate);
+                dao.snapshot();
+            }
+
+            for(Dao dao: daos) {
+                dao.lock();
+            }
+
             ret = (T) transLogic.get();
         } catch(Throwable e) {
             for(Dao dao: daos) {
