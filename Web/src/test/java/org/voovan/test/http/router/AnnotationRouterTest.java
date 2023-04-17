@@ -32,11 +32,11 @@ public class AnnotationRouterTest {
 
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
-    @Router(contentType = HttpContentType.IMAGE_GIF,tags = {"annonation"})
+    @Router(contentType = HttpContentType.IMAGE_GIF, tags = {"annonation"}, async = true)
     public Object index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time19:" + System.currentTimeMillis();
-        return TObject.asMap("index", lastPath, "seq", 133832, "ServerName", serverName);//"index, lastPath="+oldPath;
+        return TObject.asMap("index", lastPath, "seq", 133832, "ServerName", serverName, "Thread", Thread.currentThread().getName());//"index, lastPath="+oldPath;
     }
 
     //将当前方法注解为一个请求路由

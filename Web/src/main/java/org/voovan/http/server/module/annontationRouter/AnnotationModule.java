@@ -10,6 +10,8 @@ import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouterFilter;
 import org.voovan.http.server.module.annontationRouter.swagger.SwaggerApi;
 import org.voovan.tools.TObject;
+import org.voovan.tools.TPerformance;
+import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.AnnotataionScaner;
 import org.voovan.tools.ioc.Context;
@@ -28,13 +30,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class AnnotationModule extends HttpModule {
-    public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();
-    public ConcurrentHashMap<String, Method> URL_METHOD_MAP = new ConcurrentHashMap<String, Method>();
     public static String DEFAULT_SCAN_ROUTER_PACKAGE = "com;org;net;io";
     public static int DEFAULT_SCAN_ROUTER_INTERVAL = -1;
 
+    public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();
+    public ConcurrentHashMap<String, Method> URL_METHOD_MAP = new ConcurrentHashMap<String, Method>();
     private HashWheelTask scanRouterTask;
     private AnnotationRouterFilter annotationRouterFilter;
+
+    private EventRunnerGroup asyncEventRunnerGroup;
+
+    private int asyncRouterCounter = 0;
 
     /**
      * 获取扫描注解路由的包路径
@@ -50,6 +56,24 @@ public class AnnotationModule extends HttpModule {
      */
     public int getScanRouterInterval(){
         return (int) TObject.nullDefault(getParamters("ScanRouterInterval"), DEFAULT_SCAN_ROUTER_INTERVAL);
+    }
+
+
+    public int getAsyncThreadPoolSize(){
+        return (int) TObject.nullDefault(getParamters("asyncThreadPoolSize"), TPerformance.getProcessorCount() + 1);
+    }
+
+    public boolean getAsyncThreadPoolSteal(){
+        return (Boolean) TObject.nullDefault(getParamters("asyncThreadPoolSize"), true);
+    }
+
+    public void increaceAsyncRouterCounter(){
+        asyncRouterCounter++;
+    }
+
+
+    public EventRunnerGroup getAsyncEventRunnerGroup() {
+        return asyncEventRunnerGroup;
     }
 
     /**
@@ -109,6 +133,11 @@ public class AnnotationModule extends HttpModule {
 
         if (scanRouterPackage != null) {
             scanRouterClassAndRegister();
+        }
+
+        if(asyncRouterCounter >0) {
+            asyncEventRunnerGroup = EventRunnerGroup.newInstance("WEB-ROUTER-ASYNC", getAsyncThreadPoolSize(), getAsyncThreadPoolSteal());
+            asyncEventRunnerGroup.process();
         }
 
         if(scanRouterPackage != null && getScanRouterInterval() > 0) {

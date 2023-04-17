@@ -262,9 +262,14 @@ public class EventRunnerGroup implements Closeable {
 	}
 
 
-	public static EventRunnerGroup newInstance(int size, boolean isSteal) {
-		ThreadPoolExecutor threadPoolExecutor  = ThreadPool.createThreadPool("ERG", size, size , 60*1000);
+
+	public static EventRunnerGroup newInstance(String name, int size, boolean isSteal) {
+		ThreadPoolExecutor threadPoolExecutor  = ThreadPool.createThreadPool(name, size, size , 60*1000);
 		return new EventRunnerGroup(threadPoolExecutor, threadPoolExecutor.getMaximumPoolSize(),isSteal, null);
+	}
+
+	public static EventRunnerGroup newInstance(int size, boolean isSteal) {
+		return newInstance("ERG", size, isSteal);
 	}
 
 	public static EventRunnerGroup newInstance(int size) {

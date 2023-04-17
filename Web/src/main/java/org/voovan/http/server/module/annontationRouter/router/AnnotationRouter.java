@@ -12,6 +12,7 @@ import org.voovan.tools.TEnv;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.compiler.function.DynamicFunction;
+import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.ioc.Context;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
@@ -70,6 +71,10 @@ public class AnnotationRouter implements HttpRouter {
         this.urlPath = urlPath;
         this.paramPath = paramPath;
         this.path = urlPath + paramPath;
+
+        if(methodRoute.async()) {
+            annotationModule.increaceAsyncRouterCounter();
+        }
 
         annotationModule.METHOD_URL_MAP.put(method, urlPath);
         annotationModule.URL_METHOD_MAP.put(urlPath, method);
@@ -632,6 +637,24 @@ public class AnnotationRouter implements HttpRouter {
 
     @Override
     public void process(HttpRequest request, HttpResponse response) throws Exception {
+        EventRunnerGroup asyncEventRunnerGroup = annotationModule.getAsyncEventRunnerGroup();
+        if(methodRoute.async()) {
+            response.setAsync(true);
+            asyncEventRunnerGroup.addEvent(()->{
+                try {
+                    handler(request, response);
+                    response.send();
+                    response.flush();
+                } catch (Exception e) {
+                    Logger.errorf("Async process route ({}) failed,", e, request.protocol().getPath());
+                }
+            });
+        } else {
+            handler(request, response);
+        }
+    }
+
+    public void handler(HttpRequest request, HttpResponse response) throws Exception {
         AnnotationRouterFilter annotationRouterFilter = annotationModule.getAnnotationRouterFilter();
 
         Object responseObj = null;

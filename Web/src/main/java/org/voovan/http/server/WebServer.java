@@ -111,8 +111,8 @@ public class WebServer {
 		serverSocket = new TcpServerSocket(config.getHost(), config.getPort(), config.getReadTimeout()*1000, config.getSendTimeout()*1000, 0);
 
 		//构造 Web 独立的事件组执行器
-		serverSocket.setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", SocketContext.ACCEPT_THREAD_SIZE, true));
-		serverSocket.setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("Web", SocketContext.IO_THREAD_SIZE, false));
+		serverSocket.setAcceptEventRunnerGroup(SocketContext.createEventRunnerGroup("WEB", SocketContext.ACCEPT_THREAD_SIZE, true));
+		serverSocket.setIoEventRunnerGroup(SocketContext.createEventRunnerGroup("WEB", SocketContext.IO_THREAD_SIZE, false));
 
 		//[Socket]确认是否启用 HTTPS 支持
 		if(config.isHttps()) {

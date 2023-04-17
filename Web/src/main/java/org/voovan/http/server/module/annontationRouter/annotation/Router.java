@@ -53,6 +53,8 @@ public @interface Router {
      */
     boolean singleton() default true;
 
+    boolean async() default false;
+
     //-------------- API 文档相关属性 --------------
     /**
      * 标签
