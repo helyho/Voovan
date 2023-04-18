@@ -105,11 +105,11 @@ public class AnnotationModule extends HttpModule {
                 annotationRouterFilter = TReflect.newInstance(getParamters("Filter").toString());
                 Context.addExtBean(annotationRouterFilter);
             } catch (Exception e) {
-                annotationRouterFilter = AnnotationRouterFilter.EMPYT;
+                annotationRouterFilter = null;
             }
         }
 
-        return annotationRouterFilter == AnnotationRouterFilter.EMPYT ? null : annotationRouterFilter;
+        return annotationRouterFilter == null ? null : annotationRouterFilter;
     }
 
     /**

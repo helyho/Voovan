@@ -16,23 +16,6 @@ import java.lang.reflect.Method;
  */
 public interface AnnotationRouterFilter {
 
-    public final static AnnotationRouterFilter EMPYT = new AnnotationRouterFilter() {
-        @Override
-        public Object beforeInvoke(HttpRequest request, HttpResponse response, AnnotationRouter router) {
-            return null;
-        }
-
-        @Override
-        public Object afterInvoke(HttpRequest request, HttpResponse response, AnnotationRouter router, Object result) {
-            return null;
-        }
-
-        @Override
-        public Object exception(HttpRequest request, HttpResponse response, AnnotationRouter router, Exception e) {
-            return null;
-        }
-    };
-
     /**
      * 注解路由前置拦截方法
      * @param request http 请求对象
@@ -62,4 +45,15 @@ public interface AnnotationRouterFilter {
      * @return  null: 执行默认异常处理, 非 null: 返回值作为 http 请求的响应直接返回
      */
     public Object exception(HttpRequest request, HttpResponse response, AnnotationRouter router, Exception e);
+    /**
+     * 响应发送到 Socket 之前的拦截 
+     *
+     * @param request http 请求对象
+     * @param response http 响应对象
+     * @param router 注解路由对象
+     * @param respRet 响应发送前的
+     * @return  null: 执行默认异常处理, 非 null: 返回值作为 http 请求的响应直接返回
+     */
+    public Object beforeSend(HttpRequest request, HttpResponse response, AnnotationRouter router,  Object respRet);
+
 }
