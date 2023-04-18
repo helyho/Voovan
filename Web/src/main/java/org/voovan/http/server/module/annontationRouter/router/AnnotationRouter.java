@@ -732,7 +732,7 @@ public class AnnotationRouter implements HttpRouter {
                 if(annotationRouterFilter!=null) {
                     responseObj = annotationRouterFilter.beforeSend(request, response, this, responseObj);
                 }
-                response.write(responseObj);
+                response.write((String)responseObj);
             }
 
           
