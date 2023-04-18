@@ -717,13 +717,25 @@ public class AnnotationRouter implements HttpRouter {
 
         if (responseObj != null && response.body().size() == 0) {
             if (responseObj instanceof String) {
+                if(annotationRouterFilter!=null) {
+                    responseObj = annotationRouterFilter.beforeSend(request, response, this, responseObj);
+                }
                 response.write((String) responseObj);
             } else if (responseObj instanceof byte[]) {
+                if(annotationRouterFilter!=null) {
+                    responseObj = annotationRouterFilter.beforeSend(request, response, this, responseObj);
+                }
                 response.write((byte[]) responseObj);
             } else {
                 response.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpContentType.JSON.getContentType());
-                response.write(JSON.toJSON(responseObj));
+                responseObj = JSON.toJSON(responseObj);
+                if(annotationRouterFilter!=null) {
+                    responseObj = annotationRouterFilter.beforeSend(request, response, this, responseObj);
+                }
+                response.write(responseObj);
             }
+
+          
         }
     }
 }
