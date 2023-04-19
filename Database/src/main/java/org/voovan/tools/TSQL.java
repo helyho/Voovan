@@ -367,9 +367,9 @@ public class TSQL {
 			String[] condictions = TString.searchByRegex(originCondictionParams, "::\\w+\\b");
 			if(condictions.length > 0) {
 				for (String condictionParam : condictions){
-
-					//判断参数是否存在并做移除的处理
-					if (!params.containsKey(condictionParam.replace("::", ""))) {
+					String condictionParamName = condictionParam.replace("::", "");
+					//判断参数是否存在并做移除的处理, 以及 "= null" 的移除
+					if (!params.containsKey(condictionParamName) || (operatorChar.equals("=") && params.get(condictionParamName) == null)) {
 
 						//遍历所有的 in 的条件, 去除没有参数的条件 例如: [::status,1,2] -> [1,2]
 						if(operatorChar.equals("in") || operatorChar.equals("not in")) {
