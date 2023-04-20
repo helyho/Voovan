@@ -176,7 +176,6 @@ public class TProperties {
 					return properties;
 				} else {
 					System.out.println("[PROPERTIES] Load properites file failed. File:" + fileName + " not exists");
-					new NotFoundException(fileName).printStackTrace();
 					return null;
 				}
 			} else {
