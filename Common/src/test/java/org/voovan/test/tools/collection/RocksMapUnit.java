@@ -522,7 +522,7 @@ public class RocksMapUnit extends TestCase {
         List<BackupInfo> mm = rocksMap1.getBackupInfo();
         System.out.println(JSON.toJSONWithFormat(mm));
 
-        rocksMap1.deleteBackup(mm.get(0).backupId());
+//        rocksMap1.deleteBackup(mm.get(0).backupId());
 
         //恢复到指定 Id 的备份
         rocksMap1.restore(mm.get(3).backupId());
@@ -547,7 +547,7 @@ public class RocksMapUnit extends TestCase {
         RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
-        rocksMap1.restore(6);
+        rocksMap1.restore(3);
     }
 
 

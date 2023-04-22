@@ -41,10 +41,10 @@ public class AnnotationModule extends HttpModule {
     private AnnotationRouterFilter annotationRouterFilter;
 
     private EventRunnerGroup asyncEventRunnerGroup;
+    private AsyncRunnerSelector asyncRunnerSelector;
 
     private int asyncRouterCounter = 0;
 
-    private AsyncRunnerSelector asyncRunnerSelector;
 
     /**
      * 获取扫描注解路由的包路径
