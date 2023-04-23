@@ -1270,4 +1270,37 @@ public class TString {
 		return loadURL(endPoint, 5000);
 	}
 
+	public static String NUMBERS = "0123456789";
+	public static String CHAR_LOW_CASE = "abcdefghijklmnopqrstuvwxyz";
+	public static String CHAR_UPPER_CASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	public static String SPECIAL_CHAR = "~!@#$%^&*()[{]}-_=+|;:'\",<.>/?`";
+
+	/**
+	 * 生成随机字符串
+	 * @param length 随机字符串长度
+	 * @param useNumber 是否使用数字
+	 * @param useLowcaseChar 是否使用小写字母
+	 * @param useUppercaseChar 是否使用大写字母
+	 * @param useSpecialChar 是否使用特殊字符
+	 * @return 生成随机字符串
+	 */
+	public static String genRandomString(int length, boolean useNumber, boolean useLowcaseChar, boolean useUppercaseChar, boolean useSpecialChar){
+		String allChar = (useNumber? NUMBERS : "") +  (useLowcaseChar? CHAR_LOW_CASE : "") + 
+						(useUppercaseChar? CHAR_LOW_CASE : "") +  (useSpecialChar? SPECIAL_CHAR : "");
+
+		StringBuilder stringBuilder = new StringBuilder();
+		Random random = new Random();
+		for(int i=0;i<length;i++) {
+			int index = random.nextInt(allChar.length()-1);
+			stringBuilder.append(allChar.charAt(index));
+		}
+
+		return stringBuilder.toString();
+	}
+
+	public static String genRandomString(int length){
+		return genRandomString(length, true, true, true, false);
+	}
+
+
 }
