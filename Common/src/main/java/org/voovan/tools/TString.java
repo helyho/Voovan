@@ -1302,5 +1302,37 @@ public class TString {
 		return genRandomString(length, true, true, true, false);
 	}
 
+	/**
+	 * 按 step 将随机字符串织入目标字符串
+	 * @param str 目标字符串
+	 * @param step 步长
+	 * @return 织入后的字符串
+	 */
+	public static String weave(String str, int step) {
+        String randomString = TString.genRandomString(str.length()*step);
+
+        StringBuilder builder = new StringBuilder();
+        for(int i=0;i<str.length();i++) {
+            builder.append(randomString.charAt(i*step));
+            builder.append(randomString.charAt(i*step+1));
+            builder.append(str.charAt(i));
+        }
+        return builder.toString();
+    }
+
+	/**
+	 * 解析织入的字符串,获得原始字符串
+	 * @param str 织入后的字符串
+	 * @param step 步长
+	 * @return 原始字符串
+	 */
+    public static String unWeave(String str, int step) {
+        StringBuilder builder = new StringBuilder();
+        for(int i=step;i<str.length();i=i+step+1) {
+            builder.append(str.charAt(i));
+        } 
+        return builder.toString();
+    }
+
 
 }
