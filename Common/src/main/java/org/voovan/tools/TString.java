@@ -1313,8 +1313,9 @@ public class TString {
 
         StringBuilder builder = new StringBuilder();
         for(int i=0;i<str.length();i++) {
-            builder.append(randomString.charAt(i*step));
-            builder.append(randomString.charAt(i*step+1));
+			for(int p=0;p<step;p++) {
+            	builder.append(randomString.charAt(i*step + p));
+			}
             builder.append(str.charAt(i));
         }
         return builder.toString();
