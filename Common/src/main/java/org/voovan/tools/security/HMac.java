@@ -26,7 +26,7 @@ public class HMac {
      * SunJCE	HmacSHA384
      * SunJCE	HmacSHA512
      */
-    public THMac(String algorithm, String key) {
+    public HMac(String algorithm, String key) {
         this.algorithm = algorithm;
         SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "Hmac" + this.algorithm);
         try {
