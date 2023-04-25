@@ -1286,7 +1286,7 @@ public class TString {
 	 */
 	public static String genRandomString(int length, boolean useNumber, boolean useLowcaseChar, boolean useUppercaseChar, boolean useSpecialChar){
 		String allChar = (useNumber? NUMBERS : "") +  (useLowcaseChar? CHAR_LOW_CASE : "") + 
-						(useUppercaseChar? CHAR_LOW_CASE : "") +  (useSpecialChar? SPECIAL_CHAR : "");
+						(useUppercaseChar? CHAR_UPPER_CASE : "") +  (useSpecialChar? SPECIAL_CHAR : "");
 
 		StringBuilder stringBuilder = new StringBuilder();
 		Random random = new Random();
