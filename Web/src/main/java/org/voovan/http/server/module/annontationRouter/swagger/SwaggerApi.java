@@ -7,6 +7,7 @@ import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.router.AnnotationRouter;
 import org.voovan.http.server.module.annontationRouter.router.RouterInfo;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiParam;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiWrapResponse;
@@ -154,6 +155,22 @@ public class SwaggerApi {
                 path.getTags().add(tag.getName());
             }
             path.getTags().add(classUrl);
+            
+            //附加参数不在 Router 路由中使用, 但是在其他逻辑(过滤器鉴权等等)中使用的参数
+            for(ApiParam apiParam : method.getAnnotationsByType(ApiParam.class)) {
+                Parameter parameter = new Parameter();
+                parameter.setIn(apiParam.position());
+                String[] types = getParamType(apiParam.clazz());
+                parameter.setType(types[0]);
+                parameter.setFormat(types[1]);
+                parameter.setName( apiParam.value());
+                parameter.setDescription(apiParam.description());
+                parameter.setRequired(apiParam.isRequire());
+                parameter.setDefaultVal(apiParam.defaultVal());
+                parameter.setExample(apiParam.example());
+                path.getParameters().add(parameter);
+            }
+
 
             Annotation[][] paramAnnotationsArrary = method.getParameterAnnotations();
             Class[] paramTypes = method.getParameterTypes();

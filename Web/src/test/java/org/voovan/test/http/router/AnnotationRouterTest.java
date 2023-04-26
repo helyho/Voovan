@@ -7,6 +7,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiParam;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiWrapResponse;
@@ -33,6 +34,7 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
     @Router(contentType = HttpContentType.IMAGE_GIF, tags = {"annonation"}, async = true)
+    @ApiParam(value="addParam", clazz = String.class, position = "header")
     public Object index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time19:" + System.currentTimeMillis();
