@@ -252,14 +252,9 @@ public class SwaggerApi {
                                 continue;
                             }
 
-                            if(path.getParameters().size() == 0) {
-                                Parameter parameter = new Parameter();
-                                parameter.setIn("body");
-                                parameter.setName("body");
-                                path.getParameters().add(parameter);
-                            }
-
-                            Parameter parameter = path.getParameters().get(0);
+                            Parameter parameter = new Parameter();
+                            parameter.setIn("body");
+                            parameter.setName("body");
 
                             Schema schema = parameter.getSchema();
                             String name = ((BodyParam) paramAnnotation).value();
@@ -268,6 +263,7 @@ public class SwaggerApi {
                             boolean isRequire = ((BodyParam) paramAnnotation).isRequire();
                             String example = ((BodyParam) paramAnnotation).example();
                             createSchema(swagger, parameter.getSchema(), paramTypes[i], name, description, defaultVal, isRequire, example, true);
+                            path.getParameters().add(parameter);
 
                             if(method.getAnnotationsByType(ApiGeneric.class).length > 0) {
                                 if (parameter.getSchema().getType().equals("object")) {

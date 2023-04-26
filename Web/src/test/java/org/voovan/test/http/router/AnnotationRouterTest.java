@@ -108,6 +108,7 @@ public class AnnotationRouterTest {
     //当前方法的请求路由为:/annon/body,采用方法名作为路由的路径
     //将请求中报文在调用时注入成方法的 aa 参数,在 resetful 中经常被使用到
     @Router(method="POST",tags = {"annonation"})
+    @ApiParam(value="addParam", clazz = String.class, position = "header")
     public String body(@Body(description = "123123", defaultVal = "{'a_name': '123'}", example = "{'a_name': '123'}") B aa){
         String oldPath = lastPath;
         lastPath = "/annon/body, time:" + System.currentTimeMillis();
