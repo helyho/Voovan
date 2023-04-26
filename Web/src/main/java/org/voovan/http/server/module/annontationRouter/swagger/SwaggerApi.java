@@ -175,6 +175,7 @@ public class SwaggerApi {
             Annotation[][] paramAnnotationsArrary = method.getParameterAnnotations();
             Class[] paramTypes = method.getParameterTypes();
             int unNamedParamCount = 1;
+            int bodyParamRootIndex = -1;
             for (int i = 0; i < paramAnnotationsArrary.length; i++) {
                 Annotation[] paramAnnotations = paramAnnotationsArrary[i];
 
@@ -252,10 +253,15 @@ public class SwaggerApi {
                                 continue;
                             }
 
-                            Parameter parameter = new Parameter();
-                            parameter.setIn("body");
-                            parameter.setName("body");
-                            path.getParameters().add(parameter);
+                            if(bodyParamRootIndex<0) {
+                                Parameter parameter = new Parameter();
+                                parameter.setIn("body");
+                                parameter.setName("body");
+                                path.getParameters().add(parameter);
+                                bodyParamRootIndex = path.getParameters().size() - 1;
+                            }
+
+                            Parameter parameter = path.getParameters().get(bodyParamRootIndex);
 
                             Schema schema = parameter.getSchema();
                             String name = ((BodyParam) paramAnnotation).value();
