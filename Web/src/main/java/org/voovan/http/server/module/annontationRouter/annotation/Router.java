@@ -53,6 +53,10 @@ public @interface Router {
      */
     boolean singleton() default true;
 
+    /**
+     * 异步处理路由, 不会阻塞 SocketIO, 但会增加 OS 上下文切换, 权衡后使用, 默认: false
+     * @return
+     */
     boolean async() default false;
 
     //-------------- API 文档相关属性 --------------
