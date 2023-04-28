@@ -6,6 +6,7 @@ import org.voovan.db.exception.UpdateFieldException;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -612,11 +613,13 @@ public class Dao<T extends Dao> {
         try {
             for(Dao dao: daos) {
                 dao.setJdbcOperate(jdbcOperate);
-                dao.snapshot();
+                Dao dbDao = dao.lock();
+                TObject.copyField(dbDao, dao);
+
             }
 
             for(Dao dao: daos) {
-                dao.lock();
+                dao.snapshot();
             }
 
             ret = (T) transLogic.get();
