@@ -61,7 +61,7 @@ public class HttpMonitorFilter implements HttpFilter {
 	 */
 	public void ipAddressAnalysis(HttpRequest request){
 		String requestPath = request.protocol().getPath();
-		String ipAddress = request.getRemoteAddres();
+		String ipAddress = request.getRemoteAddress();
 
 		if(ipAddress==null){
 			ipAddress = "unknown or disconnect";

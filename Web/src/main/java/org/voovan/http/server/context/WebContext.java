@@ -393,7 +393,7 @@ public class WebContext {
 	private static String genAccessLog(HttpRequest request, HttpResponse response){
 		StringBuilder content = new StringBuilder();
 		content.append("["+ TDateTime.now()+"]");
-		content.append(" "+TString.rightPad(request.getRemoteAddres(),15,' '));
+		content.append(" "+TString.rightPad(request.getRemoteAddress(),15,' '));
 		content.append(" "+TString.rightPad(request.getRemotePort()+"",5,' '));
 		content.append(" "+request.protocol().getProtocol()+"/"+request.protocol().getVersion()+" "+TString.rightPad(request.protocol().getMethod(),6,' '));
 		content.append(" "+response.protocol().getStatus());

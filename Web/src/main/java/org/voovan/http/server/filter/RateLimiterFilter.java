@@ -68,7 +68,7 @@ public class RateLimiterFilter implements HttpFilter {
         }
 
         //-------------------ip---------------------
-        String ipAddress = httpRequest.getRemoteAddres();
+        String ipAddress = httpRequest.getRemoteAddress();
         Limiter ipLimiter = IP_LIMITER_MAP.get(ipAddress);
         if(ipLimiter == null) {
             List ipLimiterList = LIMITER_DEFINE_MAP.getValues("IP");

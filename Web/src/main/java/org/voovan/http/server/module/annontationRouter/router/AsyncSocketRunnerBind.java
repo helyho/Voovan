@@ -14,6 +14,6 @@ import org.voovan.http.server.HttpRequest;
 public class AsyncSocketRunnerBind implements AsyncRunnerSelector {
     @Override
     public Integer select(HttpRequest httpRequest) {
-        return httpRequest.getRemoteAddres().hashCode();
+        return httpRequest.getRemoteAddress().hashCode();
     }
 }
