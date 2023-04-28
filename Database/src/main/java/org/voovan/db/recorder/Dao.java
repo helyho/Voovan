@@ -14,7 +14,6 @@ import javax.sql.DataSource;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -609,6 +608,7 @@ public class Dao<T extends Dao> {
      */
     public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws Exception {
         T ret = null;
+        daos = daos == null ? new Dao[0] : daos;
         try {
             for(Dao dao: daos) {
                 dao.setJdbcOperate(jdbcOperate);
