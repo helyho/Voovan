@@ -76,7 +76,6 @@ public class EventRunnerGroup implements Closeable {
 	 * @return 事件执行器对象
 	 */
 	public EventRunner choseEventRunner(){
-		//TODO: 这里最好能够使用负载均衡算法
 		int index = indexAtom.getAndUpdate((val) ->{
 			int newVal = val + 1;
 			return (size == newVal) ? 0 : newVal;

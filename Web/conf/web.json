@@ -118,7 +118,7 @@
       LifeCycleClass: org.voovan.test.http.HttpModuleLifeCycleClass,
       asyncRunnerSize: 16,
       isAsyncRunnerSteal: false,
-      asyncRunnerSelector: org.voovan.http.server.module.annontationRouter.router.AsyncSocketRunnerBind,
+      asyncRunnerSelector: org.voovan.http.server.module.annontationRouter.router.AsyncSocketBindSelector,
 
 
       Swagger : {
