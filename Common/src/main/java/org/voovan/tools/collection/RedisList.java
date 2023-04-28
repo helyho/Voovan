@@ -220,8 +220,10 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         try (Jedis jedis = getJedis()) {
             ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.blpop(timeout, name.getBytes());
-            for(byte[] bytes : queryResult){
-                result.add((V)TSerialize.unserialize(bytes));
+            if(queryResult != null) {
+                for(byte[] bytes : queryResult){
+                    result.add((V)TSerialize.unserialize(bytes));
+                }
             }
             return result;
         }
@@ -231,8 +233,10 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         try (Jedis jedis = getJedis()) {
             ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.brpop(timeout, name.getBytes());
-            for(byte[] bytes : queryResult){
-                result.add((V)TSerialize.unserialize(bytes));
+            if(queryResult != null) {
+                for(byte[] bytes : queryResult){
+                    result.add((V)TSerialize.unserialize(bytes));
+                }
             }
             return result;
         }
