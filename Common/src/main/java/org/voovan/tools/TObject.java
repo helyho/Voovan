@@ -431,7 +431,7 @@ public class TObject {
 			}
 
 			Object value = originMap.get(targetField.getName());
-			if(TReflect.getPackageClass(value.getClass()).equals(TReflect.getPackageClass(targetField.getType()))) {
+			if(value==null || TReflect.getPackageClass(value.getClass()).equals(TReflect.getPackageClass(targetField.getType()))) {
 				TReflect.setFieldValue(target, targetField.getName(), value);
 			}
 		}
