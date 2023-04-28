@@ -443,7 +443,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 使用自定义查询数据多条数据
-     * @param dataSql select 和 from 之间的 sql 语句
+     * @param whereSQL sql 语句中 where 后的语句
      * @param clazz 查询返回的对象类型
      * @param <R> 范型
      * @return 查询的结果

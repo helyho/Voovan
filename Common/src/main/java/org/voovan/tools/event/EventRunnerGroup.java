@@ -118,7 +118,7 @@ public class EventRunnerGroup implements Closeable {
 	 * 添加事件
 	 * @param priority 事件优先级必须在1-10之间
 	 * @param runnable 事件执行器
-	 * @Param selector 自定义执行器的选择
+	 * @param selector 自定义执行器的选择
 	 */
 	public void addEvent(int priority, Runnable runnable, Supplier<Integer> selector) {
 		EventRunner eventRunner;
@@ -152,7 +152,7 @@ public class EventRunnerGroup implements Closeable {
 	 * 添加事件
 	 * @param priority 事件优先级必须在1-10之间
 	 * @param callable 事件执行器
-	 * @Param selector 自定义执行器的选择
+	 * @param selector 自定义执行器的选择
 	 * @return Future 对象
 	 */
 	public <V> Future<V> addEvent(int priority, Callable<V> callable, Supplier<Integer> selector) {
@@ -163,6 +163,7 @@ public class EventRunnerGroup implements Closeable {
 	 * 添加事件
 	 * @param priority 事件优先级必须在1-10之间
 	 * @param callable 事件执行器
+	 * @param V 泛型类型
 	 * @return Future 对象
 	 */
 	public <V> Future<V> addEvent(int priority, Callable callable) {
@@ -171,7 +172,8 @@ public class EventRunnerGroup implements Closeable {
 
 	/**
 	 * 添加事件
-	 * @param runnable 事件执行器
+	 * @param callable 事件执行器
+	 * @param V 泛型类型
 	 * @return Future 对象
 	 */
 	public <V> Future<V> addEvent(Callable callable){

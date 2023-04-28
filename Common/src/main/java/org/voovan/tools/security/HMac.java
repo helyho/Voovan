@@ -25,6 +25,8 @@ public class HMac {
      * SunJCE	HmacSHA256
      * SunJCE	HmacSHA384
      * SunJCE	HmacSHA512
+     * @param algorithm 算法
+     * @param key 用于 hash 的 key
      */
     public HMac(String algorithm, String key) {
         this.algorithm = algorithm;

@@ -31,7 +31,6 @@ public @interface ApiParam {
     /**
      * 参数位置
      * [path, header, cookie]
-     * @return
      */
     String position() default "path";
     

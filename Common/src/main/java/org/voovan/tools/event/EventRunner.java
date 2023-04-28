@@ -85,6 +85,7 @@ public class EventRunner implements Closeable {
 	 * 添加事件
 	 * @param priority 事件优先级必须在1-10之间, 越大优先级越高
 	 * @param callable 事件执行器
+	 * @param V 泛型类型
 	 * @return Future 对象
 	 */
 	public <V> Future<V> addEvent(int priority, Callable<V> callable) {
@@ -92,7 +93,7 @@ public class EventRunner implements Closeable {
 			throw new EventRunnerException("priority must between 1-10");
 		}
 
-		EventTask eventTask = EventTask.newInstance(priority, callable);
+		EventTask<V> eventTask = EventTask.newInstance(priority, callable);
 		eventQueue.add(eventTask);
 
 		return eventTask;
@@ -110,6 +111,7 @@ public class EventRunner implements Closeable {
 	/**
 	 * 添加事件
 	 * @param callable 事件执行器
+	 * @param V 泛型类型
 	 * @return Future 对象
 	 */
 	public <V> Future<V> addEvent(Callable<V> callable){
