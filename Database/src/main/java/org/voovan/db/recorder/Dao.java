@@ -613,8 +613,14 @@ public class Dao<T extends Dao> {
         try {
             for(Dao dao: daos) {
                 dao.setJdbcOperate(jdbcOperate);
+                JdbcOperate jdbcOperate = dao.getJdbcOperate();
+                Recorder recorder = dao.getRecorder();
+
                 Dao dbDao = dao.lock();
+                
                 TObject.copyField(dbDao, dao);
+                dao.setJdbcOperate(jdbcOperate);
+                dao.setRecorder(recorder);
 
             }
 

@@ -422,7 +422,7 @@ public class TObject {
 			return;
 		}
 
-		Map<String, Object> originMap = TReflect.getMapFromObject(origin);
+		Map<String, Object> originMap = TReflect.getMapFromObject(origin, true);
 		Field[] targetFields = TReflect.getFields(target.getClass());
 
 		for(Field targetField : targetFields){
