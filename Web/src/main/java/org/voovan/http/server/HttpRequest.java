@@ -151,7 +151,7 @@ public class HttpRequest extends Request {
 	 *
 	 * @return 对端连接的 IP
 	 */
-	public String getRemoteAddres() {
+	public String getRemoteAddress() {
 		String xForwardedFor = header().get("X-Forwarded-For");
 
 		if (xForwardedFor != null) {
