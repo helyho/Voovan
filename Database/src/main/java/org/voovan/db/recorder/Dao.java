@@ -276,6 +276,10 @@ public class Dao<T extends Dao> {
 
             java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
 
+            if(snapshot==null) {
+                continue;
+            }
+
             if (field != null) {
                 TReflect.setFieldValue(this, fieldName, snapshot.get(fieldName));
             } else {
