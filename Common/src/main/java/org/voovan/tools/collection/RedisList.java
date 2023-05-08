@@ -119,6 +119,15 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         this.dbIndex = dbIndex;
     }
 
+    /**
+     * 在 redis 中删除这个 list
+     */
+    public void delete() {
+        try (Jedis jedis = getJedis()) {
+            jedis.del(name);
+        }
+    }
+
     @Override
     public void close() throws IOException {
         redisPool.close();
@@ -384,7 +393,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException();
+        trim(0, -1); 
     }
 
     @Override
