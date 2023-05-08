@@ -1270,4 +1270,70 @@ public class TString {
 		return loadURL(endPoint, 5000);
 	}
 
+	public static String NUMBERS = "0123456789";
+	public static String CHAR_LOW_CASE = "abcdefghijklmnopqrstuvwxyz";
+	public static String CHAR_UPPER_CASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	public static String SPECIAL_CHAR = "~!@#$%^&*()[{]}-_=+|;:'\",<.>/?`";
+
+	/**
+	 * 生成随机字符串
+	 * @param length 随机字符串长度
+	 * @param useNumber 是否使用数字
+	 * @param useLowcaseChar 是否使用小写字母
+	 * @param useUppercaseChar 是否使用大写字母
+	 * @param useSpecialChar 是否使用特殊字符
+	 * @return 生成随机字符串
+	 */
+	public static String genRandomString(int length, boolean useNumber, boolean useLowcaseChar, boolean useUppercaseChar, boolean useSpecialChar){
+		String allChar = (useNumber? NUMBERS : "") +  (useLowcaseChar? CHAR_LOW_CASE : "") + 
+						(useUppercaseChar? CHAR_UPPER_CASE : "") +  (useSpecialChar? SPECIAL_CHAR : "");
+
+		StringBuilder stringBuilder = new StringBuilder();
+		Random random = new Random();
+		for(int i=0;i<length;i++) {
+			int index = random.nextInt(allChar.length()-1);
+			stringBuilder.append(allChar.charAt(index));
+		}
+
+		return stringBuilder.toString();
+	}
+
+	public static String genRandomString(int length){
+		return genRandomString(length, true, true, true, false);
+	}
+
+	/**
+	 * 按 step 将随机字符串织入目标字符串
+	 * @param str 目标字符串
+	 * @param step 步长
+	 * @return 织入后的字符串
+	 */
+	public static String weave(String str, int step) {
+        String randomString = TString.genRandomString(str.length()*step);
+
+        StringBuilder builder = new StringBuilder();
+        for(int i=0;i<str.length();i++) {
+			for(int p=0;p<step;p++) {
+            	builder.append(randomString.charAt(i*step + p));
+			}
+            builder.append(str.charAt(i));
+        }
+        return builder.toString();
+    }
+
+	/**
+	 * 解析织入的字符串,获得原始字符串
+	 * @param str 织入后的字符串
+	 * @param step 步长
+	 * @return 原始字符串
+	 */
+    public static String unWeave(String str, int step) {
+        StringBuilder builder = new StringBuilder();
+        for(int i=step;i<str.length();i=i+step+1) {
+            builder.append(str.charAt(i));
+        } 
+        return builder.toString();
+    }
+
+
 }

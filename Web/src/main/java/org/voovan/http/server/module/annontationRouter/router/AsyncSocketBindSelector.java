@@ -11,9 +11,9 @@ import org.voovan.http.server.HttpRequest;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class AsyncSocketRunnerBind implements AsyncRunnerSelector {
+public class AsyncSocketBindSelector implements AsyncRunnerSelector {
     @Override
     public Integer select(HttpRequest httpRequest) {
-        return httpRequest.getRemoteAddres().hashCode();
+        return httpRequest.getRemoteAddress().hashCode();
     }
 }

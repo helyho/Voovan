@@ -67,7 +67,7 @@ public class MonitorRouter implements HttpRouter {
         String authToken = request.header().get("AUTH-TOKEN");
 
         if(authToken!=null && authToken.equals(WebContext.AUTH_TOKEN) &&
-                MonitorGlobal.ALLOW_IP_ADDRESS.contains(request.getRemoteAddres())) {
+                MonitorGlobal.ALLOW_IP_ADDRESS.contains(request.getRemoteAddress())) {
             String type = request.getParameter("Type");
             String responseStr = "";
             if ("JVM".equals(type)) {

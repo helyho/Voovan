@@ -4,6 +4,7 @@ import org.voovan.tools.reflect.GenericInfo;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.text.ParseException;
 import java.util.*;
@@ -421,12 +422,16 @@ public class TObject {
 			return;
 		}
 
-		Map<String, Object> originMap = TReflect.getMapFromObject(origin);
+		Map<String, Object> originMap = TReflect.getMapFromObject(origin, true);
 		Field[] targetFields = TReflect.getFields(target.getClass());
 
 		for(Field targetField : targetFields){
+			if(Modifier.isStatic(targetField.getModifiers())){
+				continue;
+			}
+
 			Object value = originMap.get(targetField.getName());
-			if(TReflect.getPackageClass(value.getClass()).equals(TReflect.getPackageClass(targetField.getType()))) {
+			if(value==null || TReflect.getPackageClass(value.getClass()).equals(TReflect.getPackageClass(targetField.getType()))) {
 				TReflect.setFieldValue(target, targetField.getName(), value);
 			}
 		}

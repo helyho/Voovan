@@ -119,6 +119,15 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         this.dbIndex = dbIndex;
     }
 
+    /**
+     * 在 redis 中删除这个 list
+     */
+    public void delete() {
+        try (Jedis jedis = getJedis()) {
+            jedis.del(name);
+        }
+    }
+
     @Override
     public void close() throws IOException {
         redisPool.close();
@@ -216,25 +225,24 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
         }
     }
 
-    public List<V> removeFirst(int timeout) {
+    public V removeFirst(int timeout) {
         try (Jedis jedis = getJedis()) {
-            ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.blpop(timeout, name.getBytes());
-            for(byte[] bytes : queryResult){
-                result.add((V)TSerialize.unserialize(bytes));
+            if(queryResult != null && queryResult.size() == 2) {
+                return (V)TSerialize.unserialize(queryResult.get(1));
             }
-            return result;
+            return null;
         }
     }
 
-    public List<V> removeLast(int timeout) {
+    public V removeLast(int timeout) {
         try (Jedis jedis = getJedis()) {
             ArrayList<V> result = new ArrayList<V>();
             List<byte[]> queryResult = jedis.brpop(timeout, name.getBytes());
-            for(byte[] bytes : queryResult){
-                result.add((V)TSerialize.unserialize(bytes));
+            if(queryResult != null && queryResult.size() == 2) {
+                return (V)TSerialize.unserialize(queryResult.get(1));
             }
-            return result;
+            return null;
         }
     }
 
@@ -385,7 +393,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException();
+        trim(0, -1); 
     }
 
     @Override

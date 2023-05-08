@@ -18,6 +18,7 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.voovan.tools.TObject.cast;
 import static org.voovan.tools.reflect.TReflect.SINGLE_VALUE_KEY;
@@ -42,12 +43,13 @@ public class IOCUtils {
     }
 
     public static String classKey(Class clazz) {
-        //TODO: 转换成配置文件
         //归总到接口类型
         if(TReflect.isImp(clazz, Map.class)) {
             clazz = Map.class;
         } else if(TReflect.isImp(clazz, List.class)){
             clazz = List.class;
+        } else if(TReflect.isImp(clazz, Set.class)){
+            clazz = Set.class;
         }
         return TEnv.shortClassName(clazz.getName(), "");
     }

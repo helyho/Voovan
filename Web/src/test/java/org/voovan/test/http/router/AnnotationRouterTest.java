@@ -7,6 +7,7 @@ import org.voovan.http.server.HttpResponse;
 import org.voovan.http.server.HttpSession;
 import org.voovan.http.server.module.annontationRouter.annotation.*;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiModel;
+import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiParam;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiProperty;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiGeneric;
 import org.voovan.http.server.module.annontationRouter.swagger.annotation.ApiWrapResponse;
@@ -33,6 +34,7 @@ public class AnnotationRouterTest {
     //将当前方法注解为一个请求路由
     //当前方法的请求路由为:/annon/index,采用方法名作为路由的路径
     @Router(contentType = HttpContentType.IMAGE_GIF, tags = {"annonation"}, async = true)
+    @ApiParam(value="addParam", clazz = String.class, position = "header")
     public Object index(){
         String oldPath = lastPath;
         lastPath = "/annon/index, time19:" + System.currentTimeMillis();
@@ -106,6 +108,7 @@ public class AnnotationRouterTest {
     //当前方法的请求路由为:/annon/body,采用方法名作为路由的路径
     //将请求中报文在调用时注入成方法的 aa 参数,在 resetful 中经常被使用到
     @Router(method="POST",tags = {"annonation"})
+    @ApiParam(value="addParam", clazz = String.class, position = "header")
     public String body(@Body(description = "123123", defaultVal = "{'a_name': '123'}", example = "{'a_name': '123'}") B aa){
         String oldPath = lastPath;
         lastPath = "/annon/body, time:" + System.currentTimeMillis();

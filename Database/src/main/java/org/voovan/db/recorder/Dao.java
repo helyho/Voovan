@@ -6,6 +6,7 @@ import org.voovan.db.exception.UpdateFieldException;
 import org.voovan.db.recorder.annotation.NotInsert;
 import org.voovan.db.recorder.annotation.NotUpdate;
 import org.voovan.db.recorder.exception.RecorderException;
+import org.voovan.tools.TObject;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.reflect.annotation.NotSerialization;
@@ -14,7 +15,6 @@ import javax.sql.DataSource;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -276,6 +276,10 @@ public class Dao<T extends Dao> {
 
             java.lang.reflect.Field field = TReflect.findField(this.getClass(), fieldName);
 
+            if(snapshot==null) {
+                continue;
+            }
+
             if (field != null) {
                 TReflect.setFieldValue(this, fieldName, snapshot.get(fieldName));
             } else {
@@ -443,7 +447,7 @@ public class Dao<T extends Dao> {
 
     /**
      * 使用自定义查询数据多条数据
-     * @param dataSql select 和 from 之间的 sql 语句
+     * @param whereSQL sql 语句中 where 后的语句
      * @param clazz 查询返回的对象类型
      * @param <R> 范型
      * @return 查询的结果
@@ -609,14 +613,23 @@ public class Dao<T extends Dao> {
      */
     public <T> T transaction(Supplier<T> transLogic, Dao...daos) throws Exception {
         T ret = null;
+        daos = daos == null ? new Dao[0] : daos;
         try {
             for(Dao dao: daos) {
                 dao.setJdbcOperate(jdbcOperate);
-                dao.snapshot();
+                JdbcOperate jdbcOperate = dao.getJdbcOperate();
+                Recorder recorder = dao.getRecorder();
+
+                Dao dbDao = dao.lock();
+                
+                TObject.copyField(dbDao, dao);
+                dao.setJdbcOperate(jdbcOperate);
+                dao.setRecorder(recorder);
+
             }
 
             for(Dao dao: daos) {
-                dao.lock();
+                dao.snapshot();
             }
 
             ret = (T) transLogic.get();

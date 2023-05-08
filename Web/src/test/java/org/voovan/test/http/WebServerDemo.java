@@ -81,7 +81,7 @@ public class WebServerDemo {
 		//普通 GET 请求
 		webServer.get("/",  new HttpRouter(){
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
+				Logger.info("Client info: " + req.getRemoteAddress() + ":" + req.getRemotePort());
 				Logger.simple("Request info: " + req.protocol());
 				//Session 测试
 				{
@@ -103,7 +103,7 @@ public class WebServerDemo {
 		//带路径参数的 GET 请求
 		webServer.get("/Star/:name/:age",  new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
+				Logger.info("Client info: " + req.getRemoteAddress() + ":" + req.getRemotePort());
 				Logger.simple("Request info: " + req.protocol());
 				resp.write(fileContent);
 				resp.write("{"
@@ -117,7 +117,7 @@ public class WebServerDemo {
 		//路径模糊匹配
 		webServer.get("/test/t*t/kkk/*",  new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
+				Logger.info("Client info: " + req.getRemoteAddress() + ":" + req.getRemotePort());
 				Logger.simple("Request info: " + req.protocol());
 				resp.write(fileContent);
 				resp.write("{"
@@ -130,7 +130,7 @@ public class WebServerDemo {
 		// 重定向
 		webServer.get("/redirect",  new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
+				Logger.info("Client info: " + req.getRemoteAddress() + ":" + req.getRemotePort());
 				Logger.simple("Request info: " + req.protocol());
 				resp.redirct("http://www.baidu.com");
 			}
@@ -139,7 +139,7 @@ public class WebServerDemo {
 		//普通 POST 请求
 		webServer.post("/",  new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
-				Logger.info("Client info: " + req.getRemoteAddres() + ":" + req.getRemotePort());
+				Logger.info("Client info: " + req.getRemoteAddress() + ":" + req.getRemotePort());
 				Logger.simple("Request info: " + req.protocol());
 				resp.write(fileContent);
 				String contentType = req.header().get("Content-Type").split(";")[0];
