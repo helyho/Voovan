@@ -9,6 +9,7 @@ import org.voovan.tools.log.Logger;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 类文字命名
@@ -56,6 +57,23 @@ public class HashWheelTimerUnit extends TestCase {
     }
 
     public void testRotateWheel(){
+        hashWheelTimer.rotate();
+        TEnv.sleep(60 * 1000 * 10);
+    }
+
+    public void testStep(){
+        AtomicInteger a = new AtomicInteger();
+        hashWheelTimer = new HashWheelTimer("aaaa", 3, 1000);
+        hashWheelTimer.addTask(new HashWheelTask() {
+                                   @Override
+                                   public void run() {
+                                       System.out.println(TDateTime.now() + "-->11");
+                                       a.getAndIncrement();
+//                                       if(a.get() == 5) {
+//                                           this.cancel();
+//                                       }
+                                   }
+                               }, 5, false);
         hashWheelTimer.rotate();
         TEnv.sleep(60 * 1000 * 10);
     }

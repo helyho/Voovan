@@ -643,7 +643,7 @@ public class Recorder {
                 continue;
             }
 
-            //跳过逐渐
+            //跳过主键
             if(field.getAnnotation(PrimaryKey.class)!=null) {
                 continue;
             }

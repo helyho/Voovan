@@ -52,7 +52,8 @@ public class HashWheel {
 
             final HashWheel innerHashWheel = this;
 
-            int nextSlot = currentSlot + interval;
+            int taskSlot = task.getDoCount()==0 ? currentSlot : task.getSlot();
+            int nextSlot =  taskSlot + interval;
 
             int skipSlot = interval / size;
 
