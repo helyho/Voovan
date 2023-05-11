@@ -349,7 +349,7 @@ public class TEnv {
 
 		eventRunnerGroup.process();
 		
-		eventRunnerGroup.wait(10*1000);
+		eventRunnerGroup.await();
 
 		return clazzes;
 	}
