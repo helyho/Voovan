@@ -4,6 +4,8 @@ import com.sun.tools.attach.AgentInitializationException;
 import com.sun.tools.attach.AgentLoadException;
 import com.sun.tools.attach.AttachNotSupportedException;
 import com.sun.tools.attach.VirtualMachine;
+
+import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
@@ -16,6 +18,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
@@ -312,24 +315,41 @@ public class TEnv {
 	 * @param pattern  确认匹配的正则表达式
 	 * @param filters  过滤的 class, 满足这些条件的 class 才会被搜索到(注解,接口,继承的类)
 	 * @return  匹配到的 class 集合
-	 * @throws IOException IO 异常
+	 * @throws InterruptedException 异常
 	 */
-	public static List<Class> searchClassInEnv(String pattern, Class[] filters) throws IOException {
+	public static List<Class> searchClassInEnv(String pattern, Class[] filters) throws InterruptedException {
+		EventRunnerGroup eventRunnerGroup = EventRunnerGroup.newInstance();
 		List<String> classPaths = getClassPath();
-		ArrayList<Class> clazzes = new ArrayList<Class>();
+		List<Class> clazzes = new Vector<Class>();
 		for(String classPath : classPaths){
 
 			if(TString.isNullOrEmpty(classPath)){
 				continue;
 			}
-
+			
 			File classPathFile = new File(classPath);
 			if(classPathFile.exists() && classPathFile.isDirectory()){
-				clazzes.addAll( getDirectorClass(classPathFile, pattern, filters));
+				eventRunnerGroup.addEvent(()->{
+					try {
+						clazzes.addAll(getDirectorClass(classPathFile, pattern, filters));
+					} catch (IOException e) {
+						Logger.errorf("Scan path {} failed", e, classPath);
+					}
+				});
 			} else if(classPathFile.exists() && classPathFile.isFile() && classPathFile.getName().endsWith(".jar")) {
-				clazzes.addAll( getJarClass(classPathFile, pattern, filters) );
+				eventRunnerGroup.addEvent(()->{
+					try {
+						clazzes.addAll(getJarClass(classPathFile, pattern, filters) );
+					} catch (IOException e) {
+						Logger.errorf("Scan path {} failed", e, classPath);
+					}
+				});
 			}
 		}
+
+		eventRunnerGroup.process();
+		
+		eventRunnerGroup.wait(10*1000);
 
 		return clazzes;
 	}
