@@ -347,8 +347,6 @@ public class TEnv {
 			}
 		}
 
-		eventRunnerGroup.process();
-		
 		eventRunnerGroup.await();
 
 		return clazzes;
