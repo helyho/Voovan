@@ -315,7 +315,7 @@ public class TEnv {
 	 * @throws IOException IO 异常
 	 */
 	public static List<Class> searchClassInEnv(String pattern, Class[] filters) throws IOException {
-		String userDir = System.getProperty("user.dir");
+		// String userDir = System.getProperty("user.dir");
 		List<String> classPaths = getClassPath();
 		ArrayList<Class> clazzes = new ArrayList<Class>();
 		for(String classPath : classPaths){
@@ -324,7 +324,7 @@ public class TEnv {
 				continue;
 			}
 
-			if(!classPath.startsWith(".") && !classPath.startsWith(userDir)) {
+			if(!classPath.startsWith(".")) {
 				continue;
 			}
 
