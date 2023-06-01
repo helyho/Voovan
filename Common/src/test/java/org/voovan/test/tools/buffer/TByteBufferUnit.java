@@ -21,7 +21,7 @@ public class TByteBufferUnit extends TestCase {
     private ByteBuffer b ;
 
     public void setUp() throws IOException {
-        b = ByteBuffer.allocate(10);
+        b = TByteBuffer.allocateManualReleaseBuffer(10);
         b.put("helyho".getBytes());
     }
 
@@ -39,6 +39,7 @@ public class TByteBufferUnit extends TestCase {
         Logger.simple(b+"\r\n"+TByteBuffer.toString(b));
         assertEquals(20, b.capacity());
         assertEquals("helyho", TByteBuffer.toString(b).trim());
+        TByteBuffer.release(b);
     }
 
     public void testMoveData(){

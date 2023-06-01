@@ -41,6 +41,7 @@ public class Deallocator implements Runnable {
             return;
         }
         TUnsafe.getUnsafe().freeMemory(address);
+        TByteBuffer.ADDR_DEALLOCATOR.remove(address);
         address = 0;
         ByteBufferAnalysis.free(capacity);
     }

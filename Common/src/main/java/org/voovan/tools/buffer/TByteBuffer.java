@@ -2,6 +2,7 @@ package org.voovan.tools.buffer;
 
 import org.voovan.Global;
 import org.voovan.tools.*;
+import org.voovan.tools.collection.LongKeyMap;
 import org.voovan.tools.collection.ThreadObjectPool;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -37,6 +38,8 @@ public class TByteBuffer {
     public final static LongAdder MALLOC_SIZE        = new LongAdder();
     public final static LongAdder MALLOC_COUNT       = new LongAdder();
     public final static LongAdder BYTE_BUFFER_COUNT  = new LongAdder();
+
+    public final static LongKeyMap<Deallocator> ADDR_DEALLOCATOR= new LongKeyMap<Deallocator>(8192);
 
 
     public final static ThreadObjectPool<ByteBuffer> THREAD_BYTE_BUFFER_POOL = new ThreadObjectPool<ByteBuffer>(THREAD_BUFFER_POOL_SIZE, ()->allocateManualReleaseBuffer(DEFAULT_BYTE_BUFFER_SIZE));
@@ -84,23 +87,24 @@ public class TByteBuffer {
      * @param capacity 容量
      * @return ByteBuffer 对象
      */
-    protected static ByteBuffer allocateManualReleaseBuffer(int capacity){
+    public static ByteBuffer allocateManualReleaseBuffer(int capacity){
         try {
             long address = (UNSAFE.allocateMemory(capacity));
 
             Deallocator deallocator = new Deallocator(address, capacity);
             ByteBuffer byteBuffer = null;
             if(TEnv.JDK_VERSION < 14) {
-                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.invoke(address, capacity, (Object)deallocator);
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.invoke(address, capacity, null);
             } else {
                 //jdk 14 兼容
-                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.invoke(address, capacity, (Object)deallocator, null);
+                byteBuffer = (ByteBuffer) DIRECT_BYTE_BUFFER_CONSTURCTOR.invoke(address, capacity, null, null);
             }
 
             Cleaner.create(byteBuffer, deallocator);
 
-
             BYTE_BUFFER_ANALYSIS.malloc(capacity);
+
+            ADDR_DEALLOCATOR.put(address, deallocator);
 
             return byteBuffer;
 
@@ -172,12 +176,15 @@ public class TByteBuffer {
             }
 
             if(!byteBuffer.hasArray()) {
-                if(getAtt(byteBuffer) == null){
+                long address = getAddress(byteBuffer);
+
+                Deallocator deallocator = ADDR_DEALLOCATOR.get(address);
+                if(deallocator == null){
                     throw new UnsupportedOperationException("JDK's ByteBuffer can't reallocate");
                 }
-                long address = getAddress(byteBuffer);
+
                 long newAddress = UNSAFE.reallocateMemory(address, newSize);
-                setAddress(byteBuffer, newAddress);
+                setAddress(byteBuffer, address, newAddress);
             } else {
                 byte[] hb = byteBuffer.array();
                 byte[] newHb = Arrays.copyOf(hb, newSize);
@@ -326,12 +333,12 @@ public class TByteBuffer {
                     synchronized (byteBuffer) {
                         try {
                             long address = TByteBuffer.getAddress(byteBuffer);
-                            Object att = getAtt(byteBuffer);
-                            if (address != 0 && att != null && att.getClass() == Deallocator.class) {
+                            Deallocator deallocator = ADDR_DEALLOCATOR.get(address);
+                            if (address != 0 && deallocator != null) {
                                 if (address != 0) {
                                     byteBuffer.clear();
                                     synchronized (buffer) {
-                                        setAddress(byteBuffer, 0);
+                                        setAddress(byteBuffer, address, 0);
 
                                         UNSAFE.freeMemory(address);
                                         BYTE_BUFFER_ANALYSIS.free(byteBuffer.capacity());
@@ -490,14 +497,18 @@ public class TByteBuffer {
     /**
      * 设置内存地址
      * @param byteBuffer bytebuffer 对象
-     * @param address 内存地址
+     * @param newAddress 内存地址
      * @throws ReflectiveOperationException 反射异常
      */
-    public static void setAddress(ByteBuffer byteBuffer, long address) throws ReflectiveOperationException {
-        UNSAFE.putLong(byteBuffer, addressFieldOffset, address);
-        Object att = getAtt(byteBuffer);
-        if(att!=null && att instanceof Deallocator){
-            ((Deallocator) att).setAddress(address);
+    public static void setAddress(ByteBuffer byteBuffer, long address, long newAddress) throws ReflectiveOperationException {
+        UNSAFE.putLong(byteBuffer, addressFieldOffset, newAddress);
+        Deallocator deallocator = ADDR_DEALLOCATOR.get(address);
+        if(deallocator!=null){
+            ADDR_DEALLOCATOR.remove(address);
+            if(newAddress!=0) {
+                ADDR_DEALLOCATOR.put(newAddress, deallocator);
+            }
+            deallocator.setAddress(newAddress);
         }
     }
 
@@ -529,9 +540,10 @@ public class TByteBuffer {
      */
     public static void setCapacity(ByteBuffer byteBuffer, int capacity) throws ReflectiveOperationException {
         UNSAFE.putInt(byteBuffer, capacityFieldOffset, capacity);
-        Object att = getAtt(byteBuffer);
-        if(att!=null && att instanceof Deallocator){
-            ((Deallocator) att).setCapacity(capacity);
+        long address = getAddress(byteBuffer);
+        Deallocator deallocator = ADDR_DEALLOCATOR.get(address);
+        if(deallocator!=null){
+            deallocator.setCapacity(capacity);
         }
     }
 }
