@@ -23,9 +23,9 @@ public class AnnotataionScaner {
      * @param scatPath      扫描的包路径
      * @param handler       扫描到的类处理聚丙
      * @param filterClazzes 类过滤器
-     * @throws IOException  IO 异常
+     * @throws InterruptedException 异常
      */
-    public static void scan(String scatPath, Consumer<Class> handler, Class ... filterClazzes) throws IOException {
+    public static void scan(String scatPath, Consumer<Class> handler, Class ... filterClazzes) throws InterruptedException {
         List<Class> classes = TEnv.searchClassInEnv(scatPath, filterClazzes);
         for (Class clazz : classes) {
             handler.accept(clazz);

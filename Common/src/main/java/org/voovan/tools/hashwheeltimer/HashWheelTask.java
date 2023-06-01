@@ -3,8 +3,6 @@ package org.voovan.tools.hashwheeltimer;
 import org.voovan.Global;
 import org.voovan.tools.log.Logger;
 
-import java.util.concurrent.ExecutionException;
-
 /**
  * 时间轮任务对象
  *
@@ -175,7 +173,7 @@ public abstract class HashWheelTask {
                                 finalHashWheel.removeTask(finaltask);
                                 finaltask.run();
                             } catch (Throwable throwable) {
-                                Logger.error("HashWheelTimerTask asynchronous error:", throwable);
+                                Logger.errorf("HashWheelTimerTask error, task: {}", throwable, finaltask.getClass().getCanonicalName());
                             } finally {
                                 if(!finaltask.isCancel()) {
                                     finalHashWheel.addTask(finaltask);
@@ -192,7 +190,7 @@ public abstract class HashWheelTask {
                     finalHashWheel.removeTask(finaltask);
                     run();
                 } catch (Throwable throwable) {
-                    Logger.errorf("HashWheelTimerTask error, task: {}", throwable, finaltask.toString());
+                    Logger.errorf("HashWheelTimerTask error, task: {}", throwable, finaltask.getClass().getCanonicalName());
                 }
 
                 if(!finaltask.isCancel()) {

@@ -242,16 +242,16 @@ public class Context {
         return getContainer(DEFAULT_SCOPE);
     }
 
-    public static <T> T get(String scope, Object mark, T defaultVal) {
-        return getContainer(scope).get(mark, defaultVal);
+    public static <T> T get(String scope, Object anchor, T defaultVal) {
+        return getContainer(scope).get(anchor, defaultVal);
     }
 
-    public static <T> T get(Object mark, T defaultVal) {
-        return get(IOCUtils.DEFAULT_SCOPE, mark, defaultVal);
+    public static <T> T get(Object anchor, T defaultVal) {
+        return get(IOCUtils.DEFAULT_SCOPE, anchor, defaultVal);
     }
 
-    public static <T> T get(Object mark) {
-        return get(IOCUtils.DEFAULT_SCOPE, mark, null);
+    public static <T> T get(Object anchor) {
+        return get(IOCUtils.DEFAULT_SCOPE, anchor, null);
     }
 
     public static <T> void addExtBean(String scope, String beanName, T value) {

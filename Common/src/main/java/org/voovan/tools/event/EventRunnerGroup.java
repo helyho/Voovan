@@ -2,6 +2,7 @@ package org.voovan.tools.event;
 
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
+import org.voovan.tools.TString;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.io.Closeable;
@@ -223,6 +224,9 @@ public class EventRunnerGroup implements Closeable {
 		for(;;) {
 			int count = 0;
 			for (EventRunner eventRunner : eventRunners) {
+				if(eventRunner.getThread()==null) {
+					continue;
+				}
 				if(eventRunner.getThread().getState() == Thread.State.RUNNABLE) {
 					count++;
 					break;
@@ -275,7 +279,7 @@ public class EventRunnerGroup implements Closeable {
 	}
 
 	public static EventRunnerGroup newInstance(int size, boolean isSteal) {
-		return newInstance("ERG", size, isSteal);
+		return newInstance("ERG-"+TString.genRandomString(6), size, isSteal);
 	}
 
 	public static EventRunnerGroup newInstance(int size) {
