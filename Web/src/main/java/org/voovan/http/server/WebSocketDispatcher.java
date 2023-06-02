@@ -219,6 +219,7 @@ public class WebSocketDispatcher {
 				Object result = byteBuffer;
 				//WebSocket 事件处理
 				if (event == WebSocketEvent.OPEN) {
+					webSocketRouter.setWebSocketSession(webSocketSession);
 					result = webSocketRouter.onOpen(webSocketSession);
 					//封包
 					responseMessage = (ByteBuffer) filterEncoder(webSocketSession, webFilterChain, result);

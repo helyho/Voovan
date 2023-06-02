@@ -1,9 +1,11 @@
 package org.voovan.http.websocket;
 
-import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.tools.collection.Chain;
 
-import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * WebSocket 处理句柄
@@ -16,9 +18,34 @@ import java.nio.ByteBuffer;
 public abstract class WebSocketRouter implements Cloneable{
 
 	protected Chain<WebSocketFilter> webSocketFilterChain;
+	protected WebSocketSession webSocketSession;
+	protected FutureTask<WebSocketSession> webSocketSessionFuture = new FutureTask<>(()->null);
 
 	public WebSocketRouter(){
 		webSocketFilterChain = new Chain<WebSocketFilter>();
+	}
+
+	/**
+	 * @return 获取 webSocketSession
+	 * @throws ExecutionException
+	 * @throws InterruptedException
+	 */
+	public WebSocketSession getWebSocketSession() throws InterruptedException, ExecutionException {
+		webSocketSessionFuture.get();
+		return webSocketSession;
+	}
+
+	public WebSocketSession getWebSocketSession(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+		webSocketSessionFuture.get(timeout, unit);
+		return webSocketSession;
+	}
+
+	/**
+	 * @param webSocketSession 设置 webSocketSession
+	 */
+	public void setWebSocketSession(WebSocketSession webSocketSession) {
+		this.webSocketSession = webSocketSession;
+		webSocketSessionFuture.run();
 	}
 
 	public WebSocketRouter addFilterChain(WebSocketFilter webSocketFilter) {
