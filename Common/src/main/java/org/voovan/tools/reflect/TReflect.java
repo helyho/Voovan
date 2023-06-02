@@ -1722,6 +1722,9 @@ public class TReflect {
                 }
             }
             mapResult.put(null, map);
+        } //对 Enum 类型的处理
+        else if(obj instanceof Enum){
+            mapResult.put(null, obj.toString());
         }
         //复杂对象类型
         else {
