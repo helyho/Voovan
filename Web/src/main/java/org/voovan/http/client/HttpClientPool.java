@@ -1,17 +1,12 @@
 package org.voovan.http.client;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TPerformance;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.ObjectPool;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 /**
  * httpclient 连接池
@@ -66,12 +61,7 @@ public class HttpClientPool {
         timeout = TimeUnit.MILLISECONDS.convert(timeout, timeUnit);
         httpClient = pool.borrow(timeout);
         if(httpClient!=null) {
-            try {
-                httpClient.getSocket().updateLastTime();
-            } catch (Exception e) {
-                pool.restitution(httpClient);
-                throw e;
-            }
+            httpClient.getSocket().updateLastTime();
         }
         return httpClient;
     }
