@@ -782,6 +782,7 @@ public class HttpClient extends PooledObject implements Closeable{
 		Object result = null;
 
 		//触发onOpen事件
+		webSocketRouter.setWebSocketSession(webSocketSession);
 		result = webSocketRouter.onOpen(webSocketSession);
 
 		if(result!=null) {
