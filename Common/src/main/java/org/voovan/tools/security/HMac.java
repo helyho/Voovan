@@ -32,7 +32,7 @@ public class HMac {
         this.algorithm = algorithm;
         SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "Hmac" + this.algorithm);
         try {
-            this.mac = Mac.getInstance("HmacSHA1");
+            this.mac = Mac.getInstance(algorithm);
             this.mac.init(signingKey);
         } catch (Exception e) {
             Logger.errorf("HMac init failed: {}", e, algorithm);
