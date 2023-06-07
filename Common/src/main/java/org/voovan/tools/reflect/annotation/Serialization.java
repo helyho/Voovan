@@ -18,8 +18,18 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Serialization {
+    
+    /* 序列化的别名 */
+    @Alias("toAlias")
     String value() default "";
-    String alias() default "";
+
+    @Alias("value")
+    String toAlias() default "";
+
     Class<? extends Convert> convert() default Convert.class;
     Class<? extends Exclude> exclude() default Exclude.class;
+
+
+    /* 序列化的别名 */
+    String fromAlias() default "";
 }

@@ -64,26 +64,27 @@ public class TReflect {
         }
     }
 
-    private static IntKeyMap<Field[]>           FIELD_ARRAYS         = new IntKeyMap<Field[]>(256);
-    private static IntKeyMap<Method[]>          METHOD_ARRAYS        = new IntKeyMap<Method[]>(256);
-    private static IntKeyMap<Constructor[]>     CONSTRUCTOR_ARRAYS   = new IntKeyMap<Constructor[]>(256);
+    private static IntKeyMap<Field[]>             FIELD_ARRAYS         = new IntKeyMap<Field[]>(256);
+    private static IntKeyMap<Method[]>            METHOD_ARRAYS        = new IntKeyMap<Method[]>(256);
+    private static IntKeyMap<Constructor[]>       CONSTRUCTOR_ARRAYS   = new IntKeyMap<Constructor[]>(256);
 
-    private static IntKeyMap<Field>             FIELDS               = new IntKeyMap<Field>(256);
-    private static IntKeyMap<Method>            METHODS              = new IntKeyMap<Method>(256);
-    private static IntKeyMap<Constructor>       CONSTRUCTORS         = new IntKeyMap<Constructor>(256);
+    private static IntKeyMap<Field>               FIELDS               = new IntKeyMap<Field>(256);
+    private static IntKeyMap<Method>              METHODS              = new IntKeyMap<Method>(256);
+    private static IntKeyMap<Constructor>         CONSTRUCTORS         = new IntKeyMap<Constructor>(256);
 
-    private static IntKeyMap<String>            NAME_CLASS           = new IntKeyMap<String>(256);
-    private static Map<String, Class>           CLASS_NAME           = new ConcurrentHashMap<String, Class>();
-    private static IntKeyMap<Boolean>           CLASS_BASIC_TYPE     = new IntKeyMap<Boolean>(256);
+    private static IntKeyMap<String>              NAME_CLASS           = new IntKeyMap<String>(256);
+    private static Map<String, Class>             CLASS_NAME           = new ConcurrentHashMap<String, Class>();
+    private static IntKeyMap<Boolean>             CLASS_BASIC_TYPE     = new IntKeyMap<Boolean>(256);
 
-    private static IntKeyMap<DynamicFunction>   FIELD_READER         = new IntKeyMap<DynamicFunction>(256);
-    private static IntKeyMap<DynamicFunction>   FIELD_WRITER         = new IntKeyMap<DynamicFunction>(256);
-    private static IntKeyMap<DynamicFunction>   CONSTRUCTOR_INVOKE   = new IntKeyMap<DynamicFunction>(256);
-    private static IntKeyMap<DynamicFunction>   METHOD_INVOKE        = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>     FIELD_READER         = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>     FIELD_WRITER         = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>     CONSTRUCTOR_INVOKE   = new IntKeyMap<DynamicFunction>(256);
+    private static IntKeyMap<DynamicFunction>     METHOD_INVOKE        = new IntKeyMap<DynamicFunction>(256);
 
-    private static IntKeyMap<Boolean>           IS_SYSTEM_TYPE_CLASS = new IntKeyMap<Boolean>(256);
-    private static IntKeyMap<Boolean>           IS_SYSTEM_TYPE_NAME  = new IntKeyMap<Boolean>(256);
+    private static IntKeyMap<Boolean>             IS_SYSTEM_TYPE_CLASS = new IntKeyMap<Boolean>(256);
+    private static IntKeyMap<Boolean>             IS_SYSTEM_TYPE_NAME  = new IntKeyMap<Boolean>(256);
 
+    private static IntKeyMap<Map<String, String>> FROM_ALIAS  = new IntKeyMap<Map<String, String>>(256);
     /**
      * 注册一个类, 尝试采用 native 方式进行反射调用
      * @param clazz 类对象
@@ -1357,6 +1358,44 @@ public class TReflect {
     }
 
     /**
+     * 新增一个反序列化的字段映射
+     * @param clazz  反序列化的类
+     * @param fromAliasMap 字段映射的 Map<JSON中字段名, 字段名>
+     */
+    public static void addFromAliasMap(Class clazz, Map<String, String> fromAliasMap) {
+        FROM_ALIAS.put(getClassMark(clazz), fromAliasMap);
+    }
+
+    /**
+     * 扫描注解中的反序列化的字段映射
+     * @param clazz
+     * @return
+     */
+    public static Map<String, String> scanFromAliasMap(Class clazz) {
+        int classMark = getClassMark(clazz);
+
+        Map<String, String> fromAliasMap = FROM_ALIAS.get(classMark);
+
+        if(fromAliasMap == null) {
+            fromAliasMap = new HashMap<>();
+
+            for(Field field : getFields(clazz)) {
+                Serialization serialization = field.getAnnotation(Serialization.class);
+                if(serialization !=null) {
+                    String fromAlias = getAnnotationValue(serialization, "fromAlias");
+                    if(fromAlias!=null) {
+                        fromAliasMap.put(fromAlias, field.getName());
+                    }
+                }
+            }
+
+            FROM_ALIAS.put(classMark, fromAliasMap);
+        }
+
+        return fromAliasMap;
+    }
+
+    /**
      * 将Map转换成指定的对象
      *      自动从 type 查找泛型
      *
@@ -1545,17 +1584,21 @@ public class TReflect {
                 String key = argEntry.getKey();
                 Object value = argEntry.getValue();
 
+                Map<String, String> fromAliasMap = scanFromAliasMap(clazz);
+
+                String fieldName = fromAliasMap.getOrDefault(key, key);
+
                 Field field = null;
                 if(ignoreCase) {
                     //忽略大小写匹配
-                    field = findFieldIgnoreCase(clazz, key);
+                    field = findFieldIgnoreCase(clazz, fieldName);
                 } else {
                     //精确匹配属性
-                    field = findField(clazz, key);
+                    field = findField(clazz, fieldName);
                 }
 
                 if(field!=null && !Modifier.isFinal(field.getModifiers())) {
-                    String fieldName = field.getName();
+                    fieldName = field.getName();
                     Class fieldType = field.getType();
                     Type fieldGenericType = field.getGenericType();
                     try {
@@ -1770,11 +1813,11 @@ public class TReflect {
                     Serialization serialization = field.getAnnotation(Serialization.class);
 
                     if(serialization != null) {
+
+                        String toAlias = getAnnotationValue(serialization, "toAlias");
                         //转换 key 名称
-                        if(!TString.isNullOrEmpty(serialization.value())) {
-                            key = serialization.value();
-                        } else if(!TString.isNullOrEmpty(serialization.alias())) {
-                            key = serialization.alias();
+                        if(!TString.isNullOrEmpty(toAlias)) {
+                            key = toAlias;
                         }
 
                         //数据检查
