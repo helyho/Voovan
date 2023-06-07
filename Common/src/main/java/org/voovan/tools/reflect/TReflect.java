@@ -1773,8 +1773,8 @@ public class TReflect {
                         //转换 key 名称
                         if(!TString.isNullOrEmpty(serialization.value())) {
                             key = serialization.value();
-                        } else if(!TString.isNullOrEmpty(serialization.name())) {
-                            key = serialization.name();
+                        } else if(!TString.isNullOrEmpty(serialization.alias())) {
+                            key = serialization.alias();
                         }
 
                         //数据检查

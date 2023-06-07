@@ -19,7 +19,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Serialization {
     String value() default "";
-    String name() default "";
+    String alias() default "";
     Class<? extends Convert> convert() default Convert.class;
     Class<? extends Exclude> exclude() default Exclude.class;
 }
