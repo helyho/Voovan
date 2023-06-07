@@ -43,14 +43,14 @@ public class HttpClientUnit extends TestCase {
 	@Test
 	public void testGetHeader() throws IOException {
 		HttpClient httpClient = new HttpClient("http://webserver.voovan.org");
-		httpClient.putParameters("name", "测试");
+		httpClient.putParameter("name", "测试");
 		assertEquals(httpClient.getHeader().get("Host"),"webserver.voovan.org");
 		httpClient.close();
 	}
 
 	public void testParameters() throws IOException {
 		HttpClient httpClient = new HttpClient("http://webserver.voovan.org");
-		httpClient.putParameters("name", "测试");
+		httpClient.putParameter("name", "测试");
 		assertEquals(httpClient.getParameters().get("name"), "测试");
 		httpClient.close();
 	}
@@ -58,8 +58,8 @@ public class HttpClientUnit extends TestCase {
 	public void testGet() throws Exception{
 		HttpClient getClient = new HttpClient("http://127.0.0.1:28080/","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
-				.putParameters("name", "测试Get")
-				.putParameters("age", "32").send();
+				.putParameter("name", "测试Get")
+				.putParameter("age", "32").send();
 		System.out.println(response.body().getBodyString("GB2312"));
 		assertTrue(response.protocol().getStatus()!=500);
 		getClient.close();
@@ -68,14 +68,14 @@ public class HttpClientUnit extends TestCase {
 	public void testAsync() throws Exception{
 		HttpClient getClient = new HttpClient("http://webserver.voovan.org","GB2312", 60);
 		getClient.setMethod("GET")
-				.putParameters("name", "测试Get")
-				.putParameters("age", "32").asyncSend(resp->{
+				.putParameter("name", "测试Get")
+				.putParameter("age", "32").asyncSend(resp->{
 			System.out.println(resp.body().getBodyString());
 		});
 		TEnv.sleep(3000);
 		getClient.setMethod("GET")
-				.putParameters("name", "测试Get")
-				.putParameters("age", "42").asyncSend(resp->{
+				.putParameter("name", "测试Get")
+				.putParameter("age", "42").asyncSend(resp->{
 			System.out.println(resp.body().getBodyString());
 		});
 		TEnv.sleep(3000);
@@ -86,8 +86,8 @@ public class HttpClientUnit extends TestCase {
 	public void testPost() throws Exception {
 		HttpClient postClient = new HttpClient("http://127.0.0.1:28080/test",60);
 		Response response = postClient.setMethod("POST")
-				.putParameters("name", "测试Get")
-				.putParameters("age", "32")
+				.putParameter("name", "测试Get")
+				.putParameter("age", "32")
 				.send();
 		new Response().copyFrom(response);
 		System.out.println(response.body().getBodyString());

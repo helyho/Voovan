@@ -1658,6 +1658,9 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapFromObject(Object obj) throws ReflectiveOperationException{
+        if(obj instanceof ToMap) {
+            return ((ToMap)obj).toMap();
+        }
         return getMapFromObject(obj, false);
     }
 
@@ -1671,6 +1674,9 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapFromObject(Object obj, boolean allField) throws ReflectiveOperationException {
+        if(obj instanceof ToMap) {
+            return ((ToMap)obj).toMap();
+        }
         return getMapFromObject(obj, allField, false);
     }
 
@@ -1685,10 +1691,6 @@ public class TReflect {
      * @throws ReflectiveOperationException 反射异常
      */
     public static Map<String, Object> getMapFromObject(Object obj, boolean allField, boolean exceptNull) throws ReflectiveOperationException {
-        if(obj instanceof ToMap) {
-            return ((ToMap)obj).toMap();
-        }
-
         LinkedHashMap<String, Object> mapResult = new LinkedHashMap<String, Object>();
 
         if(obj==null){

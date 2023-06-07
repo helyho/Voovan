@@ -434,7 +434,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @param value 参数值
 	 * @return  HttpClient 对象
 	 */
-	public HttpClient putParameters(String name, String value){
+	public HttpClient putParameter(String name, String value){
 		parameters.put(name, value);
 		return this;
 	}
@@ -470,18 +470,14 @@ public class HttpClient extends PooledObject implements Closeable{
 	public static String buildQueryString(Map<String,Object> parameters, String charset){
 		String queryString = "";
 		StringBuilder queryStringBuilder = new StringBuilder();
-		try {
-			for (Entry<String, Object> parameter : parameters.entrySet()) {
-				queryStringBuilder.append(parameter.getKey());
-				queryStringBuilder.append("=");
-				queryStringBuilder.append(URLEncoder.encode(TObject.nullDefault(parameter.getValue(),"").toString(), charset));
-				queryStringBuilder.append("&");
-			}
-			queryString = queryStringBuilder.toString();
-			queryString = queryStringBuilder.length()>0? TString.removeSuffix(queryString):queryString;
-		} catch (IOException e) {
-			Logger.error("HttpClient getQueryString error",e);
+		for (Entry<String, Object> parameter : parameters.entrySet()) {
+			queryStringBuilder.append(parameter.getKey());
+			queryStringBuilder.append("=");
+			queryStringBuilder.append(TObject.nullDefault(parameter.getValue(),"").toString());
+			queryStringBuilder.append("&");
 		}
+		queryString = queryStringBuilder.toString();
+		queryString = queryStringBuilder.length()>0? TString.removeSuffix(queryString):queryString;
 		return queryString.isEmpty()? "" : queryString;
 	}
 
