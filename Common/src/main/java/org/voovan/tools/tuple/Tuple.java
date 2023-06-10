@@ -1,6 +1,7 @@
 package org.voovan.tools.tuple;
 
 import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.ToMap;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  * WebSite: https://github.com/helyho/Voovan
  * Licence: Apache v2 License
  */
-public class Tuple {
+public class Tuple implements ToMap{
     private Integer nullValueId = 0;
     private Map<Object, TupleItem> items;
 
@@ -115,7 +116,8 @@ public class Tuple {
      *      Map 中的元素为 [TupleItem.name, TupleItem.valu]
      * @return 元组对应的 Map
      */
-    public Map<String, ?> toMap() {
+    @Override
+    public Map<String, Object> toMap() {
         Map ret = new LinkedHashMap();
         items.values().stream().forEach(tupleItem -> ret.put(tupleItem.getName(), tupleItem.getValue()));
         return ret;

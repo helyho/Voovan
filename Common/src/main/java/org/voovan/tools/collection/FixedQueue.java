@@ -1,10 +1,14 @@
 package org.voovan.tools.collection;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+
+import org.voovan.tools.TObject;
+import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.reflect.ToMap;
+import org.voovan.tools.reflect.annotation.NotSerialization;
 
 /**
  * 定长队列
@@ -15,12 +19,13 @@ import java.util.List;
  * WebSite: https://github.com/helyho/voovan
  * Licence: Apache v2 License
  */
-public class FixedQueue<E> {
+public class FixedQueue<E> implements ToMap<FixedQueue<E>>{
 
     private static final long serialVersionUID = -6271813154993569614L;
     /**
      * 队列长度
      */
+    @NotSerialization
     private int limit;
 
     private LinkedList<E> queue = new LinkedList<E>();
@@ -122,5 +127,11 @@ public class FixedQueue<E> {
         for(E e : datas) {
             offer(e);
         }
+    }
+
+    @SuppressWarnings({"unchecked"})
+    @Override
+    public Map<String, Object> toMap() {
+        return TObject.asMap(null, queue); 
     }
 }

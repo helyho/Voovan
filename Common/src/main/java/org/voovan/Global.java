@@ -1,6 +1,6 @@
 package org.voovan;
 
-import org.voovan.tools.TObject;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.UniqueId;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
@@ -97,6 +97,8 @@ public class Global {
     public static final Boolean ENABLE_SANDBOX = TProperties.getBoolean("framework", "EnableSandBox", false);
     static {
         System.out.println("[FRAMEWRORK] DebugMode: " + IS_DEBUG_MODE);
+        System.out.println("[FRAMEWRORK] Java: jdk-" + TEnv.JDK_VERSION);
+
     }
 
     public static UniqueId UNIQUE_ID = new UniqueId(0);

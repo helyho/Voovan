@@ -1336,4 +1336,33 @@ public class TString {
     }
 
 
+	/**
+	 * 获取 Url 字符串中的服务器地址
+	 * 		例如: http://127.0.0.1:8080/userinfo -> http://127.0.0.1:8080
+	 * @param url
+	 * @return
+	 */
+	public static String getUrlHost(String url) {
+        int index = url.indexOf('/', 8);
+		if(index<0) {
+			return url;
+		}
+        return url.substring(0, index);
+    }
+
+	/**
+	* 获取 Url 字符串中的路由
+	* 		例如: http://127.0.0.1:8080/userinfo -> /userinfo
+	* @param url
+	* @return
+	*/
+    public static String getUrlPath(String url) {
+        int index = url.indexOf('/', 8);
+		if(index<0) {
+			return "";
+		}
+        return url.substring(index, url.length());
+    }
+
+
 }
