@@ -455,7 +455,7 @@ public class TEnv {
 	 * @return 在物理设备上的文件位置
 	 */
 	public static String getClassLocation(Class clazz){
-		if(clazz.getProtectionDomain().getCodeSource().getLocation()!=null) {
+		if(clazz.getProtectionDomain().getCodeSource()!=null && clazz.getProtectionDomain().getCodeSource().getLocation()!=null) {
 			return clazz.getProtectionDomain().getCodeSource().getLocation().getFile();
 		} else {
 			return null;
