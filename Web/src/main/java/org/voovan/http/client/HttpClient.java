@@ -252,6 +252,14 @@ public class HttpClient extends PooledObject implements Closeable{
 	}
 
 	/**
+	 * 是否处于 websocket 连接状态
+	 * @return true: 处于 websocket 连接状态, false: 未处于 websocket 连接状态
+	 */
+	public boolean isWebSocket() {
+		return isWebSocket;
+	}
+
+	/**
 	 * 直接发送流
 	 * @param buffer 字节缓冲对象ByteBuffer
 	 */

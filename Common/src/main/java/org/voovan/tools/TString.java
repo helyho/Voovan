@@ -1359,7 +1359,7 @@ public class TString {
     public static String getUrlPath(String url) {
         int index = url.indexOf('/', 8);
 		if(index<0) {
-			return "";
+			return "/";
 		}
         return url.substring(index, url.length());
     }
