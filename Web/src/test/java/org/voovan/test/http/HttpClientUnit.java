@@ -55,8 +55,9 @@ public class HttpClientUnit extends TestCase {
 		httpClient.close();
 	}
 
+	@Test
 	public void testGet() throws Exception{
-		HttpClient getClient = new HttpClient("http://127.0.0.1:28080/","GB2312", 60);
+		HttpClient getClient = new HttpClient("http://127.0.0.1:28080","GB2312", 60);
 		Response response  = getClient.setMethod("GET")
 				.putParameter("name", "测试Get")
 				.putParameter("age", "32").send();
