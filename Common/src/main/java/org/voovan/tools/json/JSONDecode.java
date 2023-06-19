@@ -15,7 +15,6 @@ import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.security.Key;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -29,7 +28,10 @@ import java.util.stream.Collectors;
  * 5.可使用单双引号进行包裹
  * 6.支持 JAVA/C 语言的两种形式的注释以及井号 形式的注释
  * 7.支持 HCL 配置解析
- *
+ * 8. 同源文件引用: 使用 '@' 标记进行同源引用从 application.json 所在路径作为上下文引入文件
+ * 9. URL资源医用: 使用完整的 URL 连接方式引入,即 http[s]://, file://, ftp:// 等方式引入
+ * 10.使用 |token| 的方式进行差值替换操作, 使用 '^'' 作为引入上一级, '.' 符号作为当前级别
+ * 11.支持同名(相同key)的 Map 和 List 的数据合并
  * @author helyho
  *
  * Voovan Framework.
@@ -291,10 +293,12 @@ public class JSONDecode {
 							flag = '{';
 						}
 
+						//获取上一级的value作为当前级的root
 						if(parentKey!=null && parentRoot instanceof Map) {
 							root = ((Map)parentRoot).get(parentKey);
 						}
-
+						
+						//如果上一级没有则创建root
 						if(root==null) {
 							//通过结构形式推断根对象类型
 							root = createRootObj(flag);
@@ -351,7 +355,7 @@ public class JSONDecode {
 						//支持{ key [...] }的形式, (没有使用 [:,=] 分割 key/value) 插入一个 : 作为分割
 						if(itemString.length() >0) {
 							nextChar = currentChar;
-							currentChar = ':';
+							currentChar = Global.CHAR_COLON;
 						} else {
 							//递归解析处理,取 value 对象
 							String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
