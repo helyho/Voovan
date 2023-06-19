@@ -156,6 +156,8 @@ public class HttpClient extends PooledObject implements Closeable{
 			int parhStart = urlString.indexOf("/", 8);
 			if(parhStart > 8) {
 				this.initLocation = urlString.substring(parhStart);
+			} else {
+				this.initLocation = "/";
 			}
 
 			if(port==-1 && !isSSL){
@@ -654,7 +656,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @throws ReadMessageException  读取异常
 	 */
 	public Response send() throws SendMessageException, ReadMessageException {
-		return send("/");
+		return send(initLocation);
 	}
 
 	/**
@@ -664,7 +666,7 @@ public class HttpClient extends PooledObject implements Closeable{
 	 * @throws ReadMessageException  读取异常
 	 */
 	public void asyncSend(Consumer<Response> async) throws SendMessageException, ReadMessageException {
-		asyncSend("/", async);
+		asyncSend(initLocation, async);
 	}
 
 	/**
