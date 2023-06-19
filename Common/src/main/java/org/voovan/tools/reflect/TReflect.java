@@ -85,6 +85,8 @@ public class TReflect {
     private static IntKeyMap<Boolean>             IS_SYSTEM_TYPE_NAME  = new IntKeyMap<Boolean>(256);
 
     private static IntKeyMap<Map<String, String>> FROM_ALIAS  = new IntKeyMap<Map<String, String>>(256);
+
+    private static Object MODULE;
     /**
      * 注册一个类, 尝试采用 native 方式进行反射调用
      * @param clazz 类对象
@@ -2242,6 +2244,24 @@ public class TReflect {
         }
 
         return null;
+    }
+
+    public static void addOpens(String moduleName, String packageName) throws ReflectiveOperationException {
+        if(MODULE == null) {
+            MODULE = TReflect.newInstance("jdk.internal.module.Modules");;
+        }
+        Object moduleItem = ((Optional)TReflect.invokeMethod(MODULE, "findLoadedModule", moduleName)).orElseThrow();
+        Method method = MODULE.getClass().getMethod("addOpensToAllUnnamed", moduleItem.getClass(), String.class);
+        method.invoke(moduleItem, moduleItem, packageName);
+    }
+
+    public static void addExports(String moduleName, String packageName) throws ReflectiveOperationException {
+        if(MODULE == null) {
+            MODULE = TReflect.newInstance("jdk.internal.module.Modules");;
+        }
+        Object moduleItem = ((Optional)TReflect.invokeMethod(MODULE, "findLoadedModule", moduleName)).orElseThrow();
+        Method method = MODULE.getClass().getMethod("addExportsToAllUnnamed", moduleItem.getClass(), String.class);
+        method.invoke(moduleItem, moduleItem, packageName);
     }
 }
 
