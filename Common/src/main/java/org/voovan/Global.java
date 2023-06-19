@@ -205,7 +205,6 @@ public class Global {
                 TReflect.addOpens("java.base", "java.lang");
             }
         } catch (Throwable e) {
-            e.printStackTrace();
             System.out.println("[Warning] Your are working on: JDK-" + TEnv.JDK_VERSION + ". " +
                     "You should add java command arguments: " +
                     "--add-opens java.base/jdk.internal.module=ALL-UNNAMED");
