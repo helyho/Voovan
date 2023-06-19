@@ -273,7 +273,7 @@ public class JSONDecode {
 							continue;
 						}
 
-						if (nextChar == 65535 && commentMode==0) {
+						if (nextChar == 65535) {
 							return root;
 						}
 						continue;
@@ -282,7 +282,7 @@ public class JSONDecode {
 
 				//==================== 第一处  创建根对象(有根包裹)  ====================
 				if (root == null && !stringMode && commentMode==0) {
-					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
+					if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES || currentChar == Global.CHAR_COLON) {
 						char flag = currentChar;
 
 						//如果之前有解析的字符, 则判断为 Map 类型
@@ -579,6 +579,7 @@ public class JSONDecode {
 					value = null;
 				}
 
+				//纯字符串处理
 				if (nextChar == 65535) {
 					if(root==null && value == null && key == null) {
 						root = itemString.toString();
