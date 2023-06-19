@@ -1,5 +1,6 @@
 package org.voovan;
 
+import jdk.internal.module.Modules;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TProperties;
 import org.voovan.tools.UniqueId;
@@ -189,5 +190,28 @@ public class Global {
      */
     public static String getVersion(){
         return "5.0.0";
+    }
+
+    public static void addOpens() {
+        try {
+            if (TEnv.JDK_VERSION > 14) {
+                Module module = Modules.findLoadedModule("jdk.unsupported").orElseThrow();
+                Modules.addOpensToAllUnnamed(module, "sun.misc");
+
+                module = Modules.findLoadedModule("java.base").orElseThrow();
+                Modules.addOpensToAllUnnamed(module, "sun.nio.ch");
+                Modules.addOpensToAllUnnamed(module, "jdk.internal.misc");
+                Modules.addOpensToAllUnnamed(module, "java.nio");
+                Modules.addOpensToAllUnnamed(module, "jdk.internal.ref");
+                Modules.addOpensToAllUnnamed(module, "java.net");
+                Modules.addOpensToAllUnnamed(module, "java.security");
+                Modules.addOpensToAllUnnamed(module, "java.lang");
+            }
+        } catch (Throwable e) {
+            System.out.println("[Warning] Your are working on: JDK-" + TEnv.JDK_VERSION + ". " +
+                    "You should add java command arguments: " +
+                    "--add-exports java.base/jdk.internal.module=ALL-UNNAMED");
+            System.exit(-1);
+        }
     }
 }
