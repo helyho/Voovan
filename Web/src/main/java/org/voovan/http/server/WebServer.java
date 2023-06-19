@@ -821,7 +821,6 @@ public class WebServer {
 		}
 
 		//只有启用热部署和代码织入功能才需要提示
-		Global.addOpens();
 		if(config.getHotSwapInterval() >0 || config.getWeaveConfig()!=null) {
 			if(TEnv.JDK_VERSION > 8 && !"true".equals(System.getProperty("jdk.attach.allowAttachSelf"))){
 

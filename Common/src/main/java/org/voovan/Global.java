@@ -9,7 +9,6 @@ import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.threadpool.ThreadPool;
 
 import java.nio.charset.Charset;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -100,7 +99,7 @@ public class Global {
     static {
         System.out.println("[FRAMEWRORK] DebugMode: " + IS_DEBUG_MODE);
         System.out.println("[FRAMEWRORK] Java: jdk-" + TEnv.JDK_VERSION);
-
+        addOpens();
     }
 
     public static UniqueId UNIQUE_ID = new UniqueId(0);
