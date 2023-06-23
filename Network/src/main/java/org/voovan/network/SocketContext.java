@@ -1,5 +1,6 @@
 package org.voovan.network;
 
+import org.voovan.Global;
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.plugin.DefaultPlugin;
@@ -49,14 +50,14 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	static {
 		IO_THREAD_SIZE = IO_THREAD_SIZE < 8 ? 8 : IO_THREAD_SIZE;
 
-		System.out.println("[SOCKET] AcceptThreadSize:\t" + ACCEPT_THREAD_SIZE);
-		System.out.println("[SOCKET] IoThreadSize:\t\t" + IO_THREAD_SIZE);
-		System.out.println("[SOCKET] SelectInterval:\t" + SELECT_INTERVAL);
-		System.out.println("[SOCKET] CheckTimeout:\t\t" + CHECK_TIMEOUT);
-		System.out.println("[SOCKET] AsyncSend:\t\t" + ASYNC_SEND);
-		System.out.println("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
-		System.out.println("[SOCKET] DirectIO:\t\t" + DIRECT_IO);
-		System.out.println("[SOCKET] ForecFlush:\t\t" + FORCE_FLUSH);
+		Logger.simple("[SOCKET] AcceptThreadSize:\t" + ACCEPT_THREAD_SIZE);
+		Logger.simple("[SOCKET] IoThreadSize:\t\t" + IO_THREAD_SIZE);
+		Logger.simple("[SOCKET] SelectInterval:\t" + SELECT_INTERVAL);
+		Logger.simple("[SOCKET] CheckTimeout:\t\t" + CHECK_TIMEOUT);
+		Logger.simple("[SOCKET] AsyncSend:\t\t" + ASYNC_SEND);
+		Logger.simple("[SOCKET] AsyncRecive:\t\t" + ASYNC_RECIVE);
+		Logger.simple("[SOCKET] DirectIO:\t\t" + DIRECT_IO);
+		Logger.simple("[SOCKET] ForecFlush:\t\t" + FORCE_FLUSH);
 	}
 
 	//==================================================================================================================
