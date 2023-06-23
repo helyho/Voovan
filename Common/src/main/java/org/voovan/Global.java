@@ -207,7 +207,7 @@ public class Global {
         } catch (Throwable e) {
             System.out.println("[Warning] Your are working on: JDK-" + TEnv.JDK_VERSION + ". " +
                     "You should add java command arguments: " +
-                    "--add-opens java.base/jdk.internal.module=ALL-UNNAMED");
+                    "--add-opens=java.base/jdk.internal.module=ALL-UNNAMED");
             System.exit(-1);
         }
     }

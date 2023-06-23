@@ -420,6 +420,16 @@ public class JSONDecode {
 					//JSON对象字符串分组,取 Key 对象,当前字符是:或=,则取 Key
 					if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
 						itemString.setLength(itemString.length()-1);
+						
+						//itemString 尾部进行 trim 处理
+						for(int i=0;i<itemString.length();i++) {
+							if(Character.isWhitespace(itemString.charAt(itemString.length() - i - 1))){
+								itemString.setLength(itemString.length() - i - 1);
+							} else {
+								break;
+							}
+						}
+
 						//判断是字符串去掉头尾的包裹符号
 						if (itemString.length() >= 2 && itemString.charAt(0) == Global.CHAR_QUOTE && itemString.charAt(itemString.length()-1) == Global.CHAR_QUOTE) {
 							key = itemString.substring(1, itemString.length() - 1).trim();
