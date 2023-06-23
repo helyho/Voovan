@@ -87,8 +87,7 @@ public class Context {
 
         List<String> configPaths = DEFAULT_CONTAINER.get("ScanPaths", null);
         if(configPaths == null) {
-            Logger.warnf("ScanPaths is not defined or 'conf/application.json' not exists, Config isn't load!");
-            return;
+            scanPaths.add(TEnv.bootPackage()); 
         } else {
             Context.scanPaths.addAll(configPaths);
         }

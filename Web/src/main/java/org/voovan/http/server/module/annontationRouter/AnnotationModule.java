@@ -16,6 +16,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.AnnotataionScaner;
+import org.voovan.tools.TEnv;
 import org.voovan.tools.ioc.Context;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
@@ -32,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Licence: Apache v2 License
  */
 public class AnnotationModule extends HttpModule {
-    public static String DEFAULT_SCAN_ROUTER_PACKAGE = "com;org;net;io";
+    public static String DEFAULT_SCAN_ROUTER_PACKAGE = TEnv.bootPackage();
     public static int DEFAULT_SCAN_ROUTER_INTERVAL = -1;
 
     public ConcurrentHashMap<Method, String> METHOD_URL_MAP = new ConcurrentHashMap<Method, String>();

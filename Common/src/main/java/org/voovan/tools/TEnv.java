@@ -882,4 +882,17 @@ public class TEnv {
 		}
 		return shortClassName(clazz.getCanonicalName());
 	}
+
+	public static Class bootClass() throws ClassNotFoundException{
+		StackTraceElement[] stackTraceElements = TEnv.getMainThread().getStackTrace();
+		String className = stackTraceElements[stackTraceElements.length-1].getClassName();
+		return TReflect.getClassByName(className);
+	}
+
+	public static String bootPackage(){
+		StackTraceElement[] stackTraceElements = TEnv.getMainThread().getStackTrace();
+		String className = stackTraceElements[stackTraceElements.length-1].getClassName();
+		String packageName = className.substring(0, className.lastIndexOf("."));
+		return packageName;
+	}
 }
