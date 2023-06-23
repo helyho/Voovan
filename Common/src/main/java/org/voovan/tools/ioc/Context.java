@@ -7,7 +7,7 @@ import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.ioc.annotation.Bean;
 import org.voovan.tools.ioc.annotation.Destory;
-import org.voovan.tools.ioc.annotation.Entrance;
+import org.voovan.tools.ioc.annotation.Priority;
 import org.voovan.tools.ioc.annotation.Initialize;
 import org.voovan.tools.ioc.entity.BeanDefinition;
 import org.voovan.tools.ioc.entity.MethodDefinition;
@@ -100,13 +100,13 @@ public class Context {
                     loadClass(clazz);
                     loadMethod(clazz);
 
-                    if(clazz.isAnnotationPresent(Entrance.class)) {
+                    if(clazz.isAnnotationPresent(Priority.class)) {
                         ENTRANCE.add(clazz);
                     }
                 }, Bean.class);
 
                 //初始化 @Entrance
-                initEntrance();
+                initPriority();
 
                 //初始化 对象和方法上的 @bean
                 initBean();
@@ -171,21 +171,15 @@ public class Context {
         }
     }
 
-    public static void initEntrance() {
+    public static void initPriority() {
         //升序排序, 索引越小优先级越高
         Collections.sort(ENTRANCE, new Comparator<Class>() {
             @Override
             public int compare(Class o1, Class o2) {
-                int o1Index = TReflect.getAnnotationValue(o1.getAnnotation(Entrance.class),"value");
-                int o2Index = TReflect.getAnnotationValue(o2.getAnnotation(Entrance.class),"value");
+                int o1Priority = TReflect.getAnnotationValue(o1.getAnnotation(Priority.class),"priority");
+                int o2priority = TReflect.getAnnotationValue(o2.getAnnotation(Priority.class),"priority");
 
-                if(o1Index - o2Index < 0) {
-                    return -1;
-                } else if(o1Index - o2Index > 0) {
-                    return 1;
-                } else {
-                    return 0;
-                }
+                return o2priority - o1Priority; 
             }
         });
 
