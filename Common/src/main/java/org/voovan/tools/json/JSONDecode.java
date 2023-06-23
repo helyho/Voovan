@@ -313,14 +313,14 @@ public class JSONDecode {
 							((Map) parentRoot).put(parentKey, root);
 						}
 
-						if(itemString.length() >0) {
-							reader.skip(-1);
-							nextChar = currentChar;
-							currentChar = ':';
-						}
+
+						
 
 						//推断根对象类型, 则字符不表意, 则继续处理
 						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
+							if(itemString.length() >0) {
+								reader.skip(-1);
+							}
 							continue;
 						}
 					}
@@ -575,15 +575,9 @@ public class JSONDecode {
 
 					//判断返回对象的类型,填充返回对象
 					if (root instanceof HashMap && key!=null) {
-//						Map 和 List 在创建根对象时已经写如过了
-						if( !(value instanceof Map || value instanceof List) ) {
-							((Map) root).put(key, value);
-						}
+						((Map) root).put(key, value);
 					} else if (root instanceof ArrayList && value != null) {
-//						Map 和 List 在创建根对象时已经写如过了
-						if( !(value instanceof Map || value instanceof List) ) {
-							((List) root).add(value);
-						}
+						((List) root).add(value);
 					} else
 						if(root == null){
 						root = value;
@@ -704,6 +698,8 @@ public class JSONDecode {
 			if (TString.regexMatch(url, "^[a-z,A-Z]*?://") == 0) {
 				url = "file://" + url;
 			}
+		} else {
+			return value;
 		}
 
 		if(url!=null) {
