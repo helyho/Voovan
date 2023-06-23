@@ -1444,9 +1444,9 @@ public class TReflect {
         Object singleValue = mapArg;
 
         //相同类型的对象直接返回
-        if(TReflect.isSuper(singleValue.getClass(), TReflect.getPackageClass(clazz))) {
-            return (T)singleValue;
-        }
+        // if(TReflect.isSuper(singleValue.getClass(), TReflect.getPackageClass(clazz))) {
+        //     return (T)singleValue;
+        // }
 
         if(mapArg.containsKey(SINGLE_VALUE_KEY)){
             singleValue = mapArg.get(SINGLE_VALUE_KEY);
@@ -1537,8 +1537,8 @@ public class TReflect {
                         valueOfMap = TObject.asMap(SINGLE_VALUE_KEY, entry.getValue());
                     }
 
-                    Object keyObj = getObjectFromMap(genericType[0], keyOfMap, ignoreCase);
-                    Object valueObj = getObjectFromMap(genericType[1], valueOfMap, ignoreCase);
+                    Object keyObj = TReflect.isSuper(entry.getKey().getClass(), genericType[0]) ? entry.getKey() : getObjectFromMap(genericType[0], keyOfMap, ignoreCase);
+                    Object valueObj = TReflect.isSuper(entry.getKey().getClass(), genericType[1]) ? entry.getValue() : getObjectFromMap(genericType[1], valueOfMap, ignoreCase);
                     mapObject.put(keyObj, valueObj);
                 }
             } else {
