@@ -2,6 +2,7 @@ package org.voovan.tools.ioc;
 
 import org.voovan.tools.AnnotataionScaner;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
@@ -49,11 +50,15 @@ public class Context {
 
     static {
         String iocConfig = TEnv.getSystemProperty("IocConfig", String.class);
-        iocConfig = iocConfig == null? TEnv.getEnv("VOOVAN_IOC_CONFIG", "conf/application.json") : iocConfig;
+        String applicationConfigFile = "conf/application.json";
+        	if(TFile.fileExists("conf/application.hcl")) {
+					applicationConfigFile = "conf/application.hcl";
+				}
+        iocConfig = iocConfig == null? TEnv.getEnv("VOOVAN_IOC_CONFIG", applicationConfigFile) : iocConfig;
         try {
             //判断是否是 url 形式, 如果不是则进行转换
             if(TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://")==0) {
-                iocConfig = "file://" + new File(iocConfig).getCanonicalPath();
+                iocConfig = "file://" + TFile.getSystemPath(iocConfig); 
             }
 
             DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE, new Config(new URL(iocConfig)));

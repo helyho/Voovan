@@ -124,7 +124,11 @@ public class WebContext {
 			WEB_CONFIG = Context.get("Web");
 			fullPath = "@Context.web";
 			if(WEB_CONFIG==null) {
-				String confWeb = TFile.assemblyPath("conf", "web.json");
+				String webConfigFile = "conf/web.json";
+				if(TFile.fileExists("conf/web.hcl")) {
+					webConfigFile = "conf/web.hcl";
+				}
+				String confWeb = webConfigFile;
 				fullPath = TFile.getSystemPath(confWeb);
 				WEB_CONFIG = JSON.toObject(new File(fullPath), Map.class, false, true, true);
 			}
