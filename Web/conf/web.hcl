@@ -35,7 +35,7 @@ WeaveConfig : {
 
 //  HTTPS证书配置
 //  Https: {
-//      CertificateFile        : /src/test/java/org/voovan/test/http/ssl_ks,  // HTTPS 证书
+//      CertificateFile        : "/src/test/java/org/voovan/test/http/ssl_ks",  // HTTPS 证书
 //      CertificatePassword    : passStr,                // HTTPS 证书密码
 //      KeyPassword            : 123123,                 // HTTPS 证书Key 密码
 //  },
@@ -47,17 +47,17 @@ Filters[
     Name : filter1,
     ClassName : org.voovan.test.http.HttpFilterTest,
     Encoding : UTF-8,
-  Action : pass },
+    Action : pass },
   {
     Name : filter2,
     ClassName : org.voovan.test.http.HttpFilterTest,
     Encoding : UTF-8,
-  Action : pass },
+    Action : pass },
   {
     Name : filter3,
     ClassName : org.voovan.test.http.HttpFilterTest,
     Encoding : UTF-8,
-  Action : pass },
+    Action : pass },
   {
     Name : TokenBucketFilter, //限制请求的过滤器
     enable : true,
@@ -67,7 +67,7 @@ Filters[
       {
         limitSize : 1,
         interval : 1,
-        value : / test,
+        value : "/test",
         type : url,
         response : your request is limited
       },
@@ -102,7 +102,7 @@ Filters[
 Routers[
   {
     Name : 配置路由测试,                                         //路由名称
-    Route : / configRouter,                                //Http请求路径
+    Route : "/testRouter",                                //Http请求路径
     Method : GET,                                          //Http请求方法
     ClassName : org.voovan.test.http.router.HttpTestRouter //Http 路由处理器
   }
@@ -123,7 +123,7 @@ Modules[
 
     Swagger {
       Enable : true,
-      RoutePath : / swagger,
+      RoutePath : "/swagger",
       RefreshInterval : 30,
       Description : webserver swagger test,
       Version : v1.0.0

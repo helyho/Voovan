@@ -1,23 +1,32 @@
 package org.voovan.tools.json;
 
-import org.voovan.Global;
-import org.voovan.tools.*;
-import org.voovan.tools.collection.IntKeyMap;
-import org.voovan.tools.exception.ParseException;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
-import org.voovan.tools.log.Logger;
-import org.voovan.tools.reflect.TReflect;
-import org.voovan.tools.security.THash;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import org.voovan.Global;
+import org.voovan.tools.FastThreadLocal;
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
+import org.voovan.tools.collection.IntKeyMap;
+import org.voovan.tools.exception.ParseException;
+import org.voovan.tools.hashwheeltimer.HashWheelTask;
+import org.voovan.tools.log.Logger;
+import org.voovan.tools.reflect.TReflect;
+import org.voovan.tools.security.THash;
 
 /**
  * JSON字符串分析成 Map
@@ -216,6 +225,7 @@ public class JSONDecode {
 			char prevChar = 0;
 			boolean isConvertChar = false; //是否处于转移字符状态
 
+			boolean filledByRecursion = false;
 
 			while (true) {
 				currentChar = (char) reader.read();
@@ -313,9 +323,6 @@ public class JSONDecode {
 							((Map) parentRoot).put(parentKey, root);
 						}
 
-
-						
-
 						//推断根对象类型, 则字符不表意, 则继续处理
 						if(currentChar == Global.CHAR_LS_BRACES || currentChar == Global.CHAR_LC_BRACES) {
 							if(itemString.length() >0) {
@@ -360,6 +367,7 @@ public class JSONDecode {
 							//递归解析处理,取 value 对象
 							String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
 							value = JSONDecode.parse(reader, enableToken, enablbeRef, tmpPath, root);
+							filledByRecursion = true;
 							continue;
 						}
 
@@ -385,6 +393,7 @@ public class JSONDecode {
 							//递归解析处理,取 value 对象
 							String tmpPath = key ==null ? parentPath : (parentPath.isEmpty()? key : parentPath+"."+key);
 							value = JSONDecode.parse(reader, enableToken, enablbeRef, tmpPath, root);
+							filledByRecursion = true;
 							continue;
 						}
 					} else if (currentChar == Global.CHAR_RC_BRACES) {
@@ -561,8 +570,6 @@ public class JSONDecode {
 							}
 						}
 
-
-
 						//增加回写, 将数据回写至上层
 						if(parentRoot instanceof List) {
 							((List) parentRoot).add(root);
@@ -574,12 +581,11 @@ public class JSONDecode {
 					}
 
 					//判断返回对象的类型,填充返回对象
-					if (root instanceof HashMap && key!=null) {
+					if (root instanceof HashMap && key!=null && !filledByRecursion) {
 						((Map) root).put(key, value);
-					} else if (root instanceof ArrayList && value != null) {
+					} else if (root instanceof ArrayList && value != null && !filledByRecursion) {
 						((List) root).add(value);
-					} else
-						if(root == null){
+					} else if(root == null){
 						root = value;
 					}
 					//处理完侯将 value 放空
@@ -691,10 +697,10 @@ public class JSONDecode {
 		Object ret = value;
 		//引用文件处理
 		if (value != null && value.charAt(0) == '@') {
-			url = value.substring(1, value.length());
+			url = value.substring(1, value.length()).trim();
 			url = CONTEXT_PATH.get().replace("{path}", url);
 		} else if (value != null && value.charAt(0) == '#') {
-			url = value.substring(1, value.length());
+			url = value.substring(1, value.length()).trim();
 			if (TString.regexMatch(url, "^[a-z,A-Z]*?://") == 0) {
 				url = "file://" + url;
 			}
