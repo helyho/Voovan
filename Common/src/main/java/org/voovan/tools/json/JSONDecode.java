@@ -585,9 +585,12 @@ public class JSONDecode {
 						((Map) root).put(key, value);
 					} else if (root instanceof ArrayList && value != null && !filledByRecursion) {
 						((List) root).add(value);
+						filledByRecursion = false;
 					} else if(root == null){
 						root = value;
 					}
+					
+					filledByRecursion = false;
 					//处理完侯将 value 放空
 					key = null;
 					value = null;
