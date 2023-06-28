@@ -1,8 +1,40 @@
 package org.voovan.tools.reflect;
 
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.voovan.Global;
-import org.voovan.tools.*;
+import org.voovan.tools.TDateTime;
+import org.voovan.tools.TObject;
+import org.voovan.tools.TString;
+import org.voovan.tools.TUnsafe;
 import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
@@ -13,18 +45,6 @@ import org.voovan.tools.reflect.convert.Convert;
 import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.security.THash;
 import org.voovan.tools.tuple.Tuple;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 反射工具类
@@ -1538,7 +1558,7 @@ public class TReflect {
                     }
 
                     Object keyObj = TReflect.isSuper(entry.getKey().getClass(), genericType[0]) ? entry.getKey() : getObjectFromMap(genericType[0], keyOfMap, ignoreCase);
-                    Object valueObj = TReflect.isSuper(entry.getKey().getClass(), genericType[1]) ? entry.getValue() : getObjectFromMap(genericType[1], valueOfMap, ignoreCase);
+                    Object valueObj = TReflect.isSuper(entry.getValue().getClass(), genericType[1]) ? entry.getValue() : getObjectFromMap(genericType[1], valueOfMap, ignoreCase);
                     mapObject.put(keyObj, valueObj);
                 }
             } else {
