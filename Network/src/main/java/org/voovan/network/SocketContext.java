@@ -202,8 +202,6 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.ioPluginChain 		= new Chain<IoPlugin>().add(new DefaultPlugin());
 		this.messageSplitter 	= new TransferSplitter();
 		this.handler 			= new SynchronousHandler();
-
-		Logger.simplef("{},{}",readTimeout, sendTimeout);
 	}
 
 	public FileDescriptor getFileDescriptor() {
