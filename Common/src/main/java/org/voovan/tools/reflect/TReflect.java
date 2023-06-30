@@ -1736,7 +1736,7 @@ public class TReflect {
         //对 Collection 类型的处理
         else if(obj instanceof Collection){
             Collection collection = new ArrayList();
-            for (Object collectionItem : (Collection)obj) {
+            for (Object collectionItem : ((Collection)obj).toArray()) {
                 Map<String, Object> item = getMapFromObject(collectionItem, allField);
                 collection.add((item.size() == 1 && item.containsKey(null)) ? item.get(null) : item);
             }

@@ -127,7 +127,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	protected String host;
 	protected int port;
 	protected int readTimeout;
-	protected int sendTimeout = 1000;
+	protected int sendTimeout = 5000;
 
 	protected IoHandler handler;
 	protected Chain<IoFilter> filterChain;
@@ -202,6 +202,8 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 		this.ioPluginChain 		= new Chain<IoPlugin>().add(new DefaultPlugin());
 		this.messageSplitter 	= new TransferSplitter();
 		this.handler 			= new SynchronousHandler();
+
+		Logger.simplef("{},{}",readTimeout, sendTimeout);
 	}
 
 	public FileDescriptor getFileDescriptor() {
