@@ -7,8 +7,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.CodeSigner;
 import java.security.CodeSource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.voovan.tools.TEnv;
@@ -20,12 +23,15 @@ import org.voovan.tools.reflect.TReflect;
 /**
  *  类环境隔离用的 ClassLoader
  */
-public class IsolatedClassLoader extends URLClassLoader{
-    private static List<String> classPaths;
-    private static URL[] urls;
-    static {
-        classPaths = TEnv.getClassPath();
-        urls = TEnv.getClassPath().stream().map(s-> {
+public class IsolatedClassLoader extends URLClassLoader {
+    private Map<String, Object> objectPool = new ConcurrentHashMap<>();
+    private List<String> isolatedClass = new ArrayList<>();
+
+    public IsolatedClassLoader() {
+        super(new URL[0], getSystemClassLoader());
+
+        List<String> classPaths = TEnv.getClassPath();
+        URL[] urls = TEnv.getClassPath().stream().map(s-> {
             try {
                 return new URL("file://"+s);
             } catch (MalformedURLException e) {
@@ -33,10 +39,20 @@ public class IsolatedClassLoader extends URLClassLoader{
                 return null;
             }
         }).filter(o->o!=null).collect(Collectors.toList()).toArray(new URL[0]);
+
+        for(URL url : urls) {
+            super.addURL(url);
+        }
+
+        Module module = this.getUnnamedModule();
+        module.addOpens(getName(), module)
     }
 
-    public IsolatedClassLoader() {
-        super(urls, getSystemClassLoader());
+    public IsolatedClassLoader(Class ... isolatedClazzes) {
+        this();
+        for(Class clazz : isolatedClazzes) {
+            isolatedClass.add(clazz.getCanonicalName());
+        }
     }
 
     // public Resource getResource
@@ -46,6 +62,10 @@ public class IsolatedClassLoader extends URLClassLoader{
             Class clazz = this.findLoadedClass("name");
             if(clazz!=null) {
                 return clazz;
+            }
+
+            if(isolatedClass.contains(name)) {
+                return getSystemClassLoader().loadClass(name); 
             }
 
             String path = TString.fastReplaceAll(name, "\\.", File.separator) + ".class";
@@ -68,23 +88,43 @@ public class IsolatedClassLoader extends URLClassLoader{
             }
     }
 
-    public static void isolatedRun(Class<? extends Runnable> clazz) throws Exception {
-        IsolatedClassLoader isolatedClassLoader = new IsolatedClassLoader();
-        clazz = (Class<? extends Runnable>) isolatedClassLoader.loadClass(clazz.getCanonicalName());
+    public void isolatedRun(Class<? extends Runnable> clazz) throws Exception {
+        clazz = (Class<? extends Runnable>) loadClass(clazz.getCanonicalName());
         ((Runnable)TReflect.newInstance(clazz)).run();
     }
 
-    public static <T> T isolatedCall(Class<? extends Callable<T>> clazz) throws Exception {
-        IsolatedClassLoader isolatedClassLoader = new IsolatedClassLoader();
-        clazz = (Class<? extends Callable<T>>) isolatedClassLoader.loadClass(clazz.getCanonicalName());
+    public <T> T isolatedCall(Class<? extends Callable<T>> clazz) throws Exception {
+        clazz = (Class<? extends Callable<T>>) loadClass(clazz.getCanonicalName());
         return ((Callable<T>)TReflect.newInstance(clazz)).call();
     }
 
 
-    public static <T> T isolatedInvoke(Class clazz, String method, Object args) throws Exception {
-        IsolatedClassLoader isolatedClassLoader = new IsolatedClassLoader();
-         clazz = isolatedClassLoader.loadClass(clazz.getCanonicalName());
+    public <T> T isolatedInvoke(String name, Class clazz, String method, Object ... args) throws Exception {
+        clazz = loadClass(clazz.getCanonicalName());
         Object obj = TReflect.newInstance(clazz);
+        T ret = (T)TReflect.invokeMethod(obj, method, args);
+        if(name !=null) {
+            objectPool.put(name, ret);
+        }
+        return ret;
+    }
+
+    public <T> T isolatedInvoke(Class clazz, String method, Object ... args) throws Exception {
+        return isolatedInvoke(null, clazz, method, args);
+    }
+
+    public Object createObject(String name, Class clazz, Object ... args) throws Exception {
+        clazz = loadClass(clazz.getCanonicalName());
+        Object object = TReflect.newInstance(clazz, args);
+        objectPool.put(name, object);
+        return object;
+    }
+
+     public <T> T invoke(String name, String method, Object ... args) throws Exception {
+        Object obj = objectPool.get(name) ;
+        if(obj == null) {
+            throw new NullPointerException("Object " + name + " not found in this IsolatedClassLoader");
+        }
         return (T)TReflect.invokeMethod(obj, method, args);
     }
     
