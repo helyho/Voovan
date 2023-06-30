@@ -43,9 +43,6 @@ public class IsolatedClassLoader extends URLClassLoader {
         for(URL url : urls) {
             super.addURL(url);
         }
-
-        Module module = this.getUnnamedModule();
-        module.addOpens(getName(), module)
     }
 
     public IsolatedClassLoader(Class ... isolatedClazzes) {
