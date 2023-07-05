@@ -18,6 +18,9 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface Generic {
-      Class[] generics();
+public @interface Generics {
+      @Alias("generics")
+      Class[] value() default Object.class;
+      @Alias("value")
+      Class[] generics() default Object.class;
 }

@@ -39,7 +39,7 @@ import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.Alias;
-import org.voovan.tools.reflect.annotation.Generic;
+import org.voovan.tools.reflect.annotation.Generics;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
 import org.voovan.tools.reflect.annotation.Unserialization;
@@ -1642,21 +1642,23 @@ public class TReflect {
 
                             //对于 目标对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
                             else if (isImp(fieldType, Map.class) && value instanceof Map) {
-                                Generic generic = field.getAnnotation(Generic.class);
-                                if(generic==null) {
+                                Generics generics = field.getAnnotation(Generics.class);
+                                Class[] genericClasses = getAnnotationValue(generics, "generics");
+                                if(genericClasses==null) {
                                     value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
                                 } else {
-                                    value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, generic.generics(), ignoreCase); 
+                                    value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, genericClasses, ignoreCase); 
                                 }
                             }
                             //对于 目标对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
                             else if (isImp(fieldType, Collection.class) && value instanceof Collection) {
-                                Generic generic = field.getAnnotation(Generic.class);
-                                if(generic==null) {
+                                Generics generics = field.getAnnotation(Generics.class);
+                                Class[] genericClasses = getAnnotationValue(generics, "generics");
+                                if(genericClasses==null) {
                                    value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
 
                                 } else {
-                                    value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), generic.generics(), ignoreCase);
+                                    value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), genericClasses, ignoreCase);
 
                                 }
                             }
@@ -2261,11 +2263,24 @@ public class TReflect {
      * @param <T> 泛型
      */
     public static <T> T getAnnotationValue(Annotation obj, String name) {
+        if(obj == null) {
+            return null;
+        }
+
         try {
             Class clazz = obj.getClass().getInterfaces()[0];
             Method method = TReflect.findMethod(clazz, name);
             Object ret = TReflect.invokeMethod(obj, method);
-            if (ret.equals(method.getDefaultValue())) {
+            Object defaultVal = method.getDefaultValue();
+
+            boolean isEqual;
+            if(defaultVal.getClass().isArray()) {
+                isEqual = Arrays.equals((Object[])ret, (Object[])defaultVal);
+            } else {
+                isEqual = ret.equals(defaultVal);
+            }
+
+            if(isEqual) {
                 Alias alias = method.getAnnotation(Alias.class);
                 if(alias != null) {
                     ret = TReflect.invokeMethod(obj, alias.value());
