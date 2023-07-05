@@ -1,9 +1,10 @@
 package org.voovan.tools.reflect.annotation;
 
-import org.voovan.tools.reflect.exclude.Exclude;
-import org.voovan.tools.reflect.convert.Convert;
-
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * getMapFromObject 将不处理被注解的字段
@@ -17,10 +18,10 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
-public @interface Serialization {
+public @interface Unserialization {
     
     /**
-     * 序列化的别名
+     * 反序列化的别名
      *  
      */
     @Alias("alias")
@@ -28,7 +29,4 @@ public @interface Serialization {
 
     @Alias("value")
     String alias() default "";
-
-    Class<? extends Convert> convert() default Convert.class;
-    Class<? extends Exclude> exclude() default Exclude.class;
 }

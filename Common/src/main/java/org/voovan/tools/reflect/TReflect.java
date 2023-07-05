@@ -39,8 +39,10 @@ import org.voovan.tools.collection.IntKeyMap;
 import org.voovan.tools.compiler.function.DynamicFunction;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.annotation.Alias;
+import org.voovan.tools.reflect.annotation.Generic;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 import org.voovan.tools.reflect.annotation.Serialization;
+import org.voovan.tools.reflect.annotation.Unserialization;
 import org.voovan.tools.reflect.convert.Convert;
 import org.voovan.tools.reflect.exclude.Exclude;
 import org.voovan.tools.security.THash;
@@ -104,7 +106,7 @@ public class TReflect {
     private static IntKeyMap<Boolean>             IS_SYSTEM_TYPE_CLASS = new IntKeyMap<Boolean>(256);
     private static IntKeyMap<Boolean>             IS_SYSTEM_TYPE_NAME  = new IntKeyMap<Boolean>(256);
 
-    private static IntKeyMap<Map<String, String>> FROM_ALIAS  = new IntKeyMap<Map<String, String>>(256);
+    private static IntKeyMap<Map<String, String>> UNSERIAL_ALIAS  = new IntKeyMap<Map<String, String>>(256);
 
     private static Object MODULE;
     /**
@@ -1384,8 +1386,8 @@ public class TReflect {
      * @param clazz  反序列化的类
      * @param fromAliasMap 字段映射的 Map<JSON中字段名, 字段名>
      */
-    public static void addFromAliasMap(Class clazz, Map<String, String> fromAliasMap) {
-        FROM_ALIAS.put(getClassMark(clazz), fromAliasMap);
+    public static void addUnserialAlias(Class clazz, Map<String, String> fromAliasMap) {
+        UNSERIAL_ALIAS.put(getClassMark(clazz), fromAliasMap);
     }
 
     /**
@@ -1393,25 +1395,25 @@ public class TReflect {
      * @param clazz
      * @return
      */
-    public static Map<String, String> scanFromAliasMap(Class clazz) {
+    public static Map<String, String> scanUnserializationAlias(Class clazz) {
         int classMark = getClassMark(clazz);
 
-        Map<String, String> fromAliasMap = FROM_ALIAS.get(classMark);
+        Map<String, String> fromAliasMap = UNSERIAL_ALIAS.get(classMark);
 
         if(fromAliasMap == null) {
             fromAliasMap = new HashMap<>();
 
             for(Field field : getFields(clazz)) {
-                Serialization serialization = field.getAnnotation(Serialization.class);
-                if(serialization !=null) {
-                    String fromAlias = getAnnotationValue(serialization, "fromAlias");
+                Unserialization unserialization = field.getAnnotation(Unserialization.class);
+                if(unserialization !=null) {
+                    String fromAlias = getAnnotationValue(unserialization, "alias");
                     if(fromAlias!=null) {
                         fromAliasMap.put(fromAlias, field.getName());
                     }
                 }
             }
 
-            FROM_ALIAS.put(classMark, fromAliasMap);
+            UNSERIAL_ALIAS.put(classMark, fromAliasMap);
         }
 
         return fromAliasMap;
@@ -1606,7 +1608,7 @@ public class TReflect {
                 String key = argEntry.getKey();
                 Object value = argEntry.getValue();
 
-                Map<String, String> fromAliasMap = scanFromAliasMap(clazz);
+                Map<String, String> fromAliasMap = scanUnserializationAlias(clazz);
 
                 String fieldName = fromAliasMap.getOrDefault(key, key);
 
@@ -1640,11 +1642,23 @@ public class TReflect {
 
                             //对于 目标对象类型为 Map 的属性进行处理,查找范型,并转换为范型定义的类型
                             else if (isImp(fieldType, Map.class) && value instanceof Map) {
-                                value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
+                                Generic generic = field.getAnnotation(Generic.class);
+                                if(generic==null) {
+                                    value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, ignoreCase);
+                                } else {
+                                    value = getObjectFromMap(fieldGenericType, (Map<String,?>)value, generic.generics(), ignoreCase); 
+                                }
                             }
                             //对于 目标对象类型为 Collection 的属性进行处理,查找范型,并转换为范型定义的类型
                             else if (isImp(fieldType, Collection.class) && value instanceof Collection) {
-                                value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
+                                Generic generic = field.getAnnotation(Generic.class);
+                                if(generic==null) {
+                                   value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), ignoreCase);
+
+                                } else {
+                                    value = getObjectFromMap(fieldGenericType, TObject.asMap(SINGLE_VALUE_KEY, value), generic.generics(), ignoreCase);
+
+                                }
                             }
                             //对于 目标对象类型不是 Map,则认定为复杂类型
                             else if (!isImp(fieldType, Map.class)) {
