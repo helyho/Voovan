@@ -21,21 +21,33 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThreadPool {
 	private static int CPU_CORE_COUNT = Runtime.getRuntime().availableProcessors();
+	static {
+		CPU_CORE_COUNT = CPU_CORE_COUNT < 4 ? 4: CPU_CORE_COUNT;	
+	}
 
 	protected static int MIN_POOL_SIZE = CPU_CORE_COUNT;
 	protected static int MAX_POOL_SIZE = CPU_CORE_COUNT;
 	protected static int STATUS_INTERVAL = 5000;
 
+	protected static ConcurrentHashMap<String, ThreadPoolExecutor> THREAD_POOL_HANDLER = new ConcurrentHashMap<String, ThreadPoolExecutor>();
+
+	protected static int envMinPoolSize = TEnv.getSystemProperty("ThreadPoolMin", -1);
+	protected static int envMaxPoolSize = TEnv.getSystemProperty("ThreadPoolMax", -1); 
 	protected static int minPoolSize = TProperties.getInt("framework", "ThreadPoolMinSize", -1);
 	protected static int maxPoolSize = TProperties.getInt("framework", "ThreadPoolMaxSize", -1);
 
-	protected static ConcurrentHashMap<String, ThreadPoolExecutor> THREAD_POOL_HANDLER = new ConcurrentHashMap<String, ThreadPoolExecutor>();
 
+	static{
+		getMinPoolSize();
+		getMaxPoolSize();
+		getStatusInterval();
+	}
 	/**
 	 * 获取线程池最小活动线程数
 	 * @return 线程池最小活动线程数
 	 */
 	public static int getMinPoolSize() {
+		minPoolSize = envMinPoolSize!=-1 ? envMinPoolSize : minPoolSize;
 		MIN_POOL_SIZE = minPoolSize == -1 ? CPU_CORE_COUNT : minPoolSize;
 		return MIN_POOL_SIZE;
 	}
@@ -45,8 +57,9 @@ public class ThreadPool {
 	 * @return 线程池最大活动线程数
 	 */
 	public static int getMaxPoolSize() {
-		if(maxPoolSize > maxPoolSize){
-			maxPoolSize = maxPoolSize;
+		maxPoolSize = envMaxPoolSize!=-1 ? envMaxPoolSize : maxPoolSize;
+		if(minPoolSize > maxPoolSize){
+			maxPoolSize = minPoolSize;
 		}
 		MAX_POOL_SIZE = maxPoolSize == -1 ? CPU_CORE_COUNT : maxPoolSize;
 		return MAX_POOL_SIZE;
@@ -61,11 +74,6 @@ public class ThreadPool {
 		return STATUS_INTERVAL;
 	}
 
-	static{
-		getMinPoolSize();
-		getMaxPoolSize();
-		getStatusInterval();
-	}
 
 	private ThreadPool(){
 	}
