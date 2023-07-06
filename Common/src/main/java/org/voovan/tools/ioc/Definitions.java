@@ -144,14 +144,13 @@ public class Definitions {
     public <T> T createMethodBean(MethodDefinition methodDefinition) {
         Method method = methodDefinition.getMethod();
 
-
         try {
             Object[] params = prepareParam(container, method);
 
             Object obj = null;
             //获取方法的所属的对象, 静态方法无所属对象, 则使用方法所有的 class 作为对象
             if (methodDefinition.getOwner() != null) {
-                obj = container.getByAnchor(methodDefinition.getOwner(), null);
+                obj = container.getByAnchor(methodDefinition.getOwner(), methodDefinition.getClazz(), null);
             } else {
                 obj = methodDefinition.getClazz();
             }

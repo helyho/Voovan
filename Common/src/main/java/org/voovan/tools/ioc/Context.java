@@ -240,15 +240,15 @@ public class Context {
         return getContainer(DEFAULT_SCOPE);
     }
 
-    public static <T> T get(String scope, Object anchor, T defaultVal) {
+    public static <T> T get(String scope, String anchor, T defaultVal) {
         return getContainer(scope).get(anchor, defaultVal);
     }
 
-    public static <T> T get(Object anchor, T defaultVal) {
+    public static <T> T get(String anchor, T defaultVal) {
         return get(IOCUtils.DEFAULT_SCOPE, anchor, defaultVal);
     }
 
-    public static <T> T get(Object anchor) {
+    public static <T> T get(String anchor) {
         return get(IOCUtils.DEFAULT_SCOPE, anchor, null);
     }
 

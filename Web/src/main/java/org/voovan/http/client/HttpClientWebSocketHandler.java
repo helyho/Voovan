@@ -1,6 +1,7 @@
 package org.voovan.http.client;
 
-import org.voovan.Global;
+import java.nio.ByteBuffer;
+
 import org.voovan.http.server.WebSocketDispatcher;
 import org.voovan.http.websocket.WebSocketFrame;
 import org.voovan.http.websocket.WebSocketRouter;
@@ -8,12 +9,8 @@ import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.http.websocket.exception.WebSocketFilterException;
 import org.voovan.network.IoHandler;
 import org.voovan.network.IoSession;
-import org.voovan.network.exception.SendMessageException;
 import org.voovan.tools.buffer.ByteBufferChannel;
-import org.voovan.tools.hashwheeltimer.HashWheelTask;
 import org.voovan.tools.log.Logger;
-
-import java.nio.ByteBuffer;
 
 /**
  * 处理 WebSocket 相关的 IoHandler 事件

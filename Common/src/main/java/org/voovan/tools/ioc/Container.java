@@ -135,19 +135,7 @@ public class Container {
      * @return 数据的值
      */
     private <T> T getByExpression(String expression, T defaultVal) {
-        String beanName = getBeanNameFromExpression(expression);
-
-        Object createObj = initBean(beanName, true);
-        if(createObj== null) {
-            invokeMethodBean(beanName, true);
-        }
-
-        T ret = beanVisitor.value(expression, defaultVal);
-        if (ret != null) {
-            return ret;
-        }
-
-        return defaultVal;
+        return getByExpression(expression, null, defaultVal);
     }
 
     /**
@@ -158,18 +146,30 @@ public class Container {
      * @param <T>        泛型类型
      * @return 返回值
      */
-    private <T> T getByName(String beanName, T defaultVal) {
+    private <T> T getByName(String beanName, Class<T> clazz, T defaultVal) {
         Object createObj = initBean(beanName, true);
         if(createObj== null) {
             invokeMethodBean(beanName, true);
         }
 
-        T ret = (T) beanValues.getOrDefault(beanName, defaultVal);
+        T ret = (T) beanVisitor.value(beanName, clazz, defaultVal);
         if (ret != null) {
             return ret;
         }
 
         return defaultVal;
+    }
+
+        /**
+     * 不实用路径获取数据, 而是使用 key
+     *
+     * @param beanName       名称
+     * @param defaultVal 默认值
+     * @param <T>        泛型类型
+     * @return 返回值
+     */
+    private <T> T getByName(String beanName, T defaultVal) {
+        return getByName(beanName, null, defaultVal);
     }
 
     /**
@@ -184,11 +184,11 @@ public class Container {
         if (isPath(anchor)) {
             return (T) getByExpression(anchor, clazz, defaultVal);
         } else {
-            return getByName(anchor, defaultVal);
+            return getByName(anchor, clazz, defaultVal);
         }
     }
 
-    /**
+       /**
      * 按锚点(名称或者表达式)获取对象
      * @param anchor 表达式
      * @param defaultVal 默认值
@@ -196,11 +196,7 @@ public class Container {
      * @return 获取的对象
      */
     public <T> T getByAnchor(String anchor, T defaultVal) {
-        if (isPath(anchor)) {
-            return (T) getByExpression(anchor, defaultVal);
-        } else {
-            return getByName(anchor, defaultVal);
-        }
+        return getByAnchor(anchor, null, defaultVal); 
     }
 
     /**
@@ -211,26 +207,43 @@ public class Container {
      * @return 获取的对象
      */
     public <T> T getByType(Class<T> clazz, T defaultVal) {
-        return getByName(classKey(clazz), defaultVal);
+        return getByName(classKey(clazz), clazz, defaultVal);
     }
 
-    /**
+   /**
      * 获取对象
-     * @param mark 按表达式、名称、类型获取对象, 可以传递 String 和 Class 类型
+     * @param mark 按表达式、名称、类型获取对象
+     * @param clazz 对象的类型
      * @param defaultVal 默认值
      * @param <T> 泛型
      * @return 获取的对象
      */
-    public <T> T get(Object mark, T defaultVal) {
-        if(mark instanceof String) {
-            return getByAnchor((String)mark, defaultVal);
-        } else if(mark instanceof Class) {
-            return getByType((Class<T>)mark, defaultVal);
-        } else {
-            throw new IOCException("Contain.get only accept mark type by java.lang.[String,Class]");
-        }
+    public <T> T get(Class<T> clazz, T defaultVal) {
+            return getByType(clazz, defaultVal);
     }
 
+    /**
+     * 获取对象
+     * @param mark 按表达式、名称、类型获取对象
+     * @param clazz 对象的类型
+     * @param defaultVal 默认值
+     * @param <T> 泛型
+     * @return 获取的对象
+     */
+    public <T> T get(String mark, Class<T> clazz, T defaultVal) {
+        return getByAnchor((String)mark, clazz, defaultVal);
+    }
+
+       /**
+     * 获取对象
+     * @param mark 按表达式、名称、类型获取对象
+     * @param defaultVal 默认值
+     * @param <T> 泛型
+     * @return 获取的对象
+     */
+    public <T> T get(String mark, T defaultVal) {
+        return get((String)mark, null, defaultVal);
+    }
 
     /**
      * 判断指定名称的对象是否存在
