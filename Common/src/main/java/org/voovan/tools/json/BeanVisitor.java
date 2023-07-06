@@ -9,6 +9,7 @@ import org.voovan.tools.reflect.TReflect;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
@@ -168,8 +169,8 @@ public class BeanVisitor {
     }
 
     /**
-     * 获取JSONPath 对应的节点数据,忽略段大小写
-     * @param pathQry JSONPath 路径
+     * 获取Bean 对应的节点数据,忽略段大小写
+     * @param pathQry Bean 路径
      * @return  节点的数据
      */
     public Object value(String pathQry) {
@@ -178,8 +179,8 @@ public class BeanVisitor {
 
 
     /**
-     * 获取JSONPath 对应的节点数据,默认忽略段大小写
-     * @param pathQry JSONPath 路径
+     * 获取Bean 对应的节点数据,默认忽略段大小写
+     * @param pathQry Bean 路径
      * @param defaultValue 节点不存在时的默认值
      * @param <T>     范型
      * @return  节点的数据
@@ -190,16 +191,23 @@ public class BeanVisitor {
 
     /**
      * 获取节点值并转换成相应的对象,默认忽略段大小写
-     * @param pathQry  JSONPath 路径
+     * @param pathQry  Bean 路径
      * @param clazz    对象的 class, Map:作为转换目标对象的类型, List 作为元素的类型
      * @param <T>      范型指代对象
      * @return  转换后的对象
      */
     public <T> T value(String pathQry, Class<T> clazz) {
         Object value = value(pathQry);
+        if(clazz == null) {
+            return (T)value;
+        }
 
         if(value==null){
             return null;
+        }
+
+        if(TReflect.isSuper(value.getClass(), clazz)) {
+            return (T)value;
         }
 
         Object obj = null;
@@ -207,21 +215,8 @@ public class BeanVisitor {
         try {
             if(value instanceof Map) {
                 obj = TReflect.getObjectFromMap(clazz, (Map<String, ?>) value, true);
-            } else if(value instanceof List) {
-                List objList = (List)value;
-                obj = objList.stream().map(item-> {
-                    try {
-                        if(item instanceof Map){
-                            return TReflect.getObjectFromMap(clazz, (Map<String, ?>) item, true);
-                        } else {
-                            return TString.toObject(item.toString(), clazz);
-                        }
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }).filter(item->item!=null).collect(Collectors.toList());
+            } else if(value instanceof List && TReflect.isSuper(clazz, Collection.class)) {
+                obj = TReflect.getObjectFromMap(clazz, TObject.asMap(TReflect.SINGLE_VALUE_KEY, value), false);
             } else if (TReflect.isSystemType(clazz)) {
                 if(TReflect.isSuper(value.getClass(), clazz)) {
                     obj = value;
@@ -240,7 +235,7 @@ public class BeanVisitor {
 
     /**
      * 获取节点值并转换成相应的对象,忽略段大小写
-     * @param pathQry  JSONPath 路径
+     * @param pathQry  Bean 路径
      * @param clazz    对象的 class
      * @param defaultValue 对象默认值
      * @param <T>      范型指代对象
@@ -253,7 +248,7 @@ public class BeanVisitor {
     /**
      * 获取节点值并转换成相应的 Map 对象,忽略段大小写
      * @param <T>      范型指代对象
-     * @param pathQry  JSONPath 路径
+     * @param pathQry  Bean 路径
      * @param genericType 对象范型类型
      * @return  转换后的对象
      */
@@ -277,7 +272,7 @@ public class BeanVisitor {
     /**
      * 获取节点值并转换成相应的 Map 对象,忽略段大小写
      * @param <T>      范型指代对象
-     * @param pathQry  JSONPath 路径
+     * @param pathQry  Bean 路径
      * @param genericType 对象范型类型
      * @param defaultValue 对象默认值
      * @return  转换后的对象
@@ -290,18 +285,30 @@ public class BeanVisitor {
     /**
      * 获取节点值并转换成相应的 List 对象,忽略段大小写
      * @param <T>      范型指代对象
-     * @param pathQry  JSONPath 路径
+     * @param pathQry  Bean 路径
      * @param elemClazz    List 元素对象的 class
      * @return  转换后的对象
      */
     public <T> List<T> listObject(String pathQry, Class<T> elemClazz) {
-        return (List<T>) value(pathQry, elemClazz);
+        return (List<T>)  ((Collection)value(pathQry)).stream().map(item-> {
+                    try {
+                        if(item instanceof Map){
+                            return TReflect.getObjectFromMap(elemClazz, (Map<String, ?>) item, true);
+                        } else {
+                            return TString.toObject(item.toString(), elemClazz);
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }).filter(item->item!=null).collect(Collectors.toList());
     }
 
     /**
      * 获取节点值并转换成相应的对象,忽略段大小写
      * @param <T>      范型指代对象
-     * @param pathQry  JSONPath 路径
+     * @param pathQry  Bean 路径
      * @param elemClazz    List 元素对象的 class
      * @param defaultValue 节点不存在时的默认值
      * @return  转换后的对象
@@ -318,7 +325,7 @@ public class BeanVisitor {
 
     /**
      * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
-     * @param pathQry        JSONPath 路径
+     * @param pathQry        Bean 路径
      * @param keyFieldName   key 值在 java 对象中对应的字段
      * @param elemClazz      对象的 class
      * @param <T>            范型指代对象
@@ -360,7 +367,7 @@ public class BeanVisitor {
 
     /**
      * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
-     * @param pathQry        JSONPath 路径
+     * @param pathQry        Bean 路径
      * @param keyFieldName   key 值在 java 对象中对应的字段
      * @param elemClazz      对象的 class
      * @param defaultValue   默认值
