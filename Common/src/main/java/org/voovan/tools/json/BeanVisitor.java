@@ -290,7 +290,17 @@ public class BeanVisitor {
      * @return  转换后的对象
      */
     public <T> List<T> listObject(String pathQry, Class<T> elemClazz) {
-        return (List<T>)  ((Collection)value(pathQry)).stream().map(item-> {
+        List value = (List)value(pathQry);
+
+        if(value == null) {
+            return null;
+        }
+
+        if(elemClazz == null) {
+            return value;
+        }
+
+        return (List<T>) value.stream().map(item-> {
                     try {
                         if(item instanceof Map){
                             return TReflect.getObjectFromMap(elemClazz, (Map<String, ?>) item, true);
