@@ -41,7 +41,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public static int 		ACCEPT_THREAD_SIZE       	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 			    = TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
 	public final static Long 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000L);
-	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", true);
+	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", false);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);
