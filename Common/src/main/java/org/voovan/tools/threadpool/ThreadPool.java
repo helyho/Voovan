@@ -53,7 +53,6 @@ public class ThreadPool {
 					entrySet.remove(entry);
 				}
 			}
-			System.out.println(THREAD_POOL_HANDLER.size());
 		}, 10);
 	}
 
