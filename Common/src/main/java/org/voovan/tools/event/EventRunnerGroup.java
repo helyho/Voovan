@@ -289,5 +289,4 @@ public class EventRunnerGroup implements Closeable {
 	public static EventRunnerGroup newInstance() {
 		return EventRunnerGroup.newInstance(TPerformance.getProcessorCount(), true);
 	}
-
 }
