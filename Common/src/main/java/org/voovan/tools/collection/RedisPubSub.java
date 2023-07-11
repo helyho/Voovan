@@ -1,6 +1,9 @@
 package org.voovan.tools.collection;
 
-import org.voovan.tools.json.JSON;
+import java.io.IOException;
+import java.util.List;
+import java.util.function.BiConsumer;
+
 import org.voovan.tools.serialize.TSerialize;
 
 import redis.clients.jedis.BinaryJedisPubSub;
@@ -8,14 +11,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisPubSub;
-import redis.clients.jedis.args.ListPosition;
 import redis.clients.jedis.util.Pool;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * 基于 Redis 的 pubsub 实现
@@ -201,7 +197,7 @@ public class RedisPubSub<T> {
     public void psubString(String channelPattern, BiConsumer<String, String> consumer) {
         try (Jedis jedis = getJedis()) {
 
-           jedis.subscribe(new JedisPubSub() {
+           jedis.psubscribe(new JedisPubSub() {
             public void onPMessage(String pattern, String channel, String message) {
                 consumer.accept(channel, message);
             }
