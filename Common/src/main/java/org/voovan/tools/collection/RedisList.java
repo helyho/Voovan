@@ -351,6 +351,10 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public boolean addAll(Collection<? extends V> c) {
+        if(c.size()==0) {
+            return true;
+        }
+
         byte[][] byteArrays = new byte[c.size()][];
         Object[] objs = c.toArray();
         for(int i=0;i<c.size(); i++) {
@@ -393,7 +397,9 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
 
     @Override
     public void clear() {
-        trim(0, -1); 
+        try (Jedis jedis = getJedis()) {
+            jedis.del(name); 
+        }
     }
 
     @Override
