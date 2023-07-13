@@ -176,7 +176,7 @@ public class Context {
     }
 
     public static void initPriority() {
-        //升序排序, 索引越小优先级越高
+        //升序排序, 索引越大优先级越高
         Collections.sort(ENTRANCE, new Comparator<Class>() {
             @Override
             public int compare(Class o1, Class o2) {
