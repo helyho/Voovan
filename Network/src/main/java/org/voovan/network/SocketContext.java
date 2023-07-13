@@ -1,31 +1,25 @@
 package org.voovan.network;
 
-import org.voovan.Global;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.net.SocketOption;
+import java.nio.channels.SelectableChannel;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+
 import org.voovan.network.handler.SynchronousHandler;
 import org.voovan.network.messagesplitter.TransferSplitter;
 import org.voovan.network.plugin.DefaultPlugin;
-import org.voovan.tools.TPerformance;
-import org.voovan.tools.TUnsafe;
-import org.voovan.tools.collection.Chain;
-import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.TEnv;
+import org.voovan.tools.TPerformance;
+import org.voovan.tools.buffer.TByteBuffer;
+import org.voovan.tools.collection.Chain;
 import org.voovan.tools.event.EventRunner;
 import org.voovan.tools.event.EventRunnerGroup;
 import org.voovan.tools.log.Logger;
 import org.voovan.tools.pool.PooledObject;
-import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.threadpool.ThreadPool;
-
-import javax.net.ssl.SSLException;
-import java.io.FileDescriptor;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.SocketOption;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * socket 上下文
@@ -41,7 +35,7 @@ public abstract class SocketContext<C extends SelectableChannel, S extends IoSes
 	public static int 		ACCEPT_THREAD_SIZE       	= TEnv.getSystemProperty("AcceptThreadSize", 1);
 	public static int 		IO_THREAD_SIZE 			    = TEnv.getSystemProperty("IoThreadSize", TPerformance.getProcessorCount()+1);
 	public final static Long 		SELECT_INTERVAL 	= TEnv.getSystemProperty("SelectInterval", 1000L);
-	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", false);
+	public final static Boolean 	CHECK_TIMEOUT  		= TEnv.getSystemProperty("CheckTimeout", true);
 	public final static boolean 	ASYNC_SEND 			= TEnv.getSystemProperty("AsyncSend", true);
 	public final static boolean 	ASYNC_RECIVE 	    = TEnv.getSystemProperty("AsyncRecive", true);
 	public final static boolean 	DIRECT_IO 	        = TEnv.getSystemProperty("DirectIO", false);

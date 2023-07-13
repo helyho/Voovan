@@ -106,9 +106,9 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     }
 
     private Jedis getJedis(){
-        Jedis Jedis = redisPool.getResource();
-        Jedis.select(dbIndex);
-        return Jedis;
+        Jedis jedis = redisPool.getResource();
+        jedis.select(dbIndex);
+        return jedis;
     }
 
     /**
