@@ -46,7 +46,11 @@ public class Context {
 
     private static List<Class> ENTRANCE = new ArrayList<>();
 
-    private static boolean inited = false; //0: 未初始化, 1: 初始化完成
+    /**
+     * 容器状态
+     * 0: 未初始化, 1:初始化中, 2: 初始化完成
+     */
+    private static int status = 0; 
 
     static {
         String iocConfig = TEnv.getSystemProperty("IocConfig", String.class);
@@ -66,7 +70,6 @@ public class Context {
             throw new IOCException("Load IOC config failed", e);
         }
         CONTAINER_MAP.put(DEFAULT_SCOPE, DEFAULT_CONTAINER);
-        init();
     }
 
     public static ConcurrentHashMap<String, Container> getContainerMap() {
@@ -81,14 +84,20 @@ public class Context {
         scanPaths.addAll(TObject.asList(paths));
     }
 
-    public static boolean isInited() {
-        return inited;
+    /**
+     * 返回容器状态
+     * @return 0: 未初始化, 1:初始化中, 2: 初始化完成
+     */
+    public static int getStatus() {
+        return status;
     }
 
     public static void init() {
-        if(inited) {
+        if(status!=0) {
             return;
         }
+
+        status = 1;
 
         List<String> configPaths = DEFAULT_CONTAINER.get("ScanPaths", null);
         if(configPaths == null) {
@@ -120,7 +129,8 @@ public class Context {
                 Logger.errorf("Scan compoment failed", e);
             }
         }
-        inited = true;
+
+        status = 2;
     }
 
     /**

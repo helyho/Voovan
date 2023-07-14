@@ -60,14 +60,6 @@ public class WebContext {
 	//通用 Header
 	public static byte[] RESPONSE_COMMON_HEADER = TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
 
-	static{
-		Global.schedual(new HashWheelTask() {
-			@Override
-			public void run() {
-				RESPONSE_COMMON_HEADER =  TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
-			}
-		}, 1, true);
-	}
 
 	/**
 	 * Web Config
@@ -84,17 +76,26 @@ public class WebContext {
 	 */
 	private static Map<String, Object> ERROR_DEFINE = new HashMap<String, Object>();
 
-	static {
-		//加载默认配置
-		loadWebConfig();
-	}
-
 	/**
 	 *  accessLog 的文件路径
 	 */
 	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+ File.separator+"logs"+ File.separator+"access.log";
 
 	private static WebServerConfig webServerConfig = buildConfigFromMap(WEB_CONFIG);
+
+	static{
+		Context.init();
+
+		//加载默认配置
+		loadWebConfig();
+
+		Global.schedual(new HashWheelTask() {
+			@Override
+			public void run() {
+				RESPONSE_COMMON_HEADER =  TString.toAsciiBytes("Date: " + TDateTime.formatToGMT(new Date()) + "\r\n" + "Server: " + FULL_VERSION + "\r\n\r\n");
+			}
+		}, 1, true);
+	}
 
 	private WebContext(){
 
