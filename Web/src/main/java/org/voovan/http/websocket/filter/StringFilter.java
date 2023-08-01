@@ -5,6 +5,7 @@ import org.voovan.http.websocket.WebSocketSession;
 import org.voovan.tools.buffer.TByteBuffer;
 import org.voovan.tools.json.JSON;
 
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 
 /**
@@ -35,6 +36,8 @@ public class StringFilter implements WebSocketFilter {
 	public Object decode(WebSocketSession session,Object object) {
 		if(object instanceof ByteBuffer){
             return TByteBuffer.toString((ByteBuffer)object);
+		} else if(object.getClass().isArray() && object.getClass().getComponentType().equals(byte.class)) {
+			return new String((byte[])object);
 		}
 		return object;
 	}
