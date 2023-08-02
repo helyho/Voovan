@@ -98,8 +98,9 @@ public class RedisPubSub<T> {
      * 选择当前数据集
      * @param dbIndex 数据集序号
      */
-    public void setDbIndex(int dbIndex) {
+    public RedisPubSub<T> dbIndex(int dbIndex) {
         this.dbIndex = dbIndex;
+        return this;
     }
 
     public void close() throws IOException {
