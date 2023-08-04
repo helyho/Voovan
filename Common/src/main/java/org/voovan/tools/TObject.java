@@ -252,6 +252,11 @@ public class TObject {
 		return map;
 	}
 
+	public static void changeMapKey(Map<String, Object> map, String oldKey, String newKey) {
+		Object value = map.remove(oldKey);
+		map.put(newKey, value);
+	}
+
 	/**
 	 * 在数组中查找元素
 	 * @param source 数组
