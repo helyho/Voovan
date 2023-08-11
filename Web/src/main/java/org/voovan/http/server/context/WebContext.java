@@ -81,7 +81,6 @@ public class WebContext {
 	 */
 	private static final String ACCESS_LOG_FILE_NAME = TFile.getContextPath()+ File.separator+"logs"+ File.separator+"access.log";
 
-	private static WebServerConfig webServerConfig = buildConfigFromMap(WEB_CONFIG);
 
 	static{
 		Context.init();
@@ -96,6 +95,8 @@ public class WebContext {
 			}
 		}, 1, true);
 	}
+	
+	private static WebServerConfig webServerConfig = buildConfigFromMap(WEB_CONFIG);
 
 	private WebContext(){
 
