@@ -112,7 +112,7 @@ public class SimpleDalayQueue<T> extends AbstractQueue implements BlockingQueue 
 
     @Override
     public Iterator iterator() {
-        return new innerIterator<>(data);
+        return new innerIterator<T>(data);
     }
 
     @Override
