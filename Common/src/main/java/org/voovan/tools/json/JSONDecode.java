@@ -432,8 +432,8 @@ public class JSONDecode {
 						
 						//itemString 尾部进行 trim 处理
 						for(int i=0;i<itemString.length();i++) {
-							if(Character.isWhitespace(itemString.charAt(itemString.length() - i - 1))){
-								itemString.setLength(itemString.length() - i - 1);
+							if(Character.isWhitespace(itemString.charAt(itemString.length() - i))){
+								itemString.setLength(itemString.length() - i);
 							} else {
 								break;
 							}
