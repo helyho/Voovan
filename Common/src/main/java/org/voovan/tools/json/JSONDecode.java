@@ -429,11 +429,11 @@ public class JSONDecode {
 					//JSON对象字符串分组,取 Key 对象,当前字符是:或=,则取 Key
 					if (currentChar == Global.CHAR_COLON || currentChar == Global.CHAR_EQUAL) {
 						itemString.setLength(itemString.length()-1);
-						
+
 						//itemString 尾部进行 trim 处理
-						for(int i=0;i<itemString.length();i++) {
-							if(Character.isWhitespace(itemString.charAt(itemString.length() - i))){
-								itemString.setLength(itemString.length() - i);
+						while(itemString.length()>0) {
+							if(Character.isWhitespace(itemString.charAt(itemString.length() - 1))){
+								itemString.setLength(itemString.length() - 1);
 							} else {
 								break;
 							}
