@@ -1381,20 +1381,20 @@ public class TReflect {
         return parameterTypes;
     }
 
-    /**
-     * 新增一个反序列化的字段映射
-     * @param clazz  反序列化的类
-     * @param fromAliasMap 字段映射的 Map<JSON中字段名, 字段名>
-     */
+	/**
+	 * 新增一个反序列化的字段映射
+	 * @param clazz  反序列化的类
+	 * @param fromAliasMap 字段映射的 Map&lt;JSON中字段名, 字段名&gt;
+	 */
     public static void addUnserialAlias(Class clazz, Map<String, String> fromAliasMap) {
         UNSERIAL_ALIAS.put(getClassMark(clazz), fromAliasMap);
     }
 
-    /**
-     * 扫描注解中的反序列化的字段映射
-     * @param clazz
-     * @return
-     */
+	/**
+	 * 扫描注解中的反序列化的字段映射
+	 * @param clazz 反序列化的类
+	 * @return 字段映射的 Map
+	 */
     public static Map<String, String> scanUnserializationAlias(Class clazz) {
         int classMark = getClassMark(clazz);
 

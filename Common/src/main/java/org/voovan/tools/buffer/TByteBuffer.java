@@ -496,7 +496,9 @@ public class TByteBuffer {
 
     /**
      * 设置内存地址
+     * 
      * @param byteBuffer bytebuffer 对象
+     * @param address 旧的内存地址
      * @param newAddress 内存地址
      * @throws ReflectiveOperationException 反射异常
      */

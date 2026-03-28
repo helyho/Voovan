@@ -212,7 +212,6 @@ public class Container {
 
    /**
      * 获取对象
-     * @param mark 按表达式、名称、类型获取对象
      * @param clazz 对象的类型
      * @param defaultVal 默认值
      * @param <T> 泛型

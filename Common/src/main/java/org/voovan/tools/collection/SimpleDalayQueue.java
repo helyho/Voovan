@@ -20,8 +20,7 @@ public class SimpleDalayQueue<T> extends AbstractQueue implements BlockingQueue 
     private DelayQueue<DelayedWrap<T>> data;
 
     /**
-     * @param windowSize
-     * @param data
+     * @param lifeTime 生命周期
      */
     public SimpleDalayQueue(int lifeTime) {
         this.lifeTime = lifeTime;
@@ -136,7 +135,7 @@ public class SimpleDalayQueue<T> extends AbstractQueue implements BlockingQueue 
         private Iterator<DelayedWrap<T>> parentIterator;
 
         /**
-         * @param data
+         * @param data 内部迭代器初始化的延时队列对象
          */
         public innerIterator(DelayQueue<DelayedWrap<T>> data) {
             this.data = data;
@@ -168,8 +167,9 @@ public class SimpleDalayQueue<T> extends AbstractQueue implements BlockingQueue 
         private int lifeTime;
 
         /**
-         * @param data
-         * @param lifeTime
+         * @param data 数据对象
+         * @param lifeTime 生命周期
+         * @param sortType 排序方式
          */
         public DelayedWrap(T data, int lifeTime, SortType sortType) {
             this.createTime = System.currentTimeMillis();

@@ -1338,9 +1338,9 @@ public class TString {
 
 	/**
 	 * 获取 Url 字符串中的服务器地址
-	 * 		例如: http://127.0.0.1:8080/userinfo -> http://127.0.0.1:8080
-	 * @param url
-	 * @return
+	 * 		例如: http://127.0.0.1:8080/userinfo to http://127.0.0.1:8080
+	 * @param url URL地址
+	 * @return 服务器地址
 	 */
 	public static String getUrlHost(String url) {
         int index = url.indexOf('/', 8);
@@ -1351,11 +1351,11 @@ public class TString {
     }
 
 	/**
-	* 获取 Url 字符串中的路由
-	* 		例如: http://127.0.0.1:8080/userinfo -> /userinfo
-	* @param url
-	* @return
-	*/
+	 * 获取 Url 字符串中的路由 例如: http://127.0.0.1:8080/userinfo to /userinfo
+	 * 
+	 * @param url URL地址
+	 * @return 地址路径
+	 */
     public static String getUrlPath(String url) {
         int index = url.indexOf('/', 8);
 		if(index<0) {

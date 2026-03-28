@@ -114,6 +114,7 @@ public class RedisList<V> implements List<V>, Deque<V>, Closeable {
     /**
      * 选择当前数据集
      * @param dbIndex 数据集序号
+     * @return 当前 RedisList 实例
      */
     public RedisList<V> dbIndex(int dbIndex) {
         this.dbIndex = dbIndex;
