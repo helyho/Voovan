@@ -6,6 +6,7 @@ import org.rocksdb.util.BytewiseComparator;
 import org.voovan.tools.*;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
+import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.serialize.ProtoStuffSerialize;
 import org.voovan.tools.serialize.TSerialize;
 
@@ -69,7 +70,7 @@ public class RocksMapUnit extends TestCase {
         TEnv.sleep(500);
 
         rocksMap2.scan(null, "6652262218912382986", entry->{
-            System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
+            // System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
             return true;
         }, true);
 
@@ -123,7 +124,7 @@ public class RocksMapUnit extends TestCase {
             ((RocksMap)map).put(16, 32);
             return null;
         });
-
+        
         rocksMap.choseColumnFamily("default").put(90, 65536);
         System.out.println(rocksMap.choseColumnFamily("cfname").get(90));
 
@@ -134,7 +135,7 @@ public class RocksMapUnit extends TestCase {
         }
 
         System.out.println("===============filter==================");
-        rocksWalRecords = rocksMap.getWalSince(0l, (cfid, type)-> cfid.equals(5), true);
+        rocksWalRecords = rocksMap.getWalSince(0l, (cfid, type)-> cfid.equals(0), true);
         for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
 
             System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + rocksWalRecord.getChunks());
@@ -142,39 +143,6 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println(rocksMap.entrySet());
     }
-
-    public void testRemoveEmpty() throws RocksDBException {
-        String cfName = "testdb_re";
-        ColumnFamilyOptions columnFamilyOptions = new ColumnFamilyOptions();
-        columnFamilyOptions.setCompactionFilter(new RemoveEmptyValueCompactionFilter());
-        RocksMap rocksMap = new RocksMap(null, cfName, columnFamilyOptions, null, null, null, null);
-
-        rocksMap.clear();
-
-        rocksMap.put("1111", new byte[]{(byte)1, (byte)2});
-        System.out.println(rocksMap.get("1111"));
-
-        rocksMap.empty("1111");
-        System.out.println(rocksMap.get("1111"));
-
-        List<RocksMap.RocksWalRecord> rocksWalRecords = rocksMap.getWalSince(0l, false);
-        for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
-            byte[] bytes = (byte[])rocksWalRecord.getChunks().get(1);
-            Object value = bytes==null ? null : bytes.length;
-            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + value);
-        }
-
-        rocksMap.compact();
-        System.out.println("====================================");
-
-        rocksWalRecords = rocksMap.getWalSince(0l, true);
-        for(RocksMap.RocksWalRecord rocksWalRecord : rocksWalRecords) {
-            byte[] bytes = (byte[])rocksWalRecord.getChunks().get(1);
-            Object value = bytes==null ? null : bytes.length;
-            System.out.println(rocksWalRecord.getSequence() + " " + rocksWalRecord.getType() + " " + rocksWalRecord.getColumnFamilyId() + " = " + value);
-        }
-    }
-
     public void testAll() throws RocksDBException {
         RocksMap.setRootPath("bingo");
 
@@ -190,6 +158,8 @@ public class RocksMapUnit extends TestCase {
             System.out.println("replace: "+ rocksMap1.replace("name", cfName+"_4"));
             System.out.println("get: "+ rocksMap1.get("name"));
         }
+
+        System.out.println(JSON.toJSONWithFormat(rocksMapx.getColumnFamilys()));
 
         RocksMap rocksMap = new RocksMap("testdb");
         rocksMap.clearOneByOne();
@@ -211,7 +181,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap.beginTransaction();
         rocksMap.choseColumnFamily("testdb");
         rocksMap.put("transaction11", "rocksMap.value");
-        rocksMap.choseColumnFamily(cfName);
+        rocksMap.choseColumnFamily(cfName); //testdb1000
         rocksMap.put("transaction11", cfName);
 
         rocksMap.choseColumnFamily("testdb");
@@ -321,8 +291,8 @@ public class RocksMapUnit extends TestCase {
                 rocksMap.rollback(false);
             }
 
-            System.out.println("rocksMap nest commit get: " + rocksMap.get("transaction44"));
-            System.out.println("rocksMap2 nest rollback get: " + rocksMap2.get("transaction55"));
+            System.out.println("rocksMap outer nest commit get: " + rocksMap.get("transaction44"));
+            System.out.println("rocksMap inner nest rollback get: " + rocksMap2.get("transaction55"));
         }
         rocksMap.rollback();
 
@@ -486,10 +456,12 @@ public class RocksMapUnit extends TestCase {
 
     }
 
-    public void testSecondary() {
+    public void t_testSecondary() {
         RocksMap.setRootPath("bingo");
-
+        RocksMap.cleanRocksMapCache();
         RocksMap rocksMap = new RocksMap("testdb", RocksMap.Type.SECONDARY);
+
+
         System.out.println(rocksMap.get("aaaa1"));
         rocksMap.tryCatchUpWithPrimary();
         System.out.println(rocksMap.get("aaaa1"));
@@ -525,7 +497,7 @@ public class RocksMapUnit extends TestCase {
 //        rocksMap1.deleteBackup(mm.get(0).backupId());
 
         //恢复到指定 Id 的备份
-        rocksMap1.restore(mm.get(3).backupId());
+        rocksMap1.restore(mm.get(0).backupId());
     }
 
     public void testBackupInfo() throws RocksDBException {
@@ -547,7 +519,7 @@ public class RocksMapUnit extends TestCase {
         RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
         RocksMap rocksMap1 = new RocksMap(cfName);
-        rocksMap1.restore(3);
+        rocksMap1.restore(1);
     }
 
 

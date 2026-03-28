@@ -2,6 +2,7 @@ package org.voovan.tools.collection;
 import org.rocksdb.*;
 import org.voovan.tools.TByte;
 import org.voovan.tools.TFile;
+import org.voovan.tools.TObject;
 import org.voovan.tools.TString;
 import org.voovan.tools.Varint;
 import org.voovan.tools.exception.ParseException;
@@ -15,7 +16,6 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.*;
-import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -45,6 +45,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     //缓存 db 和他对应的 TransactionDB
     private static Map<String, RocksDB> ROCKSDB_MAP = new ConcurrentHashMap<String, RocksDB>();
 
+    public static void cleanRocksMapCache(){
+       ROCKSDB_MAP.clear();
+    }
+
     //缓存 TransactionDB 和列族句柄的关系
     private static Map<RocksDB, Map<String, ColumnFamilyHandle>> COLUMN_FAMILY_HANDLE_MAP = new ConcurrentHashMap<RocksDB, Map<String, ColumnFamilyHandle>>();
 
@@ -53,7 +57,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     private static String DEFAULT_WAL_PATH          = DEFAULT_DB_PATH + ".wal"    + File.separator;
     private static String DEFAULT_BACKUP_PATH       = DEFAULT_DB_PATH + ".backup" + File.separator;
     private static String DEFAULT_LOG_PATH          = DEFAULT_DB_PATH + "logs"    + File.separator;
-    private static String DEFAULT_SECONDARY_DB_PATH = ".rocksdb.secondary" + File.separator;
+    private static String DEFAULT_SECONDARY_DB_PATH = ".rocksdb.sec" + File.separator;
 
 
     public static void setRootPath(String rootPath) {
@@ -285,25 +289,24 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
         this.dataPath       = DEFAULT_DB_PATH           + this.dbName + File.separator;
         this.walPath        = DEFAULT_WAL_PATH          + this.dbName + File.separator;
-        this.backupPath     = DEFAULT_BACKUP_PATH       + this.dbName + File.separator;
-        this.walPath        = DEFAULT_WAL_PATH          + this.dbName + File.separator;
         this.logPath        = DEFAULT_LOG_PATH          + this.dbName + File.separator;
+        this.backupPath     = DEFAULT_BACKUP_PATH       + this.dbName + File.separator;
 
         this.secondaryPath  = DEFAULT_SECONDARY_DB_PATH + File.separator + this.dbName + File.separator;
 
 
         TFile.mkdir(dataPath);
         TFile.mkdir(walPath);
-        TFile.mkdir(backupPath);
         TFile.mkdir(logPath);
+        TFile.mkdir(backupPath);
 
-        if(type == Type.SECONDARY) {
+        if (type == Type.SECONDARY) {
             TFile.mkdir(secondaryPath);
         }
-
         this.dbOptions.setWalDir(walPath);
-        this.backupEngineOptions = new BackupEngineOptions(backupPath);//new BackupableDBOptions();
         this.dbOptions.setDbLogDir(logPath);
+        this.backupEngineOptions = new BackupEngineOptions(backupPath);//new BackupableDBOptions();
+
 
         rocksDB = ROCKSDB_MAP.get(this.dbName);
 
@@ -731,6 +734,10 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         } catch (RocksDBException e) {
             throw new RocksMapException("getWalBetween failed, " + e.getMessage(), e);
         }
+    }
+
+    public List<String> getColumnFamilys(){
+        return (List<String>) TObject.mapKeyToList(COLUMN_FAMILY_HANDLE_MAP.get(rocksDB));
     }
 
     public int getColumnFamilyId(String columnFamilyName){
@@ -1578,8 +1585,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * Removes the database entries in the range ["beginKey", "endKey"), i.e.,
      * including "beginKey" and excluding "endKey". a non-OK status on error. It
      * is not an error if no keys exist in the range ["beginKey", "endKey").
-     * @param fromKey 其实 key
-     * @param toKey 结束 key
+     * @param fromKey 其实 key, 移除包含
+     * @param toKey 结束 key, 移除不包含
      *
      */
     public void removeRange(K fromKey, K toKey){
@@ -1917,8 +1924,8 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
 
     /**
      * 构造一个有范围的迭代器
-     * @param fromKey 起始 key
-     * @param toKey 结束 key
+     * @param fromKey 起始 key, 返回值包含
+     * @param toKey 结束 key, 返回值包含
      * @return 迭代器对象
      */
     public RocksMapIterator<K,V> iterator(K fromKey, K toKey){
