@@ -25,12 +25,16 @@ public class IOC3 {
 
     @Value
     private IOC1 ioc1;
+
     @Value("string")
     private String str;
 
     @Value("Filters[0].ClassName")
     private String filter0ClassName;
 
+    public void setStr(String mm) {
+        str = mm;
+    }
 
     @Value
     private List list;

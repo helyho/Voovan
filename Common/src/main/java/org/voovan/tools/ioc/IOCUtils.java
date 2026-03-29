@@ -118,8 +118,8 @@ public class IOCUtils {
                         Value valueAnnotation = cast(annotation);
                         String anchor = TReflect.getAnnotationValue(annotation, "anchor");
 
-
-                        params[i] = getAnnotationValueData(anchor, parameterType, TReflect.getGenericClass(genericParameterTypes[i]), container);
+                        Class[] classes = TReflect.getGenericClass(genericParameterTypes[i]);
+                        params[i] = getAnnotationValueData(anchor, parameterType, classes, container);
                         if(valueAnnotation.required() && params[i] == null) {
                             Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
                         }

@@ -53,22 +53,7 @@ public class Context {
     private static int status = 0; 
 
     static {
-        String iocConfig = TEnv.getSystemProperty("IocConfig", String.class);
-        String applicationConfigFile = "conf/application.json";
-        	if(TFile.fileExists("conf/application.hcl")) {
-					applicationConfigFile = "conf/application.hcl";
-				}
-        iocConfig = iocConfig == null? TEnv.getEnv("VOOVAN_IOC_CONFIG", applicationConfigFile) : iocConfig;
-        try {
-            //判断是否是 url 形式, 如果不是则进行转换
-            if(TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://")==0) {
-                iocConfig = "file://" + TFile.getSystemPath(iocConfig); 
-            }
-
-            DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE, new Config(new URL(iocConfig)));
-        } catch (IOException e) {
-            throw new IOCException("Load IOC config failed", e);
-        }
+        DEFAULT_CONTAINER = new Container(DEFAULT_SCOPE, new Config());
         CONTAINER_MAP.put(DEFAULT_SCOPE, DEFAULT_CONTAINER);
     }
 

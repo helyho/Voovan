@@ -1,6 +1,11 @@
 package org.voovan.test.tools.ioc;
 
 import junit.framework.TestCase;
+
+import java.net.URL;
+
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
 import org.voovan.tools.ioc.Config;
 import org.voovan.tools.ioc.Container;
 import org.voovan.tools.ioc.annotation.Value;
@@ -15,7 +20,8 @@ import org.voovan.tools.reflect.TReflect;
  * Licence: Apache v2 License
  */
 public class ContainerUnit extends TestCase {
-    public void testAll() throws ReflectiveOperationException {
+    public void testAll() throws Exception {
+        // URL url = new URL("file://" + TFile.getSystemPath("conf/application.json"));
         Container container = new Container("defalut");
 
         //========test========
@@ -38,7 +44,7 @@ public class ContainerUnit extends TestCase {
 
         //静态方法测试
         container.getDefinitions().addMethodDefinition("tttt2", null, TReflect.findMethod(ContainerUnit.class, "test1", 1)[0], false, false, false);
-        System.out.println("static method2 PathValue: " + container.getByAnchor("tttt2.name", null));
+        System.out.println("static method2 PathValue: " + container.getByAnchor("tttt2.config.Host", null));
         System.out.println("============================");
 
         container.getDefinitions().addMethodDefinition("tttt3", null, TReflect.findMethod(ContainerUnit.class, "test2"), false, false, false);
@@ -52,7 +58,7 @@ public class ContainerUnit extends TestCase {
         System.out.println("static method4 singleton PathValue: " + container.getByAnchor("tttt4", null));
     }
 
-    public static Config test1(@Value("config1") Config config){
+    public static Config test1(@Value("config") Config config){
         return config;
     }
 

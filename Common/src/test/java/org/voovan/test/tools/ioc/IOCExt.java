@@ -21,6 +21,7 @@ import java.util.Map;
 public class IOCExt {
     @Value
     private IOC1 ioc1;
+    
     @Value("string")
     private String str;
 

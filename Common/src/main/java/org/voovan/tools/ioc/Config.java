@@ -1,9 +1,13 @@
 package org.voovan.tools.ioc;
 
+import org.voovan.tools.TEnv;
+import org.voovan.tools.TFile;
+import org.voovan.tools.TString;
 import org.voovan.tools.exception.IOCException;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -21,13 +25,33 @@ public class Config {
     public Map<String, Object> config;
 
     public Config(){
-        config = new LinkedHashMap<>();
+        init(null);
     }
     public Config(URL url){
         init(url);
     }
 
     public void init(URL url) {
+        if(url == null) {
+            String iocConfig = TEnv.getSystemProperty("IocConfig", String.class);
+            String applicationConfigFile = "conf/application.json";
+            if (TFile.fileExists("conf/application.hcl")) {
+                applicationConfigFile = "conf/application.hcl";
+            }
+            iocConfig = iocConfig == null ? TEnv.getEnv("VOOVAN_IOC_CONFIG", applicationConfigFile) : iocConfig;
+            
+            // 判断是否是 url 形式, 如果不是则进行转换
+            if (TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://") == 0) {
+                iocConfig = "file://" + TFile.getSystemPath(iocConfig);
+            }
+
+            try {
+                url = new URL(iocConfig);
+            } catch (MalformedURLException e) {
+                throw new IOCException("Load IOC config failed", e);
+            }
+        }
+
         config = JSON.toObject(url, Map.class, true, true, true);
 
         if(config == null) {

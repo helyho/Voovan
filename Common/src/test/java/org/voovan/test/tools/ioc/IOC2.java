@@ -25,6 +25,10 @@ public class IOC2 {
 
     @Value
     private List list;
+
+    @Value("Filters")
+    private List filterList;
+
     @Value(anchor = "Map", required = false)
     private Map map;
 
@@ -36,7 +40,7 @@ public class IOC2 {
     }
 
     @Primary
-    @Bean("ServerName")
+    @Bean("filtersByMethos")
     public String getFilters(@Value("Filters") List data, @Value("ServerName") String serverName){
         return serverName + "->" + data;
     }
