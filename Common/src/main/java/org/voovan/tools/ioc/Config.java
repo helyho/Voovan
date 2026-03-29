@@ -31,25 +31,29 @@ public class Config {
         init(url);
     }
 
+    private URL getDefaulConfigURL(){
+        String iocConfig = TEnv.getSystemProperty("IocConfig", String.class);
+        String applicationConfigFile = "conf/application.json";
+        if (TFile.fileExists("conf/application.hcl")) {
+            applicationConfigFile = "conf/application.hcl";
+        }
+        iocConfig = iocConfig == null ? TEnv.getEnv("VOOVAN_IOC_CONFIG", applicationConfigFile) : iocConfig;
+
+        // 判断是否是 url 形式, 如果不是则进行转换
+        if (TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://") == 0) {
+            iocConfig = "file://" + TFile.getSystemPath(iocConfig);
+        }
+
+        try {
+            return new URL(iocConfig);
+        } catch (MalformedURLException e) {
+            throw new IOCException("Load IOC config failed", e);
+        }
+    }
+
     public void init(URL url) {
         if(url == null) {
-            String iocConfig = TEnv.getSystemProperty("IocConfig", String.class);
-            String applicationConfigFile = "conf/application.json";
-            if (TFile.fileExists("conf/application.hcl")) {
-                applicationConfigFile = "conf/application.hcl";
-            }
-            iocConfig = iocConfig == null ? TEnv.getEnv("VOOVAN_IOC_CONFIG", applicationConfigFile) : iocConfig;
-            
-            // 判断是否是 url 形式, 如果不是则进行转换
-            if (TString.regexMatch(iocConfig, "^[a-z,A-Z]*?://") == 0) {
-                iocConfig = "file://" + TFile.getSystemPath(iocConfig);
-            }
-
-            try {
-                url = new URL(iocConfig);
-            } catch (MalformedURLException e) {
-                throw new IOCException("Load IOC config failed", e);
-            }
+           url = getDefaulConfigURL(); 
         }
 
         config = JSON.toObject(url, Map.class, true, true, true);

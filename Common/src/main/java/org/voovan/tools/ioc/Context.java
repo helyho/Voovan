@@ -187,8 +187,10 @@ public class Context {
             Container container = getContainer(scope);
             Definitions definitions = container.getDefinitions();
             BeanDefinition beanDefinition = container.getDefinitions().getBeanDefinition(clazz);
-            container.initBean(beanDefinition, false);
-            container.initMethodBean(beanDefinition.getClazz(), false);
+            // 初始化类 Bean
+            container.initClassBean(beanDefinition, false);
+            // 初始化类中的方法
+            container.initMethodBeanInClass(beanDefinition.getClazz(), false);
         }
     }
 
@@ -202,8 +204,8 @@ public class Context {
                 }
 
                 if(!beanDefinition.isLazy()) {
-                    container.initBean(beanDefinition, false);
-                    container.initMethodBean(beanDefinition.getClazz(), false);
+                    container.initClassBean(beanDefinition, false);
+                    container.initMethodBeanInClass(beanDefinition.getClazz(), false);
                 }
             }
         }

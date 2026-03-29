@@ -280,7 +280,7 @@ public class Container {
 
         Object preValue = addBeanValue(beanName, value);
         definitions.initField(value, false);  //外部 Bean 的属性不初始化值为null的属性
-        initMethodBean(value.getClass(), true); //外部 Bean 的方法不支持 lazy
+        initMethodBeanInClass(value.getClass(), true); //外部 Bean 的方法不支持 lazy
         //执行初始化/销毁动作
         try {
             BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
@@ -317,7 +317,7 @@ public class Container {
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T initBean(BeanDefinition beanDefinition, boolean ingoreLazy) {
+    public <T> T initClassBean(BeanDefinition beanDefinition, boolean ingoreLazy) {
         if(beanDefinition==null){
             return null;
         }
@@ -334,7 +334,7 @@ public class Container {
                 if (value != null) {
                     Object preValue = addBeanValue(beanName, value);
                     definitions.initField(value, true);
-                    initMethodBean(beanDefinition.getClazz(), false); //bean 初始化时不忽略方法的 lazy
+                    initMethodBeanInClass(beanDefinition.getClazz(), false); //bean 初始化时不忽略方法的 lazy
                     //执行初始化/销毁动作
                     try {
                         invokeInitialize(value, beanDefinition);
@@ -359,7 +359,7 @@ public class Container {
      */
     public <T> T initBean(String beanName, boolean ingoreLazy) {
         BeanDefinition beanDefinition = definitions.getBeanDefinitions().get(beanName);
-        return initBean(beanDefinition, ingoreLazy);
+        return initClassBean(beanDefinition, ingoreLazy);
     }
 
     /**
@@ -369,7 +369,7 @@ public class Container {
      * @return 初始化的 bean 对象类型. null 表示无可用对象初始化
      * @param <T> 泛型类型
      */
-    public <T> T invokeMethodBean(MethodDefinition methodDefinition, boolean ingoreLazy) {
+    public <T> T initMethodBean(MethodDefinition methodDefinition, boolean ingoreLazy) {
         if(methodDefinition==null) {
             return null;
         }
@@ -409,7 +409,7 @@ public class Container {
      */
     public <T> T invokeMethodBean(String beanName, boolean ingoreLazy) {
         MethodDefinition methodDefinition = definitions.getMethodDefinitions().get(beanName);
-        return invokeMethodBean(methodDefinition, ingoreLazy);
+        return initMethodBean(methodDefinition, ingoreLazy);
     }
 
     /**
@@ -417,7 +417,7 @@ public class Container {
      * @param clazz 指定的类型
      * @param ingoreLazy true: 忽略 Lazy 标记, false: 检查 Lazy标记
      */
-    public void initMethodBean(Class<?> clazz, boolean ingoreLazy) {
+    public void initMethodBeanInClass(Class<?> clazz, boolean ingoreLazy) {
         List<MethodDefinition> methodDefinitionList = definitions.getMethodDefinition(clazz);
 
         if(methodDefinitionList==null) {
@@ -425,7 +425,7 @@ public class Container {
         }
 
         for(MethodDefinition methodDefinition : methodDefinitionList) {
-            invokeMethodBean(methodDefinition, ingoreLazy);
+            initMethodBean(methodDefinition, ingoreLazy);
         }
     }
 
