@@ -377,15 +377,6 @@ public class BeanVisitor {
         return resultList;
     }
 
-
-    public static void main(String[] args) {
-       String temp = "{\"user1\": {\"name\":\"Tom\"}, \"user2\": {\"name\":\"Jerry\"}}";
-
-        JSONPath jsonPath = new JSONPath(temp);
-        Object mmm = jsonPath.mapToListObject("/", "key-1", Map.class);
-        System.out.println(mmm);
-    }
-
     /**
      * 将 JSON 中的对象中的一个节点自动 转换成 java 中的对象,忽略段大小写
      * @param pathQry        Bean 路径
