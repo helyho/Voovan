@@ -355,7 +355,9 @@ public class BeanVisitor {
             Object value = entry.getValue();
 
             if(TReflect.isSuper(elemClazz, Map.class)) {
-                resultList.add((T)TObject.asMap(key, value));
+                T item = (T)TObject.asMap(key, value);
+                ((Map)item).put(keyFieldName, key);
+                resultList.add((T) item);
             } else {
                 if (value instanceof Map) {
                     map = (Map) value;
@@ -373,6 +375,15 @@ public class BeanVisitor {
         }
 
         return resultList;
+    }
+
+
+    public static void main(String[] args) {
+       String temp = "{\"user1\": {\"name\":\"Tom\"}, \"user2\": {\"name\":\"Jerry\"}}";
+
+        JSONPath jsonPath = new JSONPath(temp);
+        Object mmm = jsonPath.mapToListObject("/", "key-1", Map.class);
+        System.out.println(mmm);
     }
 
     /**
