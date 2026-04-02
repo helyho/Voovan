@@ -695,14 +695,15 @@ public class JSONDecode {
 	 * @return 文件解析后的对象, Map 或者 List
 	 * @throws IOException IO 异常
 	 */
-	private static Object include( String value, boolean enableToken, boolean enablbeRef, String path, Object root) throws IOException {
+	private static Object include(String value, boolean enableToken, boolean enablbeRef, String path, Object root) throws IOException {
 		String url = null;
 		Object ret = value;
+
 		//引用文件处理
-		if (value != null && value.charAt(0) == '@') {
+		if (!TString.isNullOrEmpty(value) && value.charAt(0) == '@') {
 			url = value.substring(1, value.length()).trim();
 			url = CONTEXT_PATH.get().replace("{path}", url);
-		} else if (value != null && value.charAt(0) == '#') {
+		} else if (!TString.isNullOrEmpty(value) && value.charAt(0) == '#') {
 			url = value.substring(1, value.length()).trim();
 			if (TString.regexMatch(url, "^[a-z,A-Z]*?://") == 0) {
 				url = "file://" + url;
