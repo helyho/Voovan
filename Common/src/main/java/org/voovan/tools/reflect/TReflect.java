@@ -1854,10 +1854,10 @@ public class TReflect {
 
                     if(serialization != null) {
 
-                        String toAlias = getAnnotationValue(serialization, "toAlias");
+                        String alias = getAnnotationValue(serialization, "alias");
                         //转换 key 名称
-                        if(!TString.isNullOrEmpty(toAlias)) {
-                            key = toAlias;
+                        if(!TString.isNullOrEmpty(alias)) {
+                            key = alias;
                         }
 
                         //数据检查
