@@ -1,7 +1,9 @@
 ServerName = VoovanWebServer
 ScanPaths[
-  org.voovan.test.tools.ioc
-]
+  org.voovan.test.tools.ioc,
+  org.voovan.test.http
+],
+testResp = test response
 //WebServer 配置文件引入
 Web = "@web.hcl"
 //其他配置引入

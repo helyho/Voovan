@@ -1,14 +1,16 @@
 package org.voovan.test.tools.collection;
 
 import junit.framework.TestCase;
+
+import org.junit.Test;
 import org.rocksdb.*;
 import org.rocksdb.util.BytewiseComparator;
 import org.voovan.tools.*;
 import org.voovan.tools.collection.RocksMap;
 import org.voovan.tools.json.JSON;
-import org.voovan.tools.reflect.TReflect;
 import org.voovan.tools.serialize.ProtoStuffSerialize;
 import org.voovan.tools.serialize.TSerialize;
+import org.voovan.tools.log.Logger;
 
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +32,7 @@ public class RocksMapUnit extends TestCase {
         TSerialize.SERIALIZE = new ProtoStuffSerialize();
     }
 
+    @Test
     public void testComparatorBench() {
 
         Options options = new Options();
@@ -77,6 +80,7 @@ public class RocksMapUnit extends TestCase {
         System.out.println(1);
     }
 
+    @Test
     public void testWal() throws RocksDBException {
         DBOptions dbOptions = new DBOptions();
         ReadOptions readOptions = new ReadOptions();
@@ -143,6 +147,8 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println(rocksMap.entrySet());
     }
+    
+    @Test
     public void testAll() throws RocksDBException {
         RocksMap.setRootPath("bingo");
 
@@ -456,7 +462,8 @@ public class RocksMapUnit extends TestCase {
 
     }
 
-    public void t_testSecondary() {
+    @Test
+    public void testSecondary() {
         RocksMap.setRootPath("bingo");
         RocksMap.cleanRocksMapCache();
         RocksMap rocksMap = new RocksMap("testdb", RocksMap.Type.SECONDARY);
@@ -464,12 +471,15 @@ public class RocksMapUnit extends TestCase {
 
         System.out.println(rocksMap.get("aaaa1"));
         rocksMap.tryCatchUpWithPrimary();
-        System.out.println(rocksMap.get("aaaa1"));
+        System.out.println(rocksMap.get("333"));
         rocksMap.tryCatchUpWithPrimary();
         System.out.println(rocksMap.get("aaaa3"));
 
+        Logger.info(rocksMap.keySet());
+
     }
 
+    @Test
     public void testBackup() throws RocksDBException {
         RocksMap.setDefaultBackupPath(".bks");
         //测试列族区分,这个列族不写入任何数据
@@ -500,6 +510,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap1.restore(mm.get(0).backupId());
     }
 
+    @Test
     public void testBackupInfo() throws RocksDBException {
         RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
@@ -508,6 +519,7 @@ public class RocksMapUnit extends TestCase {
         System.out.println(JSON.toJSONWithFormat(mm));
     }
 
+    @Test
     public void testRestoreLastBackup() throws RocksDBException {
         RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";
@@ -515,6 +527,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap1.restoreLatestBackup();
     }
 
+    @Test
     public void testRestoreBackup() throws RocksDBException {
         RocksMap.setDefaultBackupPath(".bks");
         String cfName = "testdb1000";

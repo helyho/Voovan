@@ -16,3 +16,4 @@ voovan-framework.jar
 dependency-reduced-pom.xml
 Web/WEBAPP/VoovanMonitor/*
 .vscode/*
+docs/*

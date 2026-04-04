@@ -15,15 +15,19 @@ import org.voovan.network.tcp.TcpServerSocket;
 import org.voovan.tools.TDateTime;
 import org.voovan.tools.TEnv;
 import org.voovan.tools.TFile;
+import org.voovan.tools.ioc.annotation.Bean;
+import org.voovan.tools.ioc.annotation.Value;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.log.Logger;
 
 import java.io.File;
 import java.io.IOException;
 
-
+@Bean
 public class WebServerDemo {
 	private static byte[] fileContent = TFile.loadFileFromContextPath("WEBAPP/index.htm");
+	@Value("testResp")
+	private static String testResp;
 
 	public static void main(String[] args) {
 		WebServer webServer = WebServer.newInstance(args);
@@ -32,7 +36,7 @@ public class WebServerDemo {
 		webServer.get("/test", new HttpRouter() {
 			public void process(HttpRequest req, HttpResponse resp) throws Exception {
 				resp.header().put(HttpStatic.CONTENT_TYPE_STRING, HttpStatic.TEXT_HTML_STRING);
-				resp.write("OK");
+				resp.write("OK, IOC value:" + testResp );
 			}
 		});
 

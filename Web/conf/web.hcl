@@ -1,6 +1,6 @@
 ServerName : VoovanWebServer,                                 // 当前服务节点名称
 Host : 127.0.0.1,                                             // 服务 IP 地址,默认0.0.0.0
-Port : 28080,                                                 // 服务端口,默认28080
+Port : 28081,                                                 // 服务端口,默认28080
 ReadTimeout : 30,                                             // 连接超时时间(s),默认30秒
 SendTimeout : 30,                                             // 连接超时时间(s),默认30秒
 IndexFiles : index.htm, index.html, default.htm, default.htm, //定义首页索引文件的名称
@@ -111,8 +111,9 @@ Routers[
 Modules[
   {
     Name : AnnotationModule, //模块名称
-    // Path: /,                                                  //模块路径
-    // ScanRouterPackage      : org.voovan.test.http.router,     //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
+    // Path: /,                                                                   //模块路径
+    // ScanRouterPackage      : org.voovan.test.http.router,                      //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
+    ScanRouterPackage      : org.voovan.test.http.router,                         //注解形式的路由扫描的包路径, 默认: null, 不设置这个属性则会被任务不开启
     ScanRouterInterval : 3,                                                       //注解形式的路由扫描的包路径的时间间隔. 默认:0秒. 0:关闭
     ClassName : org.voovan.http.server.module.annontationRouter.AnnotationModule, //模块处理器
     LifeCycleClass : org.voovan.test.http.HttpModuleLifeCycleClass,
