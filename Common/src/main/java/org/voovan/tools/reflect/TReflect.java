@@ -2270,6 +2270,9 @@ public class TReflect {
         try {
             Class clazz = obj.getClass().getInterfaces()[0];
             Method method = TReflect.findMethod(clazz, name);
+            if(method == null) {
+                return null;
+            }
             Object ret = TReflect.invokeMethod(obj, method);
             Object defaultVal = method.getDefaultValue();
 
