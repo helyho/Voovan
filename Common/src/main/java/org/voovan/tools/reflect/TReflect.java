@@ -2274,16 +2274,24 @@ public class TReflect {
             Object defaultVal = method.getDefaultValue();
 
             boolean isEqual;
-            if(defaultVal.getClass().isArray()) {
+            if(defaultVal != null && defaultVal.getClass().isArray()) {
                 isEqual = Arrays.equals((Object[])ret, (Object[])defaultVal);
+            } else if(defaultVal != null) {
+                isEqual = ret != null && ret.equals(defaultVal);
             } else {
-                isEqual = ret.equals(defaultVal);
+                isEqual = ret == null;
             }
 
             if(isEqual) {
                 Alias alias = method.getAnnotation(Alias.class);
                 if(alias != null) {
-                    ret = TReflect.invokeMethod(obj, alias.value());
+                    Method aliasMethod = TReflect.findMethod(clazz, alias.value());
+                    if(aliasMethod != null) {
+                        Object aliasRet = TReflect.invokeMethod(obj, aliasMethod);
+                        if(aliasRet != null) {
+                            ret = aliasRet;
+                        }
+                    }
                 }
             }
 
