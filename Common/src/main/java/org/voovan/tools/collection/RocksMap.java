@@ -2568,19 +2568,20 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                             (columnFamilys == null ? true : columnFamilys.contains(columnFamilyId));
 
                 }, true);
-
-
-                boolean processSucc = true;
+                
+                //使用事务保证 rocksWalProcessor.process 内的操作和 seq 的更新保持一致性
                 if (rocksWalRecords.size() > 0) {
-                    //调用处理器
-                    processSucc = rocksWalProcessor.process(endSequence, rocksWalRecords);
-                }
-
-                if(processSucc) {
-                    rocksMap.put(mark, endSequence);
-                    lastSequence = endSequence;
-                } else {
-                    Logger.warnf("process failed, {}->{}", lastSequence, endSequence);
+                    final long innerEncSequence = endSequence;
+                    rocksMap.withTransaction((rmap) -> {
+                        boolean processSucc = rocksWalProcessor.process(innerEncSequence, rocksWalRecords);
+                        if (processSucc) {
+                            rmap.put(mark, innerEncSequence);
+                            lastSequence = innerEncSequence;
+                        } else {
+                            Logger.warnf("process failed, {}->{}", lastSequence, innerEncSequence);
+                        }
+                        return true;
+                    });
                 }
 
             } catch (RocksMapException ex) {
