@@ -2575,7 +2575,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                     rocksMap.withTransaction((rmap) -> {
                         boolean processSucc = rocksWalProcessor.process(innerEncSequence, rocksWalRecords);
                         if (processSucc) {
-                            rmap.put(mark, innerEncSequence);
+                            ((RocksMap)rmap).put(mark, innerEncSequence);
                             lastSequence = innerEncSequence;
                         } else {
                             Logger.warnf("process failed, {}->{}", lastSequence, innerEncSequence);
