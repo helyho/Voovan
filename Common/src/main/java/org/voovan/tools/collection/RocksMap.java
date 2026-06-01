@@ -2579,7 +2579,9 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
                             lastSequence = innerEncSequence;
                         } else {
                             Logger.warnf("process failed, {}->{}", lastSequence, innerEncSequence);
+                            return null;
                         }
+
                         return true;
                     });
                 }
