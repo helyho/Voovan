@@ -2563,7 +2563,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
             }
 
             try {
-                List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence, endSequence, (columnFamilyId, type) -> {
+                List<RocksWalRecord> rocksWalRecords = rocksMap.getWalBetween(lastSequence + 1, endSequence, (columnFamilyId, type) -> {
                     return (walTypes == null ? true : walTypes.contains(type)) &&
                             (columnFamilys == null ? true : columnFamilys.contains(columnFamilyId));
 
