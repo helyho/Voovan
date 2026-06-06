@@ -75,7 +75,7 @@ public class RocksMapUnit extends TestCase {
         rocksMap2.scan(null, "6652262218912382986", entry->{
             // System.out.println(((RocksMap.RocksMapEntry)entry).getKey());
             return true;
-        }, true);
+        });
 
         System.out.println(1);
     }
