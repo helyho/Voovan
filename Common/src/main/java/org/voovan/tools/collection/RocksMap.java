@@ -383,7 +383,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
         this.columnFamilyOptions = new ColumnFamilyOptions(rocksMap.columnFamilyOptions);
 
         this.rocksDB = rocksMap.rocksDB;
-        //是否使用父对象的实物对象
+        //是否使用事务对象的实物对象
         if(shareTransaction) {
             this.threadLocalTransaction = rocksMap.threadLocalTransaction;
             this.threadLocalSavePointCount = rocksMap.threadLocalSavePointCount;
@@ -513,7 +513,7 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
      * @return 备份路径
      */
     public String createBackup(boolean beforeFlush) {
-        try (BackupEngine backupEngine = BackupEngine.open(rocksDB.getEnv(), backupEngineOptions)){
+        try (BackupEngine backupEngine = BackupEngine.open(RocksEnv.getDefault(), backupEngineOptions)){
             backupEngine.createNewBackup(this.rocksDB, beforeFlush);
             return backupEngineOptions.backupDir();
         } catch (RocksDBException e) {
