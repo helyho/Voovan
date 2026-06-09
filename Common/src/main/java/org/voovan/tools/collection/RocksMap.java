@@ -1066,6 +1066,14 @@ public class RocksMap<K, V> implements SortedMap<K, V>, Closeable {
     }
 
     /**
+     * 判断当前线程是否处于事务状态中
+     * @return 如果当前线程正在事务中返回 true，否则返回 false
+     */
+    public boolean inTransaction() {
+        return threadLocalTransaction.get() != null;
+    }
+
+    /**
      * Secondary 追赶主实例的数据
      */
     public void tryCatchUpWithPrimary() {
