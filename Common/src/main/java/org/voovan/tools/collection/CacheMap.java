@@ -257,22 +257,30 @@ public class CacheMap<K,V> implements ICacheMap<K, V> {
         }
     }
 
-    private TimeMark createCache(K key, Function<K, V> supplier, Long createExpire){
-        if(supplier==null){
+    public static final Object KEEP_EXISTING = new Object() {
+        @Override
+        public String toString() {
+            return "CacheMap.KEEP_EXISTING";
+        }
+    };
+
+    private TimeMark createCache(K key, Function<K, V> supplier, Long createExpire) {
+        if (supplier == null) {
             cacheData.remove(key);
             return null;
         }
 
         V value = supplier.apply(key);
-        if(value == null) {
-            cacheData.remove(key);
-            return null;
+        if (!KEEP_EXISTING.equals(value)) {
+            if (value == null) {
+                cacheData.remove(key);
+                return null;
+            }
+
+            cacheData.put(key, value);
         }
 
-
-        expire = expire<0 ? this.expire : createExpire;
-        cacheData.put(key, value);
-
+        expire = expire < 0 ? this.expire : createExpire;
         return new TimeMark(this, key, expire);
     }
 
