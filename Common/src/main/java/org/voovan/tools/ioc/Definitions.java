@@ -88,6 +88,8 @@ public class Definitions {
             }
 
             return value;
+        } catch (IOCException e) {
+            throw e;
         } catch (Throwable e) {
             throw new IOCException("Try to create bean " + clazz.getName() + "@" + constructor.getName() + " failed", e);
         }
@@ -130,6 +132,8 @@ public class Definitions {
                 TReflect.setFieldValue(obj, field, data);
             }
 
+        } catch (IOCException e) {
+            throw e;
         } catch (Throwable e) {
             throw new IOCException("Try to fill field " + clazz.getName() + "@" + exField.getName() + " failed", e);
         }
@@ -161,6 +165,8 @@ public class Definitions {
 
             T value = TReflect.invokeMethod(obj, method, params);
             return value;
+        } catch (IOCException e) {
+            throw e;
         } catch (Throwable e) {
             throw new IOCException("Try to create method bean " +
                     methodDefinition.getClazz().getName() + "@" + methodDefinition.getMethod().getName() + " failed", e);

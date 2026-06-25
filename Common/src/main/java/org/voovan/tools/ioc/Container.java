@@ -12,9 +12,11 @@ import org.voovan.tools.log.Logger;
 import org.voovan.tools.reflect.TReflect;
 
 import java.lang.reflect.Method;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.voovan.tools.ioc.IOCUtils.*;
@@ -30,6 +32,9 @@ import static org.voovan.tools.ioc.IOCUtils.*;
 @SuppressWarnings("ALL")
 public class Container {
     private final Map<String, Object> beanValues = new ConcurrentHashMap<>();
+
+    // 当前线程正在创建的 Bean 名称链，用于检测构造器注入循环依赖
+    private final ThreadLocal<LinkedHashSet<String>> inCreation = ThreadLocal.withInitial(LinkedHashSet::new);
 
     private final String scope;
     private final Definitions definitions;
@@ -329,20 +334,35 @@ public class Container {
         //单例 及 Primary 支持
         if(!beanValues.containsKey(beanName) || beanDefinition.isPrimary() || !beanDefinition.isSingleton() ) {
             if (ingoreLazy || !beanDefinition.isLazy()) {
-                //延迟加载处理
-                T value = definitions.createBean(beanName);
-                if (value != null) {
-                    Object preValue = addBeanValue(beanName, value);
-                    definitions.initField(value, true);
-                    initMethodBeanInClass(beanDefinition.getClazz(), false); //bean 初始化时不忽略方法的 lazy
-                    //执行初始化/销毁动作
-                    try {
-                        invokeInitialize(value, beanDefinition);
-                        invokeDestory(value, beanDefinition);
-                    } catch (Throwable e) {
-                        throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+                // 构造器循环依赖检测: bean 在创建链中且实例尚未注册 = 构造器注入循环
+                Set<String> creationChain = inCreation.get();
+                if (creationChain.contains(beanName) && !beanValues.containsKey(beanName)) {
+                    throw new IOCException("Detected unresolvable constructor circular dependency: " + buildCycleMessage(creationChain, beanName) +
+                            ". Suggestions: 1. Change constructor injection to field injection (@Value); 2. Refactor to eliminate circular dependency");
+                }
+
+                creationChain.add(beanName);
+                try {
+                    //延迟加载处理
+                    T value = definitions.createBean(beanName);
+                    if (value != null) {
+                        Object preValue = addBeanValue(beanName, value);
+                        definitions.initField(value, true);
+                        initMethodBeanInClass(beanDefinition.getClazz(), false); //bean 初始化时不忽略方法的 lazy
+                        //执行初始化/销毁动作
+                        try {
+                            invokeInitialize(value, beanDefinition);
+                            invokeDestory(value, beanDefinition);
+                        } catch (Throwable e) {
+                            throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+                        }
+                        return value;
                     }
-                    return value;
+                } finally {
+                    creationChain.remove(beanName);
+                    if (creationChain.isEmpty()) {
+                        inCreation.remove();
+                    }
                 }
             }
         }
@@ -382,17 +402,32 @@ public class Container {
         if (!beanValues.containsKey(beanName) || methodDefinition.isPrimary() || !methodDefinition.isSingleton()) {
             //延迟加载处理
             if (ingoreLazy || !methodDefinition.isLazy()) {
-                T value = definitions.createMethodBean(methodDefinition);
-                if (value != null) {
-                    Object preValue = addBeanValue(beanName, value);
-                    //执行初始化/销毁动作
-                    try {
-                        invokeInitialize(value, methodDefinition);
-                        invokeDestory(value, methodDefinition);
-                    } catch (Throwable e) {
-                        throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+                // 构造器循环依赖检测
+                Set<String> creationChain = inCreation.get();
+                if (creationChain.contains(beanName) && !beanValues.containsKey(beanName)) {
+                    throw new IOCException("A non-resolvable constructor circular dependency was detected: " + buildCycleMessage(creationChain, beanName) +
+                                            ". Suggestions: 1. Change constructor injection to field injection (@Value); 2. Refactor to eliminate the circular dependency");
+                }
+
+                creationChain.add(beanName);
+                try {
+                    T value = definitions.createMethodBean(methodDefinition);
+                    if (value != null) {
+                        Object preValue = addBeanValue(beanName, value);
+                        //执行初始化/销毁动作
+                        try {
+                            invokeInitialize(value, methodDefinition);
+                            invokeDestory(value, methodDefinition);
+                        } catch (Throwable e) {
+                            throw new IOCException("Bean: " + beanName+ "Invoke init or destory method failed", e);
+                        }
+                        return value;
                     }
-                    return value;
+                } finally {
+                    creationChain.remove(beanName);
+                    if (creationChain.isEmpty()) {
+                        inCreation.remove();
+                    }
                 }
             }
         }
@@ -447,5 +482,20 @@ public class Container {
                 TReflect.invokeMethod(preValue, destoryMethod, params);
             }
         }
+    }
+
+    private String buildCycleMessage(Set<String> creationChain, String cyclicBean) {
+        StringBuilder sb = new StringBuilder();
+        boolean started = false;
+        for (String name : creationChain) {
+            if (name.equals(cyclicBean)) {
+                started = true;
+            }
+            if (started) {
+                sb.append(name).append(" -> ");
+            }
+        }
+        sb.append(cyclicBean);
+        return sb.toString();
     }
 }

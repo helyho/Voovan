@@ -124,6 +124,8 @@ public class IOCUtils {
                             Logger.warnf("Bean '{}' not found -> {method: {}@{}, type: {}, No: {}}, On invoke constructor ", anchor, executable.getDeclaringClass(), executable.getName(), parameterTypes[i], i);
                         }
                     }
+                } catch (IOCException e) {
+                    throw e;
                 } catch (Throwable e) {
                     throw new IOCException("Try to fill " + executable.getName() + " parameter " + i + " failed", e);
                 }
