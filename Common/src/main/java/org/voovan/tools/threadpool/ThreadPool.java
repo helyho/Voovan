@@ -189,7 +189,8 @@ public class ThreadPool {
 	public static void gracefulShutdown(ThreadPoolExecutor threadPoolExecutor) {
 		if (threadPoolExecutor != null && !threadPoolExecutor.isShutdown()) {
 			threadPoolExecutor.shutdown();
-			TEnv.wait(() -> !threadPoolExecutor.isShutdown());
+			//shutdown() 后 isShutdown() 立即为 true, 必须用 isTerminated() 等待所有任务真正执行完成
+			TEnv.wait(() -> !threadPoolExecutor.isTerminated());
 		}
 	}
 }

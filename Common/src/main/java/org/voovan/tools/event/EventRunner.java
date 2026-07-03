@@ -78,6 +78,7 @@ public class EventRunner implements Closeable {
 			throw new EventRunnerException("priority must between 1-10");
 		}
 		EventTask eventTask = EventTask.newInstance(priority, runnable);
+		eventRunnerGroup.incrementPendingTaskCount();
 		eventQueue.add(eventTask);
 	}
 
@@ -94,6 +95,7 @@ public class EventRunner implements Closeable {
 		}
 
 		EventTask<V> eventTask = EventTask.newInstance(priority, callable);
+		eventRunnerGroup.incrementPendingTaskCount();
 		eventQueue.add(eventTask);
 
 		return eventTask;
@@ -156,7 +158,11 @@ public class EventRunner implements Closeable {
 					}
 
 					if(eventTask!=null) {
-						eventTask.run();
+						try {
+							eventTask.run();
+						} finally {
+							eventRunnerGroup.decrementPendingTaskCount();
+						}
 					} else {
 						if(eventRunnerGroup.getThreadPool().isShutdown()){
 							break;

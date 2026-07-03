@@ -30,6 +30,8 @@ public class EventRunnerGroup implements Closeable {
 	private ThreadPoolExecutor threadPool;
 	private int size;
 	private volatile boolean isSteal = false;
+	//已提交但尚未执行完成的任务计数, 用于 await() 精确等待任务完成
+	private AtomicInteger pendingTaskCount = new AtomicInteger(0);
 
 	/**
 	 * 构造方法
@@ -58,6 +60,28 @@ public class EventRunnerGroup implements Closeable {
 
 	public boolean isSteal() {
 		return isSteal;
+	}
+
+	/**
+	 * 增加待完成任务计数(任务被提交时调用)
+	 */
+	public void incrementPendingTaskCount() {
+		pendingTaskCount.incrementAndGet();
+	}
+
+	/**
+	 * 减少待完成任务计数(任务执行完成时调用)
+	 */
+	public void decrementPendingTaskCount() {
+		pendingTaskCount.decrementAndGet();
+	}
+
+	/**
+	 * 获取待完成任务数量
+	 * @return 待完成任务数量
+	 */
+	public int getPendingTaskCount() {
+		return pendingTaskCount.get();
 	}
 
 	public void setSteal(boolean steal) {
@@ -222,26 +246,10 @@ public class EventRunnerGroup implements Closeable {
 	 */
 	public EventRunnerGroup await() {
 		process();
-		for(;;) {
-			int count = 0;
-			for (EventRunner eventRunner : eventRunners) {
-				if(eventRunner.getThread()==null) {
-					continue;
-				}
-				if(eventRunner.getThread().getState() == Thread.State.RUNNABLE) {
-					count++;
-					break;
-				} else {
-					count += eventRunner.getEventQueue().size();
-				}
-			}
-
-			if(count>0) {
-				TEnv.sleep(1);
-				continue;
-			} else {
-				break;
-			}
+		//基于待完成任务计数等待, 确保所有已提交任务(含正在执行和队列中的)全部完成后再返回
+		//避免原先基于 Thread.getState()==RUNNABLE 的判定在线程瞬时非 RUNNABLE 时提前返回导致的并发修改问题
+		while (pendingTaskCount.get() > 0) {
+			TEnv.sleep(1);
 		}
 
 		return this;
