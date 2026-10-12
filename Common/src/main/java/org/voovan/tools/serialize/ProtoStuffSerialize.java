@@ -36,11 +36,6 @@ public class ProtoStuffSerialize implements Serialize {
 
     @Override
     public byte[] serialize(Object obj) {
-        //字节数组直接返回
-        if(obj instanceof byte[]) {
-            return (byte[])obj;
-        }
-
         byte[] buf = null;
         buf = TByte.toBytes(obj);
         if(buf==null) {

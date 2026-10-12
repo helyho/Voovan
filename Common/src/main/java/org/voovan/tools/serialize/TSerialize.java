@@ -128,8 +128,23 @@ public class TSerialize {
         CLASS_AND_HASH.put(boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
         CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
-//        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
         CLASS_AND_HASH.put(ArrayList.class,    THash.HashFNV1(ArrayList.class.getName()));
+
+        // 注册所有基础类型及包装类型的数组形式
+        Class[] arrayClasses = {
+            int[].class,      Integer[].class,
+            byte[].class,     Byte[].class,
+            short[].class,    Short[].class,
+            long[].class,     Long[].class,
+            float[].class,    Float[].class,
+            double[].class,   Double[].class,
+            char[].class,     Character[].class,
+            boolean[].class,  Boolean[].class,
+            String[].class
+        };
+        for (Class arrayClass : arrayClasses) {
+            CLASS_AND_HASH.put(arrayClass, THash.HashFNV1(arrayClass.getName()));
+        }
         CLASS_AND_HASH.put(HashMap.class,    THash.HashFNV1(HashMap.class.getName()));
         CLASS_AND_HASH.put(HashSet.class,    THash.HashFNV1(HashSet.class.getName()));
         CLASS_AND_HASH.put(BigDecimal.class,    THash.HashFNV1(BigDecimal.class.getName()));
