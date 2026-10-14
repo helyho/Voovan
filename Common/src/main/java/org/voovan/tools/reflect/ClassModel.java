@@ -4,9 +4,15 @@ import org.voovan.tools.TString;
 import org.voovan.tools.json.JSON;
 import org.voovan.tools.reflect.annotation.NotSerialization;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -153,6 +159,38 @@ public class ClassModel {
                     jsonStrBuilder.append("\"");
                 }
                 jsonStrBuilder.append(",");
+
+                //将字段的所有注解及其参数描述追加到模型中, 使用 "@字段名" 作为键, 值为注解描述的数组
+                if(field.getAnnotations().length > 0) {
+                    jsonStrBuilder.append("\"@").append(field.getName()).append("\"").append(":").append("[");
+                    boolean isFirstAnno = true;
+                    for (Annotation annotation : field.getAnnotations()) {
+                        if (!isFirstAnno) {
+                            jsonStrBuilder.append(",");
+                        }
+
+                        jsonStrBuilder.append("{");
+                        jsonStrBuilder.append("\"@\":").append("\"").append(annotation.annotationType().getCanonicalName()).append("\"");
+
+                        //追加注解的所有参数, 按参数名排序保证模型确定性
+                        java.lang.reflect.Method[] annoMethods = annotation.annotationType().getDeclaredMethods();
+                        Arrays.sort(annoMethods, Comparator.comparing(java.lang.reflect.Method::getName));
+                        for (java.lang.reflect.Method method : annoMethods) {
+                            Object value;
+                            try {
+                                value = method.invoke(annotation);
+                            } catch (Exception e) {
+                                continue;
+                            }
+                            jsonStrBuilder.append(",").append("\"").append(method.getName()).append("\"").append(":");
+                            appendAnnotationValue(jsonStrBuilder, value);
+                        }
+                        jsonStrBuilder.append("}");
+
+                        isFirstAnno = false;
+                    }
+                    jsonStrBuilder.append("]").append(",");
+                }
             }
             jsonStrBuilder.deleteCharAt(jsonStrBuilder.length()-1);
             jsonStrBuilder.append("}");
@@ -195,8 +233,58 @@ public class ClassModel {
         StringBuilder fieldStrBuild = new StringBuilder();
         StringBuilder methodStrBuild = new StringBuilder();
 
+        //字段的注解代码, 键为字段名, 先收集全部注解代码以保证注解在字段之前
+        Map<String, String> fieldAnnoCode = new LinkedHashMap<String, String>();
         for(Map.Entry<String, Object> entry : classModel.entrySet()){
+            //"$" 键描述类名, 跳过
             if("$".equals(entry.getKey())){
+                continue;
+            }
+
+            //"@字段名" 条目描述了字段的所有注解, 转换为注解声明代码
+            if(entry.getKey().startsWith("@") && entry.getValue() instanceof List){
+                StringBuilder annoStrBuilder = new StringBuilder();
+                for(Object annoItem : (List) entry.getValue()){
+                    if(!(annoItem instanceof Map)){
+                        continue;
+                    }
+                    Map<String, Object> annoModel = (Map<String, Object>) annoItem;
+                    Object annoType = annoModel.get("@");
+                    if(annoType == null){
+                        continue;
+                    }
+                    annoStrBuilder.append("@").append(annoType);
+
+                    //追加注解参数
+                    boolean hasParam = false;
+                    StringBuilder paramStrBuilder = new StringBuilder();
+                    for(Map.Entry<String, Object> annoEntry : annoModel.entrySet()){
+                        if("@".equals(annoEntry.getKey())){
+                            continue;
+                        }
+                        String paramCode = annotationParamToCode(annoEntry.getValue());
+                        //注解参数不允许 null 值, 跳过该参数以使用注解默认值
+                        if(paramCode == null){
+                            continue;
+                        }
+                        if(hasParam){
+                            paramStrBuilder.append(",");
+                        }
+                        paramStrBuilder.append(annoEntry.getKey()).append("=").append(paramCode);
+                        hasParam = true;
+                    }
+                    if(hasParam){
+                        annoStrBuilder.append("(").append(paramStrBuilder).append(")");
+                    }
+                    annoStrBuilder.append(" ");
+                }
+                fieldAnnoCode.put(entry.getKey().substring(1), annoStrBuilder.toString());
+            }
+        }
+
+        for(Map.Entry<String, Object> entry : classModel.entrySet()){
+            //"$" 键和注解描述键已在上一循环处理, 跳过
+            if("$".equals(entry.getKey()) || entry.getKey().startsWith("@")){
                 continue;
             }
 
@@ -209,13 +297,18 @@ public class ClassModel {
                 buildClass(subClassModel);
             }
 
-            fieldStrBuild.append("private " + fieldType + " " + fieldName + ";");
+            //拼接字段注解代码
+            if(fieldAnnoCode.containsKey(fieldName)){
+                fieldStrBuild.append(fieldAnnoCode.get(fieldName));
+            }
+
+            fieldStrBuild.append("private " + fieldType + " " + fieldName + "; ");
 
             methodStrBuild.append("public " + fieldType  + " get"+ TString.upperCaseHead(fieldName) + "(){");
-            methodStrBuild.append("return " + fieldName + ";}");
+            methodStrBuild.append("return " + fieldName + ";} ");
 
             methodStrBuild.append("public void set"+ TString.upperCaseHead(fieldName) + "(" + fieldType + " " + fieldName + "){");
-            methodStrBuild.append("this." + fieldName + "=" + fieldName + ";}");
+            methodStrBuild.append("this." + fieldName + "=" + fieldName + ";} ");
         }
 
         String bodyCode = fieldStrBuild.toString() + "" + methodStrBuild.toString();
@@ -224,5 +317,74 @@ public class ClassModel {
 
         CLASS_CODE.put(className, classStrBuilder.toString());
         return classStrBuilder.toString();
+    }
+
+    /**
+     * 将注解参数值转换为 JSON 描述并追加, 支持字符串/Class/枚举/嵌套注解/字符/数组/数值/布尔
+     * @param jsonStrBuilder 模型 JSON 构建器
+     * @param value 注解参数值
+     */
+    private static void appendAnnotationValue(StringBuilder jsonStrBuilder, Object value) {
+        if (value instanceof String) {
+            String strValue = ((String) value).replace("\\", "\\\\").replace("\"", "\\\"")
+                    .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+            jsonStrBuilder.append("\"").append(strValue).append("\"");
+        } else if (value instanceof Class) {
+            jsonStrBuilder.append("\"").append(((Class) value).getCanonicalName()).append("\"");
+        } else if (value instanceof Enum) {
+            jsonStrBuilder.append("\"").append(((Enum) value).name()).append("\"");
+        } else if (value instanceof Annotation) {
+            jsonStrBuilder.append("\"").append(((Annotation) value).annotationType().getCanonicalName()).append("\"");
+        } else if (value instanceof Character) {
+            jsonStrBuilder.append("\"").append(value).append("\"");
+        } else if (value.getClass().isArray()) {
+            //数组参数逐元素转换, 避免直接 toString 产生非法 JSON
+            jsonStrBuilder.append("[");
+            int length = Array.getLength(value);
+            for (int i = 0; i < length; i++) {
+                if (i > 0) {
+                    jsonStrBuilder.append(",");
+                }
+                appendAnnotationValue(jsonStrBuilder, Array.get(value, i));
+            }
+            jsonStrBuilder.append("]");
+        } else {
+            jsonStrBuilder.append(value);
+        }
+    }
+
+    /**
+     * 将注解参数值还原为 Java 注解声明中的参数代码
+     * @param paramValue 模型中的注解参数值
+     * @return 参数代码, 值为 null 时返回 null 表示跳过该参数
+     */
+    private static String annotationParamToCode(Object paramValue) {
+        if (paramValue == null) {
+            return null;
+        }
+        if (paramValue instanceof Number || paramValue instanceof Boolean) {
+            return paramValue.toString();
+        }
+        if (paramValue instanceof List) {
+            //数组参数在 Java 注解中使用 {...} 语法
+            StringBuilder arrayStrBuilder = new StringBuilder("{");
+            boolean isFirst = true;
+            for (Object item : (List) paramValue) {
+                if (!isFirst) {
+                    arrayStrBuilder.append(",");
+                }
+                String itemCode = annotationParamToCode(item);
+                if (itemCode != null) {
+                    arrayStrBuilder.append(itemCode);
+                }
+                isFirst = false;
+            }
+            arrayStrBuilder.append("}");
+            return arrayStrBuilder.toString();
+        }
+        //字符串类型参数按 Java 字符串字面量转义
+        String strValue = paramValue.toString().replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t");
+        return "\"" + strValue + "\"";
     }
 }

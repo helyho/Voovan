@@ -96,10 +96,6 @@ public class TSerialize {
      * @param clazz 类对象
      */
     public static void register(Integer code, Class clazz){
-        if(HASH_AND_CLASS.contains(code)) {
-            throw new RuntimeException("simple name is exists");
-        }
-
         if(HASH_AND_CLASS.containsKey(code)) {
             if(!HASH_AND_CLASS.get(code).equals(clazz)) {
                 throw new SerializeException("TSerialize.registerClassWithSimpleName failed, because class or simplename is registerd");
@@ -110,25 +106,66 @@ public class TSerialize {
         }
     }
 
+    /**
+     * 判断两个类是否为 primitive 与其包装类的合法 hash 共享
+     * @param a 类 a
+     * @param b 类 b
+     * @return true: 两个类可以共享同一个 hash
+     */
+    private static boolean isLegalHashSharing(Class a, Class b) {
+        if(a.equals(b)) {
+            return true;
+        }
+
+        Class primitive = a.isPrimitive() ? a : (b.isPrimitive() ? b : null);
+        if(primitive == null) {
+            return false;
+        }
+
+        Class other = a.isPrimitive() ? b : a;
+        try {
+            // 包装类的 TYPE 静态字段指向对应的 primitive 类
+            return other.getField("TYPE").get(null).equals(primitive);
+        } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
+    /**
+     * 注册内置类型, 注册的 hash 与已有 hash 冲突时抛出异常
+     * @param clazz 类对象
+     * @param code  hash 码
+     */
+    private static void putBuiltinClass(Class clazz, int code) {
+        for (Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
+            if (entry.getValue() == code && !isLegalHashSharing(entry.getKey(), clazz)) {
+                throw new SerializeException("TSerialize hash conflict, class [" + clazz.getName()
+                        + "] and class [" + entry.getKey().getName() + "] has the same hash [" + code + "]");
+            }
+        }
+
+        CLASS_AND_HASH.put(clazz, code);
+    }
+
     static {
-        CLASS_AND_HASH.put(int.class,       THash.HashFNV1(Integer.class.getName()));
-        CLASS_AND_HASH.put(Integer.class,   THash.HashFNV1(Integer.class.getName()));
-        CLASS_AND_HASH.put(byte.class,      THash.HashFNV1(Byte.class.getName()));
-        CLASS_AND_HASH.put(Byte.class,      THash.HashFNV1(Byte.class.getName()));
-        CLASS_AND_HASH.put(short.class,     THash.HashFNV1(Short.class.getName()));
-        CLASS_AND_HASH.put(Short.class,     THash.HashFNV1(Short.class.getName()));
-        CLASS_AND_HASH.put(long.class,      THash.HashFNV1(Long.class.getName()));
-        CLASS_AND_HASH.put(Long.class,      THash.HashFNV1(Long.class.getName()));
-        CLASS_AND_HASH.put(float.class,     THash.HashFNV1(Float.class.getName()));
-        CLASS_AND_HASH.put(Float.class,     THash.HashFNV1(Float.class.getName()));
-        CLASS_AND_HASH.put(double.class,    THash.HashFNV1(Double.class.getName()));
-        CLASS_AND_HASH.put(Double.class,    THash.HashFNV1(Double.class.getName()));
-        CLASS_AND_HASH.put(char.class,      THash.HashFNV1(Character.class.getName()));
-        CLASS_AND_HASH.put(Character.class, THash.HashFNV1(Character.class.getName()));
-        CLASS_AND_HASH.put(boolean.class,   THash.HashFNV1(Boolean.class.getName()));
-        CLASS_AND_HASH.put(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
-        CLASS_AND_HASH.put(String.class,    THash.HashFNV1(String.class.getName()));
-        CLASS_AND_HASH.put(ArrayList.class,    THash.HashFNV1(ArrayList.class.getName()));
+        putBuiltinClass(int.class,       THash.HashFNV1(Integer.class.getName()));
+        putBuiltinClass(Integer.class,   THash.HashFNV1(Integer.class.getName()));
+        putBuiltinClass(byte.class,      THash.HashFNV1(Byte.class.getName()));
+        putBuiltinClass(Byte.class,      THash.HashFNV1(Byte.class.getName()));
+        putBuiltinClass(short.class,     THash.HashFNV1(Short.class.getName()));
+        putBuiltinClass(Short.class,     THash.HashFNV1(Short.class.getName()));
+        putBuiltinClass(long.class,      THash.HashFNV1(Long.class.getName()));
+        putBuiltinClass(Long.class,      THash.HashFNV1(Long.class.getName()));
+        putBuiltinClass(float.class,     THash.HashFNV1(Float.class.getName()));
+        putBuiltinClass(Float.class,     THash.HashFNV1(Float.class.getName()));
+        putBuiltinClass(double.class,    THash.HashFNV1(Double.class.getName()));
+        putBuiltinClass(Double.class,    THash.HashFNV1(Double.class.getName()));
+        putBuiltinClass(char.class,      THash.HashFNV1(Character.class.getName()));
+        putBuiltinClass(Character.class, THash.HashFNV1(Character.class.getName()));
+        putBuiltinClass(boolean.class,   THash.HashFNV1(Boolean.class.getName()));
+        putBuiltinClass(Boolean.class,   THash.HashFNV1(Boolean.class.getName()));
+        putBuiltinClass(String.class,    THash.HashFNV1(String.class.getName()));
+        putBuiltinClass(ArrayList.class, THash.HashFNV1(ArrayList.class.getName()));
 
         // 注册所有基础类型及包装类型的数组形式
         Class[] arrayClasses = {
@@ -143,17 +180,21 @@ public class TSerialize {
             String[].class
         };
         for (Class arrayClass : arrayClasses) {
-            CLASS_AND_HASH.put(arrayClass, THash.HashFNV1(arrayClass.getName()));
+            putBuiltinClass(arrayClass, THash.HashFNV1(arrayClass.getName()));
         }
-        CLASS_AND_HASH.put(HashMap.class,    THash.HashFNV1(HashMap.class.getName()));
-        CLASS_AND_HASH.put(HashSet.class,    THash.HashFNV1(HashSet.class.getName()));
-        CLASS_AND_HASH.put(BigDecimal.class,    THash.HashFNV1(BigDecimal.class.getName()));
+        putBuiltinClass(HashMap.class,    THash.HashFNV1(HashMap.class.getName()));
+        putBuiltinClass(HashSet.class,    THash.HashFNV1(HashSet.class.getName()));
+        putBuiltinClass(BigDecimal.class, THash.HashFNV1(BigDecimal.class.getName()));
 //        CLASS_AND_HASH.put(byte[].class,    THash.HashFNV1(byte[].class.getName()));
 
         for(Map.Entry<Class, Integer> entry : CLASS_AND_HASH.entrySet()) {
 
             if(!entry.getKey().isPrimitive()) {
-                HASH_AND_CLASS.put(entry.getValue(), entry.getKey());
+                Class oldClass = HASH_AND_CLASS.put(entry.getValue(), entry.getKey());
+                if(oldClass != null && !oldClass.equals(entry.getKey())) {
+                    throw new SerializeException("TSerialize hash conflict, hash [" + entry.getValue()
+                            + "] already used by class [" + oldClass.getName() + "]");
+                }
             }
         }
     }

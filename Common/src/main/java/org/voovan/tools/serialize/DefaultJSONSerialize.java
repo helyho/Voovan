@@ -63,8 +63,17 @@ public class DefaultJSONSerialize implements Serialize {
             }
 
             Object ret = null;
-            if(TReflect.isSuper(mainClazz, Map.class) || TReflect.isSuper(mainClazz, Collection.class)) {
+            if(TReflect.isSuper(mainClazz, Map.class)) {
                 ret = TReflect.getObjectFromMap(mainClazz, jsonPath.mapObject("/V", genericClazzs), true);
+            } else if(TReflect.isSuper(mainClazz, Collection.class)) {
+                // 顶层集合: /V 是 JSON 数组, 用 listObject 转换后装入集合实例
+                Class elemClazz = (genericClazzs != null && genericClazzs.length > 0) ? genericClazzs[0] : null;
+                List valueList = jsonPath.listObject("/V", elemClazz);
+                if(valueList != null) {
+                    Collection collection = (Collection) TReflect.newInstance(mainClazz);
+                    collection.addAll(valueList);
+                    ret = collection;
+                }
             } else {
                 ret = jsonPath.value("/V", mainClazz);
             }
