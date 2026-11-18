@@ -37,7 +37,7 @@ public class AnnotationRouter implements HttpRouter {
     //是否预编译路由
     public final static boolean PRE_BUILDER_ROUTER = TEnv.getSystemProperty("PrebuildRouter", false);
 
-    public static final List<RouterInfo> ROUTER_INFO_LIST = new ArrayList<RouterInfo>();
+    public static final Set<RouterInfo> ROUTER_INFO_LIST = new LinkedHashSet<RouterInfo>();
 
     private static Map<Class, Object> singletonObjs = new ConcurrentHashMap<Class, Object>();
 
